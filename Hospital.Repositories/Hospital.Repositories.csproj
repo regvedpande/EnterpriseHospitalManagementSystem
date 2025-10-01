@@ -12,4 +12,8 @@
     <PackageReference Include="System.Diagnostics.Tools" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Hospital.Models\Hospital.Models.csproj" />
+  </ItemGroup>
+
 </Project>
