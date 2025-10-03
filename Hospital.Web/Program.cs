@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Hospital.Utilities;
 using Hospital.Repositories.Implementation;
-using Hospital.Models; // For ApplicationUser
+using Hospital.Models;
+using Microsoft.AspNetCore.Identity.UI.Services; // For ApplicationUser
 
 namespace Hospital.Web
 {
@@ -27,6 +28,8 @@ namespace Hospital.Web
 
             // Register custom services (scoped/transient as appropriate)
             builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+            builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
             // Add support for Razor Pages (for Identity UI)
@@ -58,7 +61,7 @@ namespace Hospital.Web
             app.MapRazorPages();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{area=Patient}/{controller=Home}/{action=Index}/{id?}");
+                pattern: "{Area=Patient}/{controller=Home}/{action=Index}/{id?}");
 
             // Run the app
             app.Run();
