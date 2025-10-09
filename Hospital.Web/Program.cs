@@ -5,6 +5,7 @@ using Hospital.Utilities;
 using Hospital.Repositories.Implementation;
 using Hospital.Models;
 using Microsoft.AspNetCore.Identity.UI.Services; // For ApplicationUser
+using Hospital.Services;
 
 namespace Hospital.Web
 {
@@ -31,6 +32,7 @@ namespace Hospital.Web
             builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddTransient<IHospitalInfo, HospitalInfoService>();
 
             // Add support for Razor Pages (for Identity UI)
             builder.Services.AddRazorPages();
