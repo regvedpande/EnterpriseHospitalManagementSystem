@@ -9,6 +9,7 @@ namespace Hospital.Repositories.Implementation
 {
     public interface IUnitOfWork
     {
+        object GenericRepository<T>();
         IGenericRepository<T> Repository<T>() where T : class;
         void Save();
     }
