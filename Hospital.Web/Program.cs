@@ -33,6 +33,7 @@ namespace Hospital.Web
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
             builder.Services.AddTransient<IHospitalInfo, HospitalInfoService>();
+            builder.Services.AddTransient<IRoomService, RoomService>();
 
             // Add support for Razor Pages (for Identity UI)
             builder.Services.AddRazorPages();
@@ -63,7 +64,7 @@ namespace Hospital.Web
             app.MapRazorPages();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{Area=Patient}/{controller=Home}/{action=Index}/{id?}");
+                pattern: "{Area=admin}/{controller=Hospitals}/{action=Index}/{id?}");
 
             // Run the app
             app.Run();
