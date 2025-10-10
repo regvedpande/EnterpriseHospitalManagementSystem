@@ -7,6 +7,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="cloudscribe.Web.Common" Version="8.5.0" />
+		<PackageReference Include="cloudscribe.Web.Pagination" Version="8.5.0" />
 		<PackageReference Include="Habanero" Version="3.0.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.20" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.20" />
@@ -23,7 +25,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Areas\Admin\Views\" />
 		<Folder Include="Areas\Doctor\Controllers\" />
 		<Folder Include="Areas\Doctor\Views\" />
 	</ItemGroup>

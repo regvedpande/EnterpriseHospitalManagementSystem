@@ -18,31 +18,31 @@ namespace Hospital.Services
             _unitOfWork = unitOfWork;
         }
 
-        public HospitalInfoViewModel DeleteHospitalInfo(int id)
+        public ViewModels.HospitalInfoViewModel DeleteHospitalInfo(int id)
         {
-            var model = _unitOfWork.GenericRepository<HospitalInfo>().GetById(id);
+            var model = _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().GetById(id);
             if (model != null)
             {
-                _unitOfWork.GenericRepository<HospitalInfo>().Delete(model);
+                _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().Delete(model);
                 _unitOfWork.Save();
-                return new HospitalInfoViewModel(model);
+                return new ViewModels.HospitalInfoViewModel(model);
             }
             return null;
         }
 
-        public PagedResult<HospitalInfoViewModel> GetAll(int pageNumber, int pageSize)
+        public PagedResult<ViewModels.HospitalInfoViewModel> GetAll(int pageNumber, int pageSize)
         {
             int totalCount = 0;
-            List<HospitalInfoViewModel> vmList = new List<HospitalInfoViewModel>();
+            List<ViewModels.HospitalInfoViewModel> vmList = new List<ViewModels.HospitalInfoViewModel>();
 
             try
             {
                 int ExcludeRecords = (pageSize * pageNumber) - pageSize;
 
-                var modelList = _unitOfWork.GenericRepository<HospitalInfo>().GetAll()
+                var modelList = _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().GetAll()
                     .Skip(ExcludeRecords).Take(pageSize).ToList();
 
-                totalCount = _unitOfWork.GenericRepository<HospitalInfo>().GetAll().Count();
+                totalCount = _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().GetAll().Count();
 
                 vmList = ConvertModelToViewModelList(modelList);
             }
@@ -51,7 +51,7 @@ namespace Hospital.Services
                 // Optionally log or handle exception
             }
 
-            var Result = new PagedResult<HospitalInfoViewModel>()
+            var Result = new PagedResult<ViewModels.HospitalInfoViewModel>()
             {
                 Data = vmList,
                 PageNumber = pageNumber,
@@ -61,25 +61,25 @@ namespace Hospital.Services
             return Result;
         }
 
-        public HospitalInfoViewModel GetHospitalbyId(int HospitalId)
+        public ViewModels.HospitalInfoViewModel GetHospitalbyId(int HospitalId)
         {
-            var model = _unitOfWork.GenericRepository<HospitalInfo>().GetById(HospitalId);
-            var vm = new HospitalInfoViewModel(model);
+            var model = _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().GetById(HospitalId);
+            var vm = new ViewModels.HospitalInfoViewModel(model);
             return vm;
         }
 
-        public HospitalInfoViewModel InsertHospitalInfo(HospitalInfoViewModel model)
+        public ViewModels.HospitalInfoViewModel InsertHospitalInfo(ViewModels.HospitalInfoViewModel model)
         {
-            var hospitalModel = new HospitalInfoViewModel().ConvertViewModel(model);
-            _unitOfWork.GenericRepository<HospitalInfo>().AddAsync(hospitalModel);
+            var hospitalModel = new ViewModels.HospitalInfoViewModel().ConvertViewModel(model);
+            _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().AddAsync(hospitalModel);
             _unitOfWork.Save();
-            return new HospitalInfoViewModel(hospitalModel);
+            return new ViewModels.HospitalInfoViewModel(hospitalModel);
         }
 
-        public HospitalInfoViewModel UpdateHospitalInfo(HospitalInfoViewModel model)
+        public ViewModels.HospitalInfoViewModel UpdateHospitalInfo(ViewModels.HospitalInfoViewModel model)
         {
-            var hospitalModel = new HospitalInfoViewModel().ConvertViewModel(model);
-            var ModelById = _unitOfWork.GenericRepository<HospitalInfo>().GetById(hospitalModel.Id);
+            var hospitalModel = new ViewModels.HospitalInfoViewModel().ConvertViewModel(model);
+            var ModelById = _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().GetById(hospitalModel.Id);
 
             if (ModelById != null)
             {
@@ -88,16 +88,16 @@ namespace Hospital.Services
                 ModelById.Country = hospitalModel.Country;
                 ModelById.PinCode = hospitalModel.PinCode;
 
-                _unitOfWork.GenericRepository<HospitalInfo>().Update(ModelById);
+                _unitOfWork.GenericRepository<Models.HospitalInfoViewModel>().Update(ModelById);
                 _unitOfWork.Save();
             }
 
-            return new HospitalInfoViewModel(ModelById);
+            return new ViewModels.HospitalInfoViewModel(ModelById);
         }
 
-        private List<HospitalInfoViewModel> ConvertModelToViewModelList(List<HospitalInfo> modelList)
+        private List<ViewModels.HospitalInfoViewModel> ConvertModelToViewModelList(List<Models.HospitalInfoViewModel> modelList)
         {
-            return modelList.Select(x => new HospitalInfoViewModel(x)).ToList();
+            return modelList.Select(x => new ViewModels.HospitalInfoViewModel(x)).ToList();
         }
     }
 }

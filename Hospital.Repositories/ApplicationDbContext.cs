@@ -20,7 +20,7 @@ namespace Hospital.Repositories
         public DbSet<Bill> Bills { get; set; }
         public DbSet<Contact> Contacts { get; set; }
         public DbSet<Department> Departments { get; set; }
-        public DbSet<HospitalInfo> Hospitals { get; set; }
+        public DbSet<HospitalInfoViewModel> Hospitals { get; set; }
         public DbSet<Insurance> Insurances { get; set; }
         public DbSet<Lab> Labs { get; set; }
         public DbSet<Medicine> Medicines { get; set; }

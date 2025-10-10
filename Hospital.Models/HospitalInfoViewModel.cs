@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Hospital.Models
 {
-    public class HospitalInfo
+    public class HospitalInfoViewModel
     {
         public int Id { get; set; }
         public string Name { get; set; }

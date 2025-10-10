@@ -6,4 +6,9 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="cloudscribe.Web.Common" Version="8.5.0" />
+	  <PackageReference Include="cloudscribe.Web.Pagination" Version="8.5.0" />
+	</ItemGroup>
+
 </Project>
