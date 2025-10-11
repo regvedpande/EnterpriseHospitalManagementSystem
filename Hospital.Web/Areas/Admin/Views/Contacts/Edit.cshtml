@@ -1,0 +1,59 @@
+﻿@model RoomViewModel
+
+@{
+    ViewData["Title"] = "Edit Room";
+}
+
+<h1>Edit Room</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="RoomNumber" class="control-label"></label>
+                <input asp-for="RoomNumber" class="form-control" />
+                <span asp-validation-for="RoomNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Type" class="control-label"></label>
+                <input asp-for="Type" class="form-control" />
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="control-label"></label>
+                <input asp-for="Status" class="form-control" />
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <input asp-for="HospitalInfo" class="form-check-input" />
+                <label asp-for="HospitalInfo" class="form-check-label"></label>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<!-- Pagination Section -->
+<cs-pager 
+    cs-paging-pagesize=(int)Model.PageSize
+    cs-paging-pagenumber=(int)Model.PageNumber
+    cs-paging-totalitems=(int)Model.TotalItems
+    cs-pagenumber-param="pageNumber"
+    asp-controller="Hospitals"
+    asp-action="Index"
+    cs-pager-li-current-class="page-item active"
+    cs-pager-li-other-class="page-item"
+    cs-pager-li-non-active-class="page-item disabled"
+    cs-pager-link-current-class="page-link"
+    cs-pager-link-other-class="page-link">
+</cs-pager>

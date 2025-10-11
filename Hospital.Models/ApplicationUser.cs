@@ -19,12 +19,14 @@ namespace Hospital.Models
         public DateTime DOB { get; set; }
 
         public string Specialist { get; set; }
+        public bool IsDoctor { get; set; }
 
         public string MyProperty { get; set; }
         public Department Department { get; set; }
 
         public ICollection<Appointment> Appointments { get; set; }
         public ICollection<Payroll> Payrolls { get; set; }
+        public ICollection<PatientReport> PatientReports { get; set; }
 
 
     }
