@@ -30,4 +30,8 @@
 		<Folder Include="Areas\Doctor\Views\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Include="Areas\Admin\Controllers\ContactsController.cs" />
+	</ItemGroup>
+
 </Project>
