@@ -20,6 +20,7 @@ namespace Hospital.Models
 
         public string Specialist { get; set; }
         public bool IsDoctor { get; set; }
+        public string PictureUri { get; set; }
 
         public string MyProperty { get; set; }
         public Department Department { get; set; }
