@@ -12,6 +12,8 @@ namespace Hospital.ViewModels
         public List<ApplicationUser> Doctors { get; set; } = new List<ApplicationUser>();
 
         public string Name { get; set; }
+        public string Email { get; set; }
+        public string UserName { get; set; }
         public string City { get; set; }
         public string Gender { get; set; }
         public bool IsDoctor { get; set; }
@@ -27,6 +29,8 @@ namespace Hospital.ViewModels
             Gender = user.Gender;
             IsDoctor = user.IsDoctor;
             Specialist = user.Specialist;
+            UserName = user.UserName;
+            Email = user.Email;
         }
 
         public ApplicationUser ConvertViewModelToModel(ApplicationUserViewModel user)
@@ -38,7 +42,11 @@ namespace Hospital.ViewModels
                 Gender = user.Gender,
                 IsDoctor = user.IsDoctor,
                 Specialist = user.Specialist
+                Email = user.Email,
+                UserName = user.UserName
             };
         }
+
+        public List<ApplicationUser> Doctors { get; set; } = new List<ApplicationUser>();
     }
 }
