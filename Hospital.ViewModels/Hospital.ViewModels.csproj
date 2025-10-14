@@ -11,4 +11,8 @@
 	  <PackageReference Include="cloudscribe.Web.Pagination" Version="8.5.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Hospital.Models\Hospital.Models.csproj" />
+	</ItemGroup>
+
 </Project>
