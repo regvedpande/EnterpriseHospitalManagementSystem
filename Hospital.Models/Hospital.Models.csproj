@@ -9,6 +9,7 @@
 	<ItemGroup>
 		<PackageReference Include="cloudscribe.Web.Common" Version="8.5.0" />
 		<PackageReference Include="cloudscribe.Web.Pagination" Version="8.5.0" />
+		<PackageReference Include="Grpc.Core.Api" Version="2.71.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.20" />
 	</ItemGroup>
 
