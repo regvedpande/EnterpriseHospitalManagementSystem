@@ -26,11 +26,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Areas\Doctor\Controllers\" />
-		<Folder Include="Areas\Doctor\Views\" />
-	</ItemGroup>
-
-	<ItemGroup>
 	  <None Include="Areas\Admin\Controllers\ContactsController.cs" />
 	</ItemGroup>
 

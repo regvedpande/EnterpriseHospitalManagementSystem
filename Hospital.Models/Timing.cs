@@ -1,37 +1,29 @@
-﻿using System;
-using Grpc.Core;
+﻿using Grpc.Core;
 using Hospital.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Hospital.Models
+namespace Hospital.ViewModels
 {
-    public class Timing
+    public class TimingViewModel
     {
         public int Id { get; set; }
-
-        // Doctor reference (assuming ApplicationUser is your Identity user)
-        public string DoctorId { get; set; }
-        public ApplicationUser Doctor { get; set; }
-
-        public DateTime Date { get; set; }
-
-        public DateTime MorningShiftStartTime { get; set; }
-        public DateTime MorningShiftEndTime { get; set; }
-
-        public DateTime AfternoonShiftStartTime { get; set; }
-        public DateTime AfternoonShiftEndTime { get; set; }
-
+        public int DoctorId { get; set; }
+        public DateTime ScheduleDate { get; set; }
+        public int MorningShiftStartTime { get; set; }
+        public int MorningShiftEndTime { get; set; }
+        public int AfternoonShiftStartTime { get; set; }
+        public int AfternoonShiftEndTime { get; set; }
         public int Duration { get; set; }
-
         public Status Status { get; set; }
 
-    } 
-}
+        public List<SelectListItem> morningShiftStart { get; } = new List<SelectListItem>();
+        public List<SelectListItem> morningShiftEnd { get; } = new List<SelectListItem>();
+        public List<SelectListItem> AfternoonShiftStart { get; } = new List<SelectListItem>();
+        public List<SelectListItem> AfternoonShiftEnd { get; } = new List<SelectListItem>();
 
-namespace Hospital.Models
-{
-    public enum Status
-    {
-        Available,Pending,Confirm
+        public ApplicationUser Doctor { get; set; }
     }
 }
-        // Default constructor

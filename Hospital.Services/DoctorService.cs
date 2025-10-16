@@ -77,12 +77,26 @@ public class DoctorService : IDoctorService
 
     public TimingViewModel GetTimingById(int TimingId)
     {
-        throw new NotImplementedException();
+        var model = _unitOfWork.GenericRepository<Timing>().GetById(TimingId);
+        var vm = new TimingViewModel().ConvertViewModel(model);
+        return vm;
     }
 
     public void UpdateTiming(TimingViewModel timing)
     {
-        throw new NotImplementedException();
+        var model = new TimingViewModel().ConvertViewModel(timing);
+        var ModelById = _unitOfWork.GenericRepository<Timing>().GetById(model.Id);
+        ModelById.Id = timing.Id;
+        ModelById.DoctorId = timing.DoctorId;
+        ModelById.Status = timing.Status;
+        ModelById.Duration = timing.Duration;
+        ModelById.MorningShiftStartTime = timing.MorningShiftStartTime;
+        ModelById.MorningShiftEndTime = timing.MorningShiftEndTime;
+        ModelById.AfternoonShiftStartTime = timing.AfternoonShiftStartTime;
+        ModelById.AfternoonShiftEndTime = timing.AfternoonShiftEndTime;
+
+        _unitOfWork.GenericRepository<Timing>().Update(ModelById);
+        _unitOfWork.Save();
     }
 
     public void UpdateTiming(TimingViewModel timing)
