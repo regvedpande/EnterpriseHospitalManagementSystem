@@ -1,10 +1,9 @@
 ﻿using cloudscribe.Pagination.Models;
-using EnterpriseHospitalManagement.Hospital.Services.Interfaces;
-using EnterpriseHospitalManagement.Hospital.ViewModels;
+using Hospital.Utilities;
 using Hospital.Models;
 using Hospital.Repositories;
+using Hospital.Services.Interfaces;
 using Hospital.ViewModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
