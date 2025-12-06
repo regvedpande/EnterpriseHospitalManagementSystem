@@ -15,32 +15,42 @@ namespace Hospital.ViewModels
         public string DoctorId { get; set; }
 
         [Required]
+        [Display(Name = "Schedule Date")]
+        [DataType(DataType.Date)]
         public DateTime ScheduleDate { get; set; }
 
         [Required]
+        [Display(Name = "Morning Start (24h)")]
         public int MorningShiftStartTime { get; set; }
 
         [Required]
+        [Display(Name = "Morning End (24h)")]
         public int MorningShiftEndTime { get; set; }
 
         [Required]
+        [Display(Name = "Afternoon Start (24h)")]
         public int AfternoonShiftStartTime { get; set; }
 
         [Required]
+        [Display(Name = "Afternoon End (24h)")]
         public int AfternoonShiftEndTime { get; set; }
 
         [Required]
+        [Display(Name = "Slot Duration (minutes)")]
         public int Duration { get; set; }
 
         [Required]
+        [Display(Name = "Status")]
         public Status Status { get; set; }
 
-        public List<SelectListItem> MorningShiftStart { get; set; } = new List<SelectListItem>();
-        public List<SelectListItem> MorningShiftEnd { get; set; } = new List<SelectListItem>();
-        public List<SelectListItem> AfternoonShiftStart { get; set; } = new List<SelectListItem>();
-        public List<SelectListItem> AfternoonShiftEnd { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> MorningShiftStart { get; set; } = new();
+        public List<SelectListItem> MorningShiftEnd { get; set; } = new();
+        public List<SelectListItem> AfternoonShiftStart { get; set; } = new();
+        public List<SelectListItem> AfternoonShiftEnd { get; set; } = new();
 
-        public TimingViewModel() { }
+        public TimingViewModel()
+        {
+        }
 
         public TimingViewModel(Timing model)
         {

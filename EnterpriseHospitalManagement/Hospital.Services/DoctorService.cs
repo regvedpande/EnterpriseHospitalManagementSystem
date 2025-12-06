@@ -1,10 +1,8 @@
 ﻿using cloudscribe.Pagination.Models;
-using EnterpriseHospitalManagement.Hospital.ViewModels;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
 using Hospital.ViewModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,14 +19,17 @@ namespace Hospital.Services
 
         public PagedResult<TimingViewModel> GetAllTimings(int pageNumber, int pageSize)
         {
-            int totalCount;
-            var modelList = _unitOfWork.Repository<Timing>()
+            var query = _unitOfWork.Repository<Timing>()
                 .GetAll(includeProperties: "Doctor")
+                .AsQueryable();
+
+            var totalCount = query.Count();
+            var modelList = query
+                .OrderBy(t => t.ScheduleDate)
+                .ThenBy(t => t.MorningShiftStartTime)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            totalCount = _unitOfWork.Repository<Timing>().GetAll().Count();
 
             var vmList = ConvertModelToViewModelList(modelList);
 
@@ -44,7 +45,7 @@ namespace Hospital.Services
         public TimingViewModel GetTimingById(int timingId)
         {
             var model = _unitOfWork.Repository<Timing>().GetById(timingId);
-            return new TimingViewModel(model);
+            return model == null ? null : new TimingViewModel(model);
         }
 
         public void AddTiming(TimingViewModel timing)
@@ -64,8 +65,11 @@ namespace Hospital.Services
         public void DeleteTiming(int timingId)
         {
             var model = _unitOfWork.Repository<Timing>().GetById(timingId);
-            _unitOfWork.Repository<Timing>().Delete(model);
-            _unitOfWork.Save();
+            if (model != null)
+            {
+                _unitOfWork.Repository<Timing>().Delete(model);
+                _unitOfWork.Save();
+            }
         }
 
         private List<TimingViewModel> ConvertModelToViewModelList(List<Timing> modelList)

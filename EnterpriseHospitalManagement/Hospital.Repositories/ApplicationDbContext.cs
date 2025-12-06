@@ -1,7 +1,6 @@
 ﻿using Hospital.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 
 namespace Hospital.Repositories
 {
@@ -26,5 +25,35 @@ namespace Hospital.Repositories
         public DbSet<PrescribedMedicine> PrescribedMedicines { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<Timing> Timings { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            builder.Entity<Appointment>()
+                .HasOne(a => a.Doctor)
+                .WithMany(d => d.AppointmentsAsDoctor)
+                .HasForeignKey(a => a.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Appointment>()
+                .HasOne(a => a.Patient)
+                .WithMany(p => p.AppointmentsAsPatient)
+                .HasForeignKey(a => a.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PatientReport>()
+                .HasOne(pr => pr.Doctor)
+                .WithMany(d => d.PatientReportsAsDoctor)
+                .HasForeignKey(pr => pr.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PatientReport>()
+                .HasOne(pr => pr.Patient)
+                .WithMany(p => p.PatientReportsAsPatient)
+                .HasForeignKey(pr => pr.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

@@ -1,10 +1,8 @@
 ﻿using cloudscribe.Pagination.Models;
-using EnterpriseHospitalManagement.Hospital.ViewModels;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
 using Hospital.ViewModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,14 +19,16 @@ namespace Hospital.Services
 
         public PagedResult<RoomViewModel> GetAll(int pageNumber, int pageSize)
         {
-            int totalCount;
-            var modelList = _unitOfWork.Repository<Room>()
+            var query = _unitOfWork.Repository<Room>()
                 .GetAll(includeProperties: "Hospital")
+                .AsQueryable();
+
+            var totalCount = query.Count();
+            var modelList = query
+                .OrderBy(r => r.RoomNumber)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            totalCount = _unitOfWork.Repository<Room>().GetAll().Count();
 
             var vmList = ConvertModelToViewModelList(modelList);
 
@@ -44,7 +44,7 @@ namespace Hospital.Services
         public RoomViewModel GetRoomById(int roomId)
         {
             var model = _unitOfWork.Repository<Room>().GetById(roomId);
-            return new RoomViewModel(model);
+            return model == null ? null : new RoomViewModel(model);
         }
 
         public void InsertRoom(RoomViewModel room)
@@ -64,8 +64,11 @@ namespace Hospital.Services
         public void DeleteRoom(int id)
         {
             var model = _unitOfWork.Repository<Room>().GetById(id);
-            _unitOfWork.Repository<Room>().Delete(model);
-            _unitOfWork.Save();
+            if (model != null)
+            {
+                _unitOfWork.Repository<Room>().Delete(model);
+                _unitOfWork.Save();
+            }
         }
 
         private List<RoomViewModel> ConvertModelToViewModelList(List<Room> modelList)

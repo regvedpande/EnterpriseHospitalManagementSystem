@@ -11,6 +11,7 @@ namespace Hospital.Repositories
     {
         private readonly ApplicationDbContext _context;
         internal DbSet<T> dbSet;
+        private bool _disposed;
 
         public GenericRepository(ApplicationDbContext context)
         {
@@ -35,6 +36,7 @@ namespace Hospital.Repositories
             {
                 dbSet.Attach(entity);
             }
+
             dbSet.Remove(entity);
         }
 
@@ -44,7 +46,9 @@ namespace Hospital.Repositories
             {
                 dbSet.Attach(entity);
             }
+
             dbSet.Remove(entity);
+            await Task.CompletedTask;
         }
 
         public IEnumerable<T> GetAll(
@@ -59,20 +63,13 @@ namespace Hospital.Repositories
                 query = query.Where(filter);
             }
 
-            foreach (var includeProperty in includeProperties.Split
-                (new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (var includeProperty in includeProperties.Split(
+                         new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 query = query.Include(includeProperty);
             }
 
-            if (orderBy != null)
-            {
-                return orderBy(query).ToList();
-            }
-            else
-            {
-                return query.ToList();
-            }
+            return orderBy != null ? orderBy(query).ToList() : query.ToList();
         }
 
         public T GetById(object id)
@@ -99,24 +96,23 @@ namespace Hospital.Repositories
             return entity;
         }
 
-        private bool disposed = false;
-
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposed)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     _context.Dispose();
                 }
+
+                _disposed = true;
             }
-            this.disposed = true;
         }
     }
 }

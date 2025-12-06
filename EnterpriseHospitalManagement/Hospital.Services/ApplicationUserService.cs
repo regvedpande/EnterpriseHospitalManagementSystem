@@ -3,7 +3,6 @@ using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
 using Hospital.ViewModels;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,14 +19,13 @@ namespace Hospital.Services
 
         public PagedResult<ApplicationUserViewModel> GetAll(int pageNumber, int pageSize)
         {
-            int totalCount;
-            var modelList = _unitOfWork.Repository<ApplicationUser>()
-                .GetAll()
+            var query = _unitOfWork.Repository<ApplicationUser>().GetAll().AsQueryable();
+
+            var totalCount = query.Count();
+            var modelList = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            totalCount = _unitOfWork.Repository<ApplicationUser>().GetAll().Count();
 
             var vmList = ConvertModelToViewModelList(modelList);
 
@@ -42,14 +40,15 @@ namespace Hospital.Services
 
         public PagedResult<ApplicationUserViewModel> GetAllDoctors(int pageNumber, int pageSize)
         {
-            int totalCount;
-            var modelList = _unitOfWork.Repository<ApplicationUser>()
+            var query = _unitOfWork.Repository<ApplicationUser>()
                 .GetAll(u => u.IsDoctor)
+                .AsQueryable();
+
+            var totalCount = query.Count();
+            var modelList = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            totalCount = _unitOfWork.Repository<ApplicationUser>().GetAll(u => u.IsDoctor).Count();
 
             var vmList = ConvertModelToViewModelList(modelList);
 
@@ -64,14 +63,15 @@ namespace Hospital.Services
 
         public PagedResult<ApplicationUserViewModel> GetAllPatients(int pageNumber, int pageSize)
         {
-            int totalCount;
-            var modelList = _unitOfWork.Repository<ApplicationUser>()
+            var query = _unitOfWork.Repository<ApplicationUser>()
                 .GetAll(u => !u.IsDoctor)
+                .AsQueryable();
+
+            var totalCount = query.Count();
+            var modelList = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            totalCount = _unitOfWork.Repository<ApplicationUser>().GetAll(u => !u.IsDoctor).Count();
 
             var vmList = ConvertModelToViewModelList(modelList);
 
@@ -86,16 +86,15 @@ namespace Hospital.Services
 
         public PagedResult<ApplicationUserViewModel> SearchDoctors(int pageNumber, int pageSize, string specialty = null)
         {
-            int totalCount;
             var query = _unitOfWork.Repository<ApplicationUser>()
-                .GetAll(u => u.IsDoctor && (string.IsNullOrEmpty(specialty) || u.Specialist == specialty));
+                .GetAll(u => u.IsDoctor && (string.IsNullOrEmpty(specialty) || u.Specialist == specialty))
+                .AsQueryable();
 
+            var totalCount = query.Count();
             var modelList = query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            totalCount = query.Count();
 
             var vmList = ConvertModelToViewModelList(modelList);
 

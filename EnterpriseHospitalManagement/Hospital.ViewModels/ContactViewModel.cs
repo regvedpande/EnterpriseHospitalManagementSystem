@@ -9,16 +9,21 @@ namespace Hospital.ViewModels
 
         [Required]
         [EmailAddress]
+        [Display(Name = "Email Address")]
         public string Email { get; set; }
 
         [Required]
         [Phone]
+        [Display(Name = "Phone Number")]
         public string Phone { get; set; }
 
         [Required]
+        [Display(Name = "Hospital")]
         public int HospitalInfoId { get; set; }
 
-        public ContactViewModel() { }
+        public ContactViewModel()
+        {
+        }
 
         public ContactViewModel(Contact model)
         {

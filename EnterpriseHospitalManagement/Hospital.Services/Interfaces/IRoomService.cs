@@ -1,6 +1,4 @@
 ﻿using cloudscribe.Pagination.Models;
-using EnterpriseHospitalManagement.Hospital.ViewModels;
-using Hospital.Utilities;
 using Hospital.ViewModels;
 
 namespace Hospital.Services.Interfaces

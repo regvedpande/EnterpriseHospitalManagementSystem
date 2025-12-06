@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Http;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace Hospital.Utilities
 {
@@ -17,17 +16,23 @@ namespace Hospital.Utilities
 
         public string ImageUpload(IFormFile file)
         {
-            string fileName = null;
-            if (file != null)
+            if (file == null || file.Length == 0)
+                return null;
+
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "images");
+            if (!Directory.Exists(uploadsFolder))
             {
-                string uploadsFolder = Path.Combine(_env.WebRootPath, "images");
-                fileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-                string filePath = Path.Combine(uploadsFolder, fileName);
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    file.CopyTo(fileStream);
-                }
+                Directory.CreateDirectory(uploadsFolder);
             }
+
+            var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            {
+                file.CopyTo(fileStream);
+            }
+
             return fileName;
         }
     }

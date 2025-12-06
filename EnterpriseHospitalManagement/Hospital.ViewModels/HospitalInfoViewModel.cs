@@ -8,21 +8,28 @@ namespace Hospital.ViewModels
         public int Id { get; set; }
 
         [Required]
+        [Display(Name = "Hospital Name")]
         public string Name { get; set; }
 
         [Required]
+        [Display(Name = "Type")]
         public string Type { get; set; }
 
         [Required]
+        [Display(Name = "City")]
         public string City { get; set; }
 
         [Required]
+        [Display(Name = "Pin Code")]
         public string PinCode { get; set; }
 
         [Required]
+        [Display(Name = "Country")]
         public string Country { get; set; }
 
-        public HospitalInfoViewModel() { }
+        public HospitalInfoViewModel()
+        {
+        }
 
         public HospitalInfoViewModel(HospitalInfo model)
         {

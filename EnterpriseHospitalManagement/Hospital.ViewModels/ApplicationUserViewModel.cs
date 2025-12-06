@@ -14,7 +14,9 @@ namespace Hospital.ViewModels
         public bool IsDoctor { get; set; }
         public string Specialist { get; set; }
 
-        public ApplicationUserViewModel() { }
+        public ApplicationUserViewModel()
+        {
+        }
 
         public ApplicationUserViewModel(ApplicationUser user)
         {

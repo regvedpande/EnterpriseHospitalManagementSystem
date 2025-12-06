@@ -1,10 +1,13 @@
 ﻿using Hospital.Services.Interfaces;
+using Hospital.Utilities;
 using Hospital.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hospital.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = WebSiteRoles.Website_Admin)]
     public class HospitalsController : Controller
     {
         private readonly IHospitalInfoService _hospitalService;
@@ -16,13 +19,14 @@ namespace Hospital.Web.Areas.Admin.Controllers
 
         public IActionResult Index(int pageNumber = 1, int pageSize = 10)
         {
-            return View(_hospitalService.GetAll(pageNumber, pageSize));
+            var model = _hospitalService.GetAll(pageNumber, pageSize);
+            return View(model);
         }
 
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return View(new HospitalInfoViewModel());
         }
 
         [HttpPost]
@@ -32,8 +36,10 @@ namespace Hospital.Web.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 _hospitalService.InsertHospitalInfo(vm);
-                return RedirectToAction("Index");
+                TempData["success"] = "Hospital created successfully.";
+                return RedirectToAction(nameof(Index));
             }
+
             return View(vm);
         }
 
@@ -41,6 +47,10 @@ namespace Hospital.Web.Areas.Admin.Controllers
         public IActionResult Edit(int id)
         {
             var vm = _hospitalService.GetHospitalById(id);
+            if (vm == null)
+            {
+                return NotFound();
+            }
             return View(vm);
         }
 
@@ -51,15 +61,20 @@ namespace Hospital.Web.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 _hospitalService.UpdateHospitalInfo(vm);
-                return RedirectToAction("Index");
+                TempData["success"] = "Hospital updated successfully.";
+                return RedirectToAction(nameof(Index));
             }
+
             return View(vm);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
             _hospitalService.DeleteHospitalInfo(id);
-            return RedirectToAction("Index");
+            TempData["success"] = "Hospital deleted successfully.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using cloudscribe.Pagination.Models;
-using Hospital.Utilities;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
@@ -20,14 +19,16 @@ namespace Hospital.Services
 
         public PagedResult<HospitalInfoViewModel> GetAll(int pageNumber, int pageSize)
         {
-            int totalCount;
-            var modelList = _unitOfWork.Repository<HospitalInfo>()
+            var query = _unitOfWork.Repository<HospitalInfo>()
                 .GetAll()
+                .AsQueryable();
+
+            var totalCount = query.Count();
+            var modelList = query
+                .OrderBy(h => h.Name)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
-
-            totalCount = _unitOfWork.Repository<HospitalInfo>().GetAll().Count();
 
             var vmList = ConvertModelToViewModelList(modelList);
 
@@ -43,7 +44,7 @@ namespace Hospital.Services
         public HospitalInfoViewModel GetHospitalById(int hospitalId)
         {
             var model = _unitOfWork.Repository<HospitalInfo>().GetById(hospitalId);
-            return new HospitalInfoViewModel(model);
+            return model == null ? null : new HospitalInfoViewModel(model);
         }
 
         public void InsertHospitalInfo(HospitalInfoViewModel hospital)
@@ -63,8 +64,11 @@ namespace Hospital.Services
         public void DeleteHospitalInfo(int id)
         {
             var model = _unitOfWork.Repository<HospitalInfo>().GetById(id);
-            _unitOfWork.Repository<HospitalInfo>().Delete(model);
-            _unitOfWork.Save();
+            if (model != null)
+            {
+                _unitOfWork.Repository<HospitalInfo>().Delete(model);
+                _unitOfWork.Save();
+            }
         }
 
         private List<HospitalInfoViewModel> ConvertModelToViewModelList(List<HospitalInfo> modelList)

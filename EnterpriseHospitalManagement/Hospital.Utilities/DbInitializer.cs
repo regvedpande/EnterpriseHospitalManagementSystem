@@ -1,11 +1,10 @@
-﻿using EnterpriseHospitalManagement.Hospital.Utilities;
+﻿using System;
+using System.Linq;
 using Hospital.Models;
 using Hospital.Models.Enums;
 using Hospital.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
 
 namespace Hospital.Utilities
 {
@@ -29,7 +28,7 @@ namespace Hospital.Utilities
         {
             try
             {
-                if (_context.Database.GetPendingMigrations().Count() > 0)
+                if (_context.Database.GetPendingMigrations().Any())
                 {
                     _context.Database.Migrate();
                 }
@@ -39,28 +38,33 @@ namespace Hospital.Utilities
                 throw;
             }
 
-            if (!_roleManager.RoleExistsAsync(WebSiteRoles.Website_Admin).GetAwaiter().GetResult())
+            if (_roleManager.RoleExistsAsync(WebSiteRoles.Website_Admin).GetAwaiter().GetResult())
             {
-                _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Admin)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Patient)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Doctor)).GetAwaiter().GetResult();
+                return; // DB already seeded
+            }
 
-                _userManager.CreateAsync(new ApplicationUser
-                {
-                    UserName = "admin@example.com",
-                    Email = "admin@example.com",
-                    Name = "Admin User",
-                    Address = "Admin Address",
-                    DOB = DateTime.Now.AddYears(-30),
-                    Gender = Gender.Male,
-                    IsDoctor = false
-                }, "Admin@123").GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Admin)).GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Patient)).GetAwaiter().GetResult();
+            _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Doctor)).GetAwaiter().GetResult();
 
-                var adminUser = _context.Users.FirstOrDefault(u => u.Email == "admin@example.com");
-                if (adminUser != null)
-                {
-                    _userManager.AddToRoleAsync(adminUser, WebSiteRoles.Website_Admin).GetAwaiter().GetResult();
-                }
+            var admin = new ApplicationUser
+            {
+                UserName = "admin@example.com",
+                Email = "admin@example.com",
+                Name = "System Administrator",
+                Address = "Head Office",
+                DOB = DateTime.Now.AddYears(-30),
+                Gender = Gender.Male,
+                IsDoctor = false,
+                EmailConfirmed = true
+            };
+
+            _userManager.CreateAsync(admin, "Admin@123").GetAwaiter().GetResult();
+
+            var adminUser = _context.Users.FirstOrDefault(u => u.Email == "admin@example.com");
+            if (adminUser != null)
+            {
+                _userManager.AddToRoleAsync(adminUser, WebSiteRoles.Website_Admin).GetAwaiter().GetResult();
             }
         }
     }

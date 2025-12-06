@@ -6,7 +6,7 @@ namespace Hospital.Repositories
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
-        private bool disposed = false;
+        private bool _disposed;
 
         public UnitOfWork(ApplicationDbContext context)
         {
@@ -34,16 +34,17 @@ namespace Hospital.Repositories
             GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposed)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     _context.Dispose();
                 }
+
+                _disposed = true;
             }
-            this.disposed = true;
         }
     }
 }

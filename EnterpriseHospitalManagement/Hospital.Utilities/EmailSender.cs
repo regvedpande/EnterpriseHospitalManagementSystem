@@ -7,7 +7,7 @@ namespace Hospital.Utilities
     {
         public Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            // Implement email sending logic here
+            // TODO: Plug in SMTP / SendGrid / other email provider here
             return Task.CompletedTask;
         }
     }

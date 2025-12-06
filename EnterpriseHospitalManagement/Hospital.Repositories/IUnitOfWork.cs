@@ -1,4 +1,7 @@
-﻿namespace Hospital.Repositories
+﻿using System;
+using System.Threading.Tasks;
+
+namespace Hospital.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {
