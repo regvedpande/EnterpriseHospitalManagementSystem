@@ -1,4 +1,5 @@
-﻿using System;
+﻿// UnitOfWork.cs
+using System;
 using System.Threading.Tasks;
 
 namespace Hospital.Repositories
@@ -13,36 +14,22 @@ namespace Hospital.Repositories
             _context = context;
         }
 
-        public IGenericRepository<T> Repository<T>() where T : class
-        {
-            return new GenericRepository<T>(_context);
-        }
+        public IGenericRepository<T> Repository<T>() where T : class => new GenericRepository<T>(_context);
 
-        public void Save()
-        {
-            _context.SaveChanges();
-        }
+        public void Save() => _context.SaveChanges();
 
-        public async Task SaveAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
+        public async Task SaveAsync() => await _context.SaveChangesAsync();
 
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)
             {
-                if (disposing)
-                {
-                    _context.Dispose();
-                }
-
+                if (disposing) _context.Dispose();
                 _disposed = true;
             }
         }

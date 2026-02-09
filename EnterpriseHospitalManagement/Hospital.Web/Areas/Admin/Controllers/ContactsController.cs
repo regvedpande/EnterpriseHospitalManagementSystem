@@ -75,5 +75,20 @@ namespace Hospital.Web.Areas.Admin.Controllers
             TempData["success"] = "Contact deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpGet]
+        public IActionResult ExportCsv()
+        {
+            var bytes = _contactService.ExportContactsCsv();
+            return File(bytes, "text/csv", "contacts.csv");
+        }
+
+        [HttpGet]
+        public IActionResult ExportPdf()
+        {
+            var bytes = _contactService.ExportContactsPdf();
+            return File(bytes, "application/pdf", "contacts.pdf");
+        }
+
     }
 }

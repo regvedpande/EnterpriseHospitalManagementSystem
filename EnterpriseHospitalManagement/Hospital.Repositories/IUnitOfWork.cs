@@ -1,4 +1,5 @@
-﻿using System;
+﻿// IUnitOfWork.cs
+using System;
 using System.Threading.Tasks;
 
 namespace Hospital.Repositories

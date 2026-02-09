@@ -16,21 +16,17 @@ namespace Hospital.Utilities
 
         public string ImageUpload(IFormFile file)
         {
-            if (file == null || file.Length == 0)
-                return null;
+            if (file == null || file.Length == 0) return null;
 
             var uploadsFolder = Path.Combine(_env.WebRootPath, "images");
-            if (!Directory.Exists(uploadsFolder))
-            {
-                Directory.CreateDirectory(uploadsFolder);
-            }
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
             var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
             var filePath = Path.Combine(uploadsFolder, fileName);
 
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
+            using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                file.CopyTo(fileStream);
+                file.CopyTo(stream);
             }
 
             return fileName;

@@ -6,10 +6,7 @@ namespace Hospital.Repositories
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Bill> Bills { get; set; }
@@ -31,6 +28,7 @@ namespace Hospital.Repositories
         {
             base.OnModelCreating(builder);
 
+            // Appointment
             builder.Entity<Appointment>()
                 .HasOne(a => a.Doctor)
                 .WithMany(d => d.AppointmentsAsDoctor)
@@ -43,6 +41,7 @@ namespace Hospital.Repositories
                 .HasForeignKey(a => a.PatientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // PatientReport
             builder.Entity<PatientReport>()
                 .HasOne(pr => pr.Doctor)
                 .WithMany(d => d.PatientReportsAsDoctor)

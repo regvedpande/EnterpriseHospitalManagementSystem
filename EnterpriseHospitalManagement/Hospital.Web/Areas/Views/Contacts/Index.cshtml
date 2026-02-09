@@ -32,6 +32,12 @@
         }
     </tbody>
 </table>
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New Contact</a>
+    <a asp-action="ExportCsv" class="btn btn-outline-secondary">Export CSV</a>
+    <a asp-action="ExportPdf" class="btn btn-outline-secondary">Export PDF</a>
+</p>
+
 
 <cs-pager
     cs-paging-pagesize="@Model.PageSize"

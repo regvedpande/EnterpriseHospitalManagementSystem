@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
-using Hospital.Models;
+﻿using Hospital.Models;
 using Hospital.Models.Enums;
 using Hospital.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace Hospital.Utilities
 {
@@ -14,10 +14,7 @@ namespace Hospital.Utilities
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
 
-        public DbInitializer(
-            UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            ApplicationDbContext context)
+        public DbInitializer(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -33,14 +30,15 @@ namespace Hospital.Utilities
                     _context.Database.Migrate();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // log migration failure
                 throw;
             }
 
             if (_roleManager.RoleExistsAsync(WebSiteRoles.Website_Admin).GetAwaiter().GetResult())
             {
-                return; // DB already seeded
+                return;
             }
 
             _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Admin)).GetAwaiter().GetResult();

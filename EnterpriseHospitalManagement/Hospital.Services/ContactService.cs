@@ -1,10 +1,19 @@
 ﻿using cloudscribe.Pagination.Models;
+using CsvHelper;
+using CsvHelper.Configuration;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
+using Hospital.Utilities;
 using Hospital.ViewModels;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Hospital.Services
 {
@@ -19,21 +28,12 @@ namespace Hospital.Services
 
         public PagedResult<ContactViewModel> GetAll(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.Repository<Contact>()
-                .GetAll(includeProperties: "Hospital")
-                .AsQueryable();
-
+            var query = _unitOfWork.Repository<Contact>().GetAll(includeProperties: "Hospital").AsQueryable();
             var totalCount = query.Count();
-            var modelList = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var vmList = ConvertModelToViewModelList(modelList);
-
+            var list = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
             return new PagedResult<ContactViewModel>
             {
-                Data = vmList,
+                Data = list.Select(c => new ContactViewModel(c)).ToList(),
                 TotalItems = totalCount,
                 PageNumber = pageNumber,
                 PageSize = pageSize
@@ -70,9 +70,69 @@ namespace Hospital.Services
             }
         }
 
-        private List<ContactViewModel> ConvertModelToViewModelList(List<Contact> modelList)
+        public byte[] ExportContactsCsv()
         {
-            return modelList.Select(c => new ContactViewModel(c)).ToList();
+            var data = _unitOfWork.Repository<Contact>().GetAll(includeProperties: "Hospital").ToList();
+            using var ms = new MemoryStream();
+            using var sw = new StreamWriter(ms, Encoding.UTF8, 1024, true);
+            using var csv = new CsvWriter(sw, CultureInfo.InvariantCulture);
+            csv.WriteRecords(data.Select(c => new {
+                c.Id,
+                c.Email,
+                c.Phone,
+                Hospital = c.Hospital?.Name
+            }));
+            sw.Flush();
+            ms.Position = 0;
+            return ms.ToArray();
+        }
+
+        public byte[] ExportContactsPdf()
+        {
+            var data = _unitOfWork.Repository<Contact>().GetAll(includeProperties: "Hospital").ToList();
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Margin(20);
+                    page.Size(PageSizes.A4);
+                    page.Header().Text("Contacts Report").FontSize(20).Bold();
+                    page.Content().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                            columns.RelativeColumn();
+                        });
+
+                        table.Header(header =>
+                        {
+                            header.Cell().Element(CellStyle).Text("Id");
+                            header.Cell().Element(CellStyle).Text("Email");
+                            header.Cell().Element(CellStyle).Text("Phone");
+                            header.Cell().Element(CellStyle).Text("Hospital");
+                        });
+
+                        foreach (var c in data)
+                        {
+                            table.Cell().Element(CellStyle).Text(c.Id.ToString());
+                            table.Cell().Element(CellStyle).Text(c.Email);
+                            table.Cell().Element(CellStyle).Text(c.Phone);
+                            table.Cell().Element(CellStyle).Text(c.Hospital?.Name ?? "");
+                        }
+
+                        static IContainer CellStyle(IContainer c) => c.Padding(5);
+                    });
+                    page.Footer().AlignCenter().Text(x => x.Span("Generated on ").Append(DateTime.Now.ToString("g")));
+                });
+            });
+
+            using var ms = new MemoryStream();
+            document.GeneratePdf(ms);
+            return ms.ToArray();
         }
     }
 }

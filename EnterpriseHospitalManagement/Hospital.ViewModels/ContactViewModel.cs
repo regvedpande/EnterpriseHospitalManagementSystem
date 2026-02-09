@@ -7,41 +7,32 @@ namespace Hospital.ViewModels
     {
         public int Id { get; set; }
 
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email Address")]
+        [Required, EmailAddress]
         public string Email { get; set; }
 
-        [Required]
-        [Phone]
-        [Display(Name = "Phone Number")]
+        [Required, Phone]
         public string Phone { get; set; }
 
         [Required]
-        [Display(Name = "Hospital")]
         public int HospitalInfoId { get; set; }
 
-        public ContactViewModel()
+        public ContactViewModel() { }
+
+        public ContactViewModel(Contact c)
         {
+            if (c == null) return;
+            Id = c.Id;
+            Email = c.Email;
+            Phone = c.Phone;
+            HospitalInfoId = c.HospitalId;
         }
 
-        public ContactViewModel(Contact model)
+        public Contact ConvertViewModel() => new Contact
         {
-            Id = model.Id;
-            Email = model.Email;
-            Phone = model.Phone;
-            HospitalInfoId = model.HospitalId;
-        }
-
-        public Contact ConvertViewModel()
-        {
-            return new Contact
-            {
-                Id = Id,
-                Email = Email,
-                Phone = Phone,
-                HospitalId = HospitalInfoId
-            };
-        }
+            Id = this.Id,
+            Email = this.Email,
+            Phone = this.Phone,
+            HospitalId = this.HospitalInfoId
+        };
     }
 }
