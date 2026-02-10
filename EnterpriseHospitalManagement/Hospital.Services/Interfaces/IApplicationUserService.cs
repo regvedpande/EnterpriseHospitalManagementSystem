@@ -1,4 +1,4 @@
-﻿using cloudscribe.Pagination.Models;
+﻿using Hospital.Utilities;
 using Hospital.ViewModels;
 
 namespace Hospital.Services.Interfaces
@@ -8,6 +8,6 @@ namespace Hospital.Services.Interfaces
         PagedResult<ApplicationUserViewModel> GetAll(int pageNumber, int pageSize);
         PagedResult<ApplicationUserViewModel> GetAllDoctors(int pageNumber, int pageSize);
         PagedResult<ApplicationUserViewModel> GetAllPatients(int pageNumber, int pageSize);
-        PagedResult<ApplicationUserViewModel> SearchDoctors(int pageNumber, int pageSize, string specialty = null);
+        PagedResult<ApplicationUserViewModel> SearchDoctors(int pageNumber, int pageSize, string search);
     }
 }

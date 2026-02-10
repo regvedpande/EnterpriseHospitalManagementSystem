@@ -1,79 +1,60 @@
-﻿using cloudscribe.Pagination.Models;
+﻿using System.Linq;
+using Hospital.Utilities;
+using Hospital.ViewModels;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
-using Hospital.ViewModels;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Hospital.Services
 {
     public class HospitalInfoService : IHospitalInfoService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IGenericRepository<HospitalInfo> _repo;
 
-        public HospitalInfoService(IUnitOfWork unitOfWork)
+        public HospitalInfoService(IGenericRepository<HospitalInfo> repo)
         {
-            _unitOfWork = unitOfWork;
+            _repo = repo;
         }
 
         public PagedResult<HospitalInfoViewModel> GetAll(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.Repository<HospitalInfo>()
-                .GetAll()
-                .AsQueryable();
-
-            var totalCount = query.Count();
-            var modelList = query
-                .OrderBy(h => h.Name)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var vmList = ConvertModelToViewModelList(modelList);
+            var list = _repo.GetAll().ToList();
 
             return new PagedResult<HospitalInfoViewModel>
             {
-                Data = vmList,
-                TotalItems = totalCount,
+                Data = list
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new HospitalInfoViewModel(x))
+                    .ToList(),
                 PageNumber = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+                TotalItems = list.Count
             };
         }
 
         public HospitalInfoViewModel GetHospitalById(int hospitalId)
         {
-            var model = _unitOfWork.Repository<HospitalInfo>().GetById(hospitalId);
+            var model = _repo.GetById(hospitalId);
             return model == null ? null : new HospitalInfoViewModel(model);
         }
 
         public void InsertHospitalInfo(HospitalInfoViewModel hospital)
         {
-            var model = hospital.ConvertViewModel();
-            _unitOfWork.Repository<HospitalInfo>().Add(model);
-            _unitOfWork.Save();
+            _repo.Insert(hospital.ToModel());
+            _repo.Save();
         }
 
         public void UpdateHospitalInfo(HospitalInfoViewModel hospital)
         {
-            var model = hospital.ConvertViewModel();
-            _unitOfWork.Repository<HospitalInfo>().Update(model);
-            _unitOfWork.Save();
+            _repo.Update(hospital.ToModel());
+            _repo.Save();
         }
 
-        public void DeleteHospitalInfo(int id)
+        public void DeleteHospitalInfo(int hospitalId)
         {
-            var model = _unitOfWork.Repository<HospitalInfo>().GetById(id);
-            if (model != null)
-            {
-                _unitOfWork.Repository<HospitalInfo>().Delete(model);
-                _unitOfWork.Save();
-            }
-        }
-
-        private List<HospitalInfoViewModel> ConvertModelToViewModelList(List<HospitalInfo> modelList)
-        {
-            return modelList.Select(h => new HospitalInfoViewModel(h)).ToList();
+            _repo.Delete(hospitalId);
+            _repo.Save();
         }
     }
 }

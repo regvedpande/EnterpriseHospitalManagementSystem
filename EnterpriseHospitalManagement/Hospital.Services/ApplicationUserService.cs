@@ -1,7 +1,7 @@
-﻿using cloudscribe.Pagination.Models;
-using Hospital.Models;
+﻿using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
+using Hospital.Utilities;
 using Hospital.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,106 +10,65 @@ namespace Hospital.Services
 {
     public class ApplicationUserService : IApplicationUserService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IGenericRepository<ApplicationUser> _repo;
 
-        public ApplicationUserService(IUnitOfWork unitOfWork)
+        public ApplicationUserService(IGenericRepository<ApplicationUser> repo)
         {
-            _unitOfWork = unitOfWork;
+            _repo = repo;
         }
 
         public PagedResult<ApplicationUserViewModel> GetAll(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.Repository<ApplicationUser>().GetAll().AsQueryable();
+            var query = _repo.GetAll().ToList();
 
-            var totalCount = query.Count();
-            var modelList = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var vmList = ConvertModelToViewModelList(modelList);
-
-            return new PagedResult<ApplicationUserViewModel>
-            {
-                Data = vmList,
-                TotalItems = totalCount,
-                PageNumber = pageNumber,
-                PageSize = pageSize
-            };
+            return BuildPagedResult(query, pageNumber, pageSize);
         }
 
         public PagedResult<ApplicationUserViewModel> GetAllDoctors(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.Repository<ApplicationUser>()
-                .GetAll(u => u.IsDoctor)
-                .AsQueryable();
-
-            var totalCount = query.Count();
-            var modelList = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+            var query = _repo.GetAll()
+                .Where(x => x.Role == "Doctor")
                 .ToList();
 
-            var vmList = ConvertModelToViewModelList(modelList);
-
-            return new PagedResult<ApplicationUserViewModel>
-            {
-                Data = vmList,
-                TotalItems = totalCount,
-                PageNumber = pageNumber,
-                PageSize = pageSize
-            };
+            return BuildPagedResult(query, pageNumber, pageSize);
         }
 
         public PagedResult<ApplicationUserViewModel> GetAllPatients(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.Repository<ApplicationUser>()
-                .GetAll(u => !u.IsDoctor)
-                .AsQueryable();
-
-            var totalCount = query.Count();
-            var modelList = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
+            var query = _repo.GetAll()
+                .Where(x => x.Role == "Patient")
                 .ToList();
 
-            var vmList = ConvertModelToViewModelList(modelList);
+            return BuildPagedResult(query, pageNumber, pageSize);
+        }
+
+        public PagedResult<ApplicationUserViewModel> SearchDoctors(int pageNumber, int pageSize, string search)
+        {
+            var query = _repo.GetAll()
+                .Where(x => x.Role == "Doctor" && x.Name.Contains(search))
+                .ToList();
+
+            return BuildPagedResult(query, pageNumber, pageSize);
+        }
+
+        private static PagedResult<ApplicationUserViewModel> BuildPagedResult(
+            List<ApplicationUser> source,
+            int pageNumber,
+            int pageSize)
+        {
+            var data = source
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new ApplicationUserViewModel(x))
+                .ToList();
 
             return new PagedResult<ApplicationUserViewModel>
             {
-                Data = vmList,
-                TotalItems = totalCount,
+                Data = data,
                 PageNumber = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+                TotalItems = source.Count
             };
-        }
-
-        public PagedResult<ApplicationUserViewModel> SearchDoctors(int pageNumber, int pageSize, string specialty = null)
-        {
-            var query = _unitOfWork.Repository<ApplicationUser>()
-                .GetAll(u => u.IsDoctor && (string.IsNullOrEmpty(specialty) || u.Specialist == specialty))
-                .AsQueryable();
-
-            var totalCount = query.Count();
-            var modelList = query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var vmList = ConvertModelToViewModelList(modelList);
-
-            return new PagedResult<ApplicationUserViewModel>
-            {
-                Data = vmList,
-                TotalItems = totalCount,
-                PageNumber = pageNumber,
-                PageSize = pageSize
-            };
-        }
-
-        private List<ApplicationUserViewModel> ConvertModelToViewModelList(List<ApplicationUser> modelList)
-        {
-            return modelList.Select(u => new ApplicationUserViewModel(u)).ToList();
         }
     }
 }

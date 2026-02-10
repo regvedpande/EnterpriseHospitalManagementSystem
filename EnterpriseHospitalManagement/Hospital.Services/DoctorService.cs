@@ -1,80 +1,66 @@
-﻿using cloudscribe.Pagination.Models;
+﻿using System.Linq;
+using Hospital.Utilities;
+using Hospital.ViewModels;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
-using Hospital.ViewModels;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Hospital.Services
 {
     public class DoctorService : IDoctorService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IGenericRepository<Timing> _repo;
 
-        public DoctorService(IUnitOfWork unitOfWork)
+        public DoctorService(IGenericRepository<Timing> repo)
         {
-            _unitOfWork = unitOfWork;
+            _repo = repo;
         }
 
         public PagedResult<TimingViewModel> GetAllTimings(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.Repository<Timing>()
-                .GetAll(includeProperties: "Doctor")
-                .AsQueryable();
-
-            var totalCount = query.Count();
-            var modelList = query
-                .OrderBy(t => t.ScheduleDate)
-                .ThenBy(t => t.MorningShiftStartTime)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            var vmList = ConvertModelToViewModelList(modelList);
+            var list = _repo.GetAll().ToList();
 
             return new PagedResult<TimingViewModel>
             {
-                Data = vmList,
-                TotalItems = totalCount,
+                Data = list
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(x => new TimingViewModel(x))
+                    .ToList(),
                 PageNumber = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+                TotalItems = list.Count
             };
         }
 
         public TimingViewModel GetTimingById(int timingId)
         {
-            var model = _unitOfWork.Repository<Timing>().GetById(timingId);
+            var model = _repo.GetById(timingId);
             return model == null ? null : new TimingViewModel(model);
         }
 
         public void AddTiming(TimingViewModel timing)
         {
-            var model = timing.ConvertViewModel();
-            _unitOfWork.Repository<Timing>().Add(model);
-            _unitOfWork.Save();
+            new Timing
+            {
+                Id = timingViewModel.Id,
+                Day = timingViewModel.Day,
+                StartTime = timingViewModel.StartTime,
+                EndTime = timingViewModel.EndTime
+            }
+
         }
 
         public void UpdateTiming(TimingViewModel timing)
         {
-            var model = timing.ConvertViewModel();
-            _unitOfWork.Repository<Timing>().Update(model);
-            _unitOfWork.Save();
+            _repo.Update(timing.ToModel());
+            _repo.Save();
         }
 
         public void DeleteTiming(int timingId)
         {
-            var model = _unitOfWork.Repository<Timing>().GetById(timingId);
-            if (model != null)
-            {
-                _unitOfWork.Repository<Timing>().Delete(model);
-                _unitOfWork.Save();
-            }
-        }
-
-        private List<TimingViewModel> ConvertModelToViewModelList(List<Timing> modelList)
-        {
-            return modelList.Select(t => new TimingViewModel(t)).ToList();
+            _repo.Delete(timingId);
+            _repo.Save();
         }
     }
 }

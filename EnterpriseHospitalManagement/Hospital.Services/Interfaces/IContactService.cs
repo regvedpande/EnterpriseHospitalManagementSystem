@@ -1,5 +1,4 @@
-﻿using cloudscribe.Pagination.Models;
-using Hospital.Utilities;
+﻿using Hospital.Utilities;
 using Hospital.ViewModels;
 
 namespace Hospital.Services.Interfaces
@@ -10,8 +9,6 @@ namespace Hospital.Services.Interfaces
         ContactViewModel GetContactById(int contactId);
         void InsertContact(ContactViewModel contact);
         void UpdateContact(ContactViewModel contact);
-        void DeleteContact(int id);
-        byte[] ExportContactsCsv();
-        byte[] ExportContactsPdf();
+        void DeleteContact(int contactId);
     }
 }

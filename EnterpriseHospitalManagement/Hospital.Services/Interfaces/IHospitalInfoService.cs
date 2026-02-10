@@ -1,4 +1,4 @@
-﻿using cloudscribe.Pagination.Models;
+﻿using Hospital.Utilities;
 using Hospital.ViewModels;
 
 namespace Hospital.Services.Interfaces
@@ -9,6 +9,6 @@ namespace Hospital.Services.Interfaces
         HospitalInfoViewModel GetHospitalById(int hospitalId);
         void InsertHospitalInfo(HospitalInfoViewModel hospital);
         void UpdateHospitalInfo(HospitalInfoViewModel hospital);
-        void DeleteHospitalInfo(int id);
+        void DeleteHospitalInfo(int hospitalId);
     }
 }

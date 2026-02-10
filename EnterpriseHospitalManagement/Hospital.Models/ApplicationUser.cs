@@ -31,6 +31,7 @@ namespace Hospital.Models
 
         public int? DepartmentId { get; set; }
         public Department Department { get; set; }
+        public string? Role { get; set; }
 
         public ICollection<Appointment> AppointmentsAsDoctor { get; set; }
         public ICollection<Appointment> AppointmentsAsPatient { get; set; }
