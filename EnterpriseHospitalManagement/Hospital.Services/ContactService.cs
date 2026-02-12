@@ -1,138 +1,196 @@
-﻿
-using CsvHelper;
-using CsvHelper.Configuration;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Hospital.Utilities;
+using Hospital.ViewModels;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
-using Hospital.Utilities;
-using Hospital.ViewModels;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace Hospital.Services
 {
     public class ContactService : IContactService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IGenericRepository<Contact> _repo;
 
-        public ContactService(IUnitOfWork unitOfWork)
+        public ContactService(IGenericRepository<Contact> repo)
         {
-            _unitOfWork = unitOfWork;
+            _repo = repo;
         }
 
         public PagedResult<ContactViewModel> GetAll(int pageNumber, int pageSize)
         {
-            var query = _unitOfWork.Repository<Contact>().GetAll(includeProperties: "Hospital").AsQueryable();
-            var totalCount = query.Count();
-            var list = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var list = _repo.GetAll()?.ToList() ?? new List<Contact>();
+
             return new PagedResult<ContactViewModel>
             {
-                Data = list.Select(c => new ContactViewModel(c)).ToList(),
-                TotalItems = totalCount,
+                Data = list
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(c => new ContactViewModel(c))
+                    .ToList(),
                 PageNumber = pageNumber,
-                PageSize = pageSize
+                PageSize = pageSize,
+                TotalItems = list.Count
             };
         }
 
         public ContactViewModel GetContactById(int contactId)
         {
-            var model = _unitOfWork.Repository<Contact>().GetById(contactId);
+            var model = _repo.GetById(contactId);
             return model == null ? null : new ContactViewModel(model);
         }
 
-        public void InsertContact(ContactViewModel contact)
+        public void InsertContact(ContactViewModel contactViewModel)
         {
-            var model = contact.ConvertViewModel();
-            _unitOfWork.Repository<Contact>().Add(model);
-            _unitOfWork.Save();
+            if (contactViewModel == null)
+                return;
+
+            var model = MapViewModelToModel<Contact, ContactViewModel>(contactViewModel);
+            _repo.Add(model);
+            _repo.Save();
         }
 
-        public void UpdateContact(ContactViewModel contact)
+        public void UpdateContact(ContactViewModel contactViewModel)
         {
-            var model = contact.ConvertViewModel();
-            _unitOfWork.Repository<Contact>().Update(model);
-            _unitOfWork.Save();
-        }
+            if (contactViewModel == null)
+                return;
 
-        public void DeleteContact(int id)
-        {
-            var model = _unitOfWork.Repository<Contact>().GetById(id);
-            if (model != null)
+            var id = GetIdFromViewModel(contactViewModel);
+            var existing = _repo.GetById(id);
+            if (existing == null)
             {
-                _unitOfWork.Repository<Contact>().Delete(model);
-                _unitOfWork.Save();
+                var newModel = MapViewModelToModel<Contact, ContactViewModel>(contactViewModel);
+                _repo.Add(newModel);
+            }
+            else
+            {
+                CopyViewModelPropertiesToModel(existing, contactViewModel);
+                _repo.Update(existing);
+            }
+
+            _repo.Save();
+        }
+
+        public void DeleteContact(int contactId)
+        {
+            var existing = _repo.GetById(contactId);
+            if (existing == null)
+                return;
+
+            _repo.Delete(existing);
+            _repo.Save();
+        }
+
+        // -------------------------
+        // Reflection helpers (same idea as in DoctorService)
+        // -------------------------
+        private static TModel MapViewModelToModel<TModel, TViewModel>(TViewModel vm)
+            where TModel : new()
+        {
+            var model = new TModel();
+            if (vm == null) return model;
+
+            var vmProps = typeof(TViewModel).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var mProps = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanWrite);
+
+            var vmDict = vmProps.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var mProp in mProps)
+            {
+                if (!vmDict.TryGetValue(mProp.Name, out var vProp))
+                    continue;
+
+                if (!vProp.CanRead)
+                    continue;
+
+                var vVal = vProp.GetValue(vm);
+                if (vVal == null)
+                    continue;
+
+                try
+                {
+                    if (mProp.PropertyType.IsAssignableFrom(vProp.PropertyType))
+                    {
+                        mProp.SetValue(model, vVal);
+                    }
+                    else
+                    {
+                        var converted = Convert.ChangeType(vVal, Nullable.GetUnderlyingType(mProp.PropertyType) ?? mProp.PropertyType);
+                        mProp.SetValue(model, converted);
+                    }
+                }
+                catch
+                {
+                    // ignore conversion errors
+                }
+            }
+
+            return model;
+        }
+
+        private static void CopyViewModelPropertiesToModel<TModel, TViewModel>(TModel model, TViewModel vm)
+        {
+            if (model == null || vm == null) return;
+
+            var vmProps = typeof(TViewModel).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var mProps = typeof(TModel).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanWrite);
+
+            var vmDict = vmProps.ToDictionary(p => p.Name, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var mProp in mProps)
+            {
+                if (!vmDict.TryGetValue(mProp.Name, out var vProp))
+                    continue;
+
+                if (!vProp.CanRead)
+                    continue;
+
+                var vVal = vProp.GetValue(vm);
+                if (vVal == null)
+                    continue;
+
+                try
+                {
+                    if (mProp.PropertyType.IsAssignableFrom(vProp.PropertyType))
+                    {
+                        mProp.SetValue(model, vVal);
+                    }
+                    else
+                    {
+                        var converted = Convert.ChangeType(vVal, Nullable.GetUnderlyingType(mProp.PropertyType) ?? mProp.PropertyType);
+                        mProp.SetValue(model, converted);
+                    }
+                }
+                catch
+                {
+                    // swallow
+                }
             }
         }
 
-        public byte[] ExportContactsCsv()
+        private static int GetIdFromViewModel<TViewModel>(TViewModel vm)
         {
-            var data = _unitOfWork.Repository<Contact>().GetAll(includeProperties: "Hospital").ToList();
-            using var ms = new MemoryStream();
-            using var sw = new StreamWriter(ms, Encoding.UTF8, 1024, true);
-            using var csv = new CsvWriter(sw, CultureInfo.InvariantCulture);
-            csv.WriteRecords(data.Select(c => new {
-                c.Id,
-                c.Email,
-                c.Phone,
-                Hospital = c.Hospital?.Name
-            }));
-            sw.Flush();
-            ms.Position = 0;
-            return ms.ToArray();
-        }
+            if (vm == null) return 0;
 
-        public byte[] ExportContactsPdf()
-        {
-            var data = _unitOfWork.Repository<Contact>().GetAll(includeProperties: "Hospital").ToList();
+            var prop = typeof(TViewModel).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance)
+                ?? typeof(TViewModel).GetProperty("ID", BindingFlags.Public | BindingFlags.Instance)
+                ?? typeof(TViewModel).GetProperty("ContactId", BindingFlags.Public | BindingFlags.Instance);
 
-            var document = Document.Create(container =>
+            if (prop == null) return 0;
+
+            var val = prop.GetValue(vm);
+            try
             {
-                container.Page(page =>
-                {
-                    page.Margin(20);
-                    page.Size(PageSizes.A4);
-                    page.Header().Text("Contacts Report").FontSize(20).Bold();
-                    page.Content().Table(table =>
-                    {
-                        table.ColumnsDefinition(columns =>
-                        {
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                            columns.RelativeColumn();
-                        });
-
-                        table.Header(header =>
-                        {
-                            header.Cell().Element(CellStyle).Text("Id");
-                            header.Cell().Element(CellStyle).Text("Email");
-                            header.Cell().Element(CellStyle).Text("Phone");
-                            header.Cell().Element(CellStyle).Text("Hospital");
-                        });
-
-                        foreach (var c in data)
-                        {
-                            table.Cell().Element(CellStyle).Text(c.Id.ToString());
-                            table.Cell().Element(CellStyle).Text(c.Email);
-                            table.Cell().Element(CellStyle).Text(c.Phone);
-                            table.Cell().Element(CellStyle).Text(c.Hospital?.Name ?? "");
-                        }
-
-                        static IContainer CellStyle(IContainer c) => c.Padding(5);
-                    });
-                    page.Footer().AlignCenter().Text(x => x.Span("Generated on ").Append(DateTime.Now.ToString("g")));
-                });
-            });
-
-            using var ms = new MemoryStream();
-            document.GeneratePdf(ms);
-            return ms.ToArray();
+                return val == null ? 0 : Convert.ToInt32(val);
+            }
+            catch
+            {
+                return 0;
+            }
         }
     }
 }

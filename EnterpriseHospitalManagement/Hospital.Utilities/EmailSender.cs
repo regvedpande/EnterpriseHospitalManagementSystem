@@ -25,19 +25,27 @@ namespace Hospital.Utilities
             var from = smtp.GetValue<string>("From");
             var useSsl = smtp.GetValue<bool>("UseSsl");
 
+            // defensive defaults
+            var fromAddress = string.IsNullOrWhiteSpace(from) ? "no-reply@example.com" : from;
+            var toAddress = string.IsNullOrWhiteSpace(email) ? "no-reply@example.com" : email;
+            var subjectSafe = subject ?? string.Empty;
+            var bodyHtml = htmlMessage ?? string.Empty;
+
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Enterprise Hospital", from));
-            message.To.Add(MailboxAddress.Parse(email));
-            message.Subject = subject;
-            var body = new TextPart("html") { Text = htmlMessage };
-            message.Body = body;
+            message.From.Add(new MailboxAddress("Enterprise Hospital", fromAddress));
+            message.To.Add(MailboxAddress.Parse(toAddress));
+            message.Subject = subjectSafe;
+            message.Body = new TextPart("html") { Text = bodyHtml };
 
             using var client = new SmtpClient();
+            // connect (MailKit supports the bool overload in current releases)
             await client.ConnectAsync(host, port, useSsl);
-            if (!string.IsNullOrEmpty(username))
+
+            if (!string.IsNullOrWhiteSpace(username))
             {
                 await client.AuthenticateAsync(username, password);
             }
+
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
         }

@@ -76,7 +76,9 @@ builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<ImageOperations>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SftpService>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+// Register the EmailSender with the exact Identity UI interface type
+builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, Hospital.Utilities.EmailSender>();
 
 // add IHttpContextAccessor if needed
 builder.Services.AddHttpContextAccessor();
