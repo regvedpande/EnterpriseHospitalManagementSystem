@@ -1,4 +1,5 @@
-﻿using MailKit.Net.Smtp;
+﻿// Hospital.Utilities/EmailSender.cs
+using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
@@ -19,29 +20,29 @@ namespace Hospital.Utilities
         {
             var smtp = _config.GetSection("Smtp");
             var host = smtp.GetValue<string>("Host");
-            var port = smtp.GetValue<int>("Port");
+            var port = smtp.GetValue<int?>("Port") ?? 25;
             var username = smtp.GetValue<string>("Username");
             var password = smtp.GetValue<string>("Password");
-            var from = smtp.GetValue<string>("From");
-            var useSsl = smtp.GetValue<bool>("UseSsl");
-
-            // defensive defaults
-            var fromAddress = string.IsNullOrWhiteSpace(from) ? "no-reply@example.com" : from;
-            var toAddress = string.IsNullOrWhiteSpace(email) ? "no-reply@example.com" : email;
-            var subjectSafe = subject ?? string.Empty;
-            var bodyHtml = htmlMessage ?? string.Empty;
+            var from = smtp.GetValue<string>("From") ?? username ?? "no-reply@example.com";
+            var useSsl = smtp.GetValue<bool?>("UseSsl") ?? true;
 
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Enterprise Hospital", fromAddress));
-            message.To.Add(MailboxAddress.Parse(toAddress));
-            message.Subject = subjectSafe;
-            message.Body = new TextPart("html") { Text = bodyHtml };
+            message.From.Add(new MailboxAddress("Enterprise Hospital", from));
+            message.To.Add(MailboxAddress.Parse(email));
+            message.Subject = subject;
+            var body = new TextPart("html") { Text = htmlMessage ?? string.Empty };
+            message.Body = body;
 
             using var client = new SmtpClient();
-            // connect (MailKit supports the bool overload in current releases)
+            // If host null/empty, throw a helpful exception (so DI consumer sees clear issue)
+            if (string.IsNullOrWhiteSpace(host))
+            {
+                throw new InvalidOperationException("Smtp:Host is not configured. Please set Smtp configuration in appsettings.json or environment.");
+            }
+
             await client.ConnectAsync(host, port, useSsl);
 
-            if (!string.IsNullOrWhiteSpace(username))
+            if (!string.IsNullOrEmpty(username))
             {
                 await client.AuthenticateAsync(username, password);
             }

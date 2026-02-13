@@ -1,3 +1,4 @@
+// Program.cs
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services;
@@ -21,6 +22,8 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+Log.Information("Starting web host...");
+
 // Add services to container
 builder.Services.AddControllersWithViews();
 
@@ -37,11 +40,28 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Jwt config
+// Jwt config (robust handling if values missing)
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection.GetValue<string>("Key");
 var jwtIssuer = jwtSection.GetValue<string>("Issuer");
 var jwtAudience = jwtSection.GetValue<string>("Audience");
+
+// If Key missing, generate a development fallback but log a strong warning.
+// In production you must supply a stable strong key via configuration.
+if (string.IsNullOrWhiteSpace(jwtKey))
+{
+    var fallbackKey = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N"); // ~64 char
+    jwtKey = fallbackKey.Substring(0, 32); // at least 256-bit when encoded (32 bytes)
+    Log.Warning("JWT Key was missing from configuration. A temporary development key has been generated. " +
+                "Set Jwt:Key in appsettings.json or environment variables for a stable key in production.");
+}
+
+if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+{
+    Log.Warning("Jwt:Issuer or Jwt:Audience missing from config. Defaulting to 'localhost' values for development only.");
+    jwtIssuer ??= "localhost";
+    jwtAudience ??= "localhost";
+}
 
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 builder.Services.AddAuthentication(options =>
@@ -77,8 +97,8 @@ builder.Services.AddScoped<ImageOperations>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SftpService>();
 
-// Register the EmailSender with the exact Identity UI interface type
-builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, Hospital.Utilities.EmailSender>();
+// Correct interface for the EmailSender implementation:
+builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 
 // add IHttpContextAccessor if needed
 builder.Services.AddHttpContextAccessor();
@@ -91,15 +111,28 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-// ensure DB
+// ensure DB - catch and log exceptions clearly so they don't silently crash
 using (var scope = app.Services.CreateScope())
 {
-    var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-    initializer.Initialize();
+    try
+    {
+        var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+        initializer.Initialize();
+    }
+    catch (Exception ex)
+    {
+        Log.Fatal(ex, "Database initializer failed during app startup.");
+        // rethrow so the stack trace appears in console; comment this out if you prefer host to keep alive
+        throw;
+    }
 }
 
 // pipeline
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -122,4 +155,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+Log.Information("Starting app...");
 app.Run();
