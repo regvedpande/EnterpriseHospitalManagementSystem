@@ -1,23 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 namespace Hospital.Repositories
 {
-    public interface IGenericRepository<T> : IDisposable where T : class
+    public interface IGenericRepository<T> where T : class
     {
-        IEnumerable<T> GetAll(Expression<Func<T, bool>> filter = null,
-            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
-            string includeProperties = "");
-        T GetById(object id);
-        Task<T> GetByIdAsync(object id);
+        IQueryable<T> GetAll();
+        T? GetById(int id);
+
+        // Add is commonly used in service code, keep Insert for compatibility
         void Add(T entity);
-        Task<T> AddAsync(T entity);
+        void Insert(T entity);
+
         void Update(T entity);
-        Task<T> UpdateAsync(T entity);
+
+        // allow deleting by id or by passing the entity
+        void Delete(int id);
         void Delete(T entity);
-        Task DeleteAsync(T entity);
+
+        // synchronous save
+        void Save();
+
+        // asynchronous save returns int like EF Core SaveChangesAsync()
+        Task<int> SaveAsync();
     }
 }

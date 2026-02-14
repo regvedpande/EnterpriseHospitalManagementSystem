@@ -1,88 +1,62 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Hospital.Models;
 
 namespace Hospital.Repositories
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly ApplicationDbContext _context;
-        internal DbSet<T> dbSet;
-        private bool _disposed;
+        protected readonly ApplicationDbContext _context;
+        protected readonly DbSet<T> _dbSet;
 
         public GenericRepository(ApplicationDbContext context)
         {
-            _context = context;
-            dbSet = _context.Set<T>();
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _dbSet = _context.Set<T>();
         }
 
-        public void Add(T entity) => dbSet.Add(entity);
+        public IQueryable<T> GetAll() => _dbSet.AsQueryable();
 
-        public async Task<T> AddAsync(T entity)
+        public T? GetById(int id) => _dbSet.Find(id);
+
+        // Add: same behaviour as Insert
+        public void Add(T entity)
         {
-            await dbSet.AddAsync(entity);
-            return entity;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            _dbSet.Add(entity);
         }
 
-        public void Delete(T entity)
-        {
-            if (_context.Entry(entity).State == EntityState.Detached)
-                dbSet.Attach(entity);
-            dbSet.Remove(entity);
-        }
-
-        public async Task DeleteAsync(T entity)
-        {
-            if (_context.Entry(entity).State == EntityState.Detached)
-                dbSet.Attach(entity);
-            dbSet.Remove(entity);
-            await Task.CompletedTask;
-        }
-
-        public IEnumerable<T> GetAll(Expression<Func<T, bool>> filter = null,
-            Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
-            string includeProperties = "")
-        {
-            IQueryable<T> query = dbSet;
-            if (filter != null) query = query.Where(filter);
-            foreach (var includeProperty in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                query = query.Include(includeProperty);
-            return orderBy != null ? orderBy(query).ToList() : query.ToList();
-        }
-
-        public T GetById(object id) => dbSet.Find(id);
-
-        public async Task<T> GetByIdAsync(object id) => await dbSet.FindAsync(id);
+        // keep Insert for compatibility with older code
+        public void Insert(T entity) => Add(entity);
 
         public void Update(T entity)
         {
-            dbSet.Attach(entity);
-            _context.Entry(entity).State = EntityState.Modified;
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            _dbSet.Update(entity);
         }
 
-        public async Task<T> UpdateAsync(T entity)
+        // Delete by id (finds and removes if found)
+        public void Delete(int id)
         {
-            dbSet.Attach(entity);
-            _context.Entry(entity).State = EntityState.Modified;
-            await Task.CompletedTask;
-            return entity;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
+            var entity = GetById(id);
+            if (entity != null)
             {
-                if (disposing) _context.Dispose();
-                _disposed = true;
+                _dbSet.Remove(entity);
             }
         }
+
+        // Delete by passing the entity directly
+        public void Delete(T entity)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            _dbSet.Remove(entity);
+        }
+
+        public void Save() => _context.SaveChanges();
+
+        // return the EF SaveChangesAsync result (int)
+        public Task<int> SaveAsync() => _context.SaveChangesAsync();
     }
 }

@@ -1,8 +1,8 @@
-﻿// IUnitOfWork.cs
+﻿using Hospital.Repositories;
 using System;
 using System.Threading.Tasks;
 
-namespace Hospital.Repositories
+namespace EnterpriseHospitalManagement.Hospital.Repositories
 {
     public interface IUnitOfWork : IDisposable
     {

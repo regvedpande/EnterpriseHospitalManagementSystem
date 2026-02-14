@@ -1,5 +1,4 @@
-﻿// Hospital.Utilities/EmailSender.cs
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
@@ -20,33 +19,26 @@ namespace Hospital.Utilities
         {
             var smtp = _config.GetSection("Smtp");
             var host = smtp.GetValue<string>("Host");
-            var port = smtp.GetValue<int?>("Port") ?? 25;
+            var port = smtp.GetValue<int>("Port");
             var username = smtp.GetValue<string>("Username");
             var password = smtp.GetValue<string>("Password");
-            var from = smtp.GetValue<string>("From") ?? username ?? "no-reply@example.com";
-            var useSsl = smtp.GetValue<bool?>("UseSsl") ?? true;
+            var from = smtp.GetValue<string>("From");
+            var useSsl = smtp.GetValue<bool>("UseSsl");
 
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Enterprise Hospital", from));
+            message.From.Add(new MailboxAddress("Enterprise Hospital", from ?? username));
             message.To.Add(MailboxAddress.Parse(email));
-            message.Subject = subject;
+            message.Subject = subject ?? string.Empty;
             var body = new TextPart("html") { Text = htmlMessage ?? string.Empty };
             message.Body = body;
 
             using var client = new SmtpClient();
-            // If host null/empty, throw a helpful exception (so DI consumer sees clear issue)
-            if (string.IsNullOrWhiteSpace(host))
-            {
-                throw new InvalidOperationException("Smtp:Host is not configured. Please set Smtp configuration in appsettings.json or environment.");
-            }
-
+            // connect with SSL:false for STARTTLS when UseSsl==true and port 587 (MailKit handles STARTTLS if requested)
             await client.ConnectAsync(host, port, useSsl);
-
             if (!string.IsNullOrEmpty(username))
             {
                 await client.AuthenticateAsync(username, password);
             }
-
             await client.SendAsync(message);
             await client.DisconnectAsync(true);
         }

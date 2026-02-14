@@ -22,38 +22,53 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-Log.Information("Starting web host...");
-
-// Add services to container
+// Add controllers + views
 builder.Services.AddControllersWithViews();
 
-// EF + Identity
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");
 
+if (string.IsNullOrWhiteSpace(defaultConn))
+{
+    Log.Warning("No DefaultConnection found. Using InMemory DB for development.");
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseInMemoryDatabase("Dev_EnterpriseHospitalDB");
+}
+else
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlServer(defaultConn));
+}
+
+
+// Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 6;
     options.SignIn.RequireConfirmedEmail = false; // set true in production
 })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
-// Jwt config (robust handling if values missing)
+// --- Register repository open-generic and UnitOfWork implementations ---
+// Open-generic registration for IGenericRepository<T>
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+// Unit of Work registration (fully-qualified if required by your project)
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// --- JWT config (defensive: don't crash if config missing) ---
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection.GetValue<string>("Key");
 var jwtIssuer = jwtSection.GetValue<string>("Issuer");
 var jwtAudience = jwtSection.GetValue<string>("Audience");
 
-// If Key missing, generate a development fallback but log a strong warning.
-// In production you must supply a stable strong key via configuration.
+// If no key found, generate a throwaway development key so app doesn't crash.
+// Note: this is only for development convenience — set a stable key in config for real usage.
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    var fallbackKey = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N"); // ~64 char
-    jwtKey = fallbackKey.Substring(0, 32); // at least 256-bit when encoded (32 bytes)
-    Log.Warning("JWT Key was missing from configuration. A temporary development key has been generated. " +
-                "Set Jwt:Key in appsettings.json or environment variables for a stable key in production.");
+    Log.Warning("JWT Key was missing from configuration. A temporary development key will be used. Set Jwt:Key in appsettings.json or environment variables for a stable key in production.");
+    jwtKey = Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 }
 
 if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
@@ -64,6 +79,7 @@ if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudienc
 }
 
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -85,19 +101,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// application DI - repositories, services, utilities
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+// --- application DI - services & utilities ---
 builder.Services.AddScoped<IApplicationUserService, ApplicationUserService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IHospitalInfoService, HospitalInfoService>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+
+// utilities / other services
 builder.Services.AddScoped<ImageOperations>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SftpService>();
 
-// Correct interface for the EmailSender implementation:
+// Email sender implementation for Identity UI's IEmailSender
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 
 // add IHttpContextAccessor if needed
@@ -111,28 +128,38 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-// ensure DB - catch and log exceptions clearly so they don't silently crash
-using (var scope = app.Services.CreateScope())
+// --- Run DB initializer (safe: guarded so app won't crash if DB unavailable) ---
+try
 {
-    try
+    using var scope = app.Services.CreateScope();
+    var sp = scope.ServiceProvider;
+
+    // Resolve initializer if available (it should be registered above)
+    var initializer = sp.GetService<IDbInitializer>();
+    if (initializer is not null)
     {
-        var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-        initializer.Initialize();
+        try
+        {
+            initializer.Initialize();
+        }
+        catch (Exception initEx)
+        {
+            Log.Error(initEx, "DbInitializer threw an exception during Initialize(). Continuing without DB initialization.");
+        }
     }
-    catch (Exception ex)
+    else
     {
-        Log.Fatal(ex, "Database initializer failed during app startup.");
-        // rethrow so the stack trace appears in console; comment this out if you prefer host to keep alive
-        throw;
+        Log.Warning("IDbInitializer service not registered. Skipping DB initialization.");
     }
+}
+catch (Exception ex)
+{
+    // Catch any DI/build-time issues gracefully so the app doesn't crash on startup
+    Log.Error(ex, "Exception while attempting to run DB initializer scope. Continuing startup.");
 }
 
 // pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
@@ -155,5 +182,4 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-Log.Information("Starting app...");
 app.Run();
