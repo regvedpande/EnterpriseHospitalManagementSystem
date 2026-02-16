@@ -1,15 +1,15 @@
-// Program.cs
+using System;
+using System.Text;
+using Serilog;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services;
 using Hospital.Services.Interfaces;
 using Hospital.Utilities;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Serilog;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,23 +22,23 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Add controllers + views
+// Add MVC
 builder.Services.AddControllersWithViews();
 
+// --- Database: use SQL Server if a connection string exists, otherwise fall back to InMemory
 var defaultConn = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(defaultConn))
 {
     Log.Warning("No DefaultConnection found. Using InMemory DB for development.");
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseInMemoryDatabase("Dev_EnterpriseHospitalDB");
+        options.UseInMemoryDatabase("Dev_EnterpriseHospitalDB"));
 }
 else
 {
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
         options.UseSqlServer(defaultConn));
 }
-
 
 // Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -47,27 +47,28 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.Password.RequiredLength = 6;
     options.SignIn.RequireConfirmedEmail = false; // set true in production
 })
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
-// --- Register repository open-generic and UnitOfWork implementations ---
-// Open-generic registration for IGenericRepository<T>
+// --- Register repository / unit of work implementations ---
+// Open-generic registration for repository (ensure your GenericRepository<> lives in Hospital.Repositories)
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-// Unit of Work registration (fully-qualified if required by your project)
+// Unit of work (ensure interface IUnitOfWork and UnitOfWork class exist)
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// --- JWT config (defensive: don't crash if config missing) ---
+// --- JWT config (defensive: generate a temporary key for dev if missing) ---
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection.GetValue<string>("Key");
 var jwtIssuer = jwtSection.GetValue<string>("Issuer");
 var jwtAudience = jwtSection.GetValue<string>("Audience");
 
 // If no key found, generate a throwaway development key so app doesn't crash.
-// Note: this is only for development convenience — set a stable key in config for real usage.
+// NOTE: for production, set Jwt:Key in appsettings or environment variables.
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
     Log.Warning("JWT Key was missing from configuration. A temporary development key will be used. Set Jwt:Key in appsettings.json or environment variables for a stable key in production.");
+    // Generate a reasonably strong temporary key (base64).
     jwtKey = Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 }
 
@@ -80,6 +81,7 @@ if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudienc
 
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 
+// Authentication / JwtBearer
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -89,7 +91,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters()
+    options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -101,7 +103,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// --- application DI - services & utilities ---
+// application DI - services
 builder.Services.AddScoped<IApplicationUserService, ApplicationUserService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
@@ -128,34 +130,11 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-// --- Run DB initializer (safe: guarded so app won't crash if DB unavailable) ---
-try
+// ensure DB (run initializer) - NOTE: make sure you have a single IDbInitializer interface and DbInitializer implementation
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
-    var sp = scope.ServiceProvider;
-
-    // Resolve initializer if available (it should be registered above)
-    var initializer = sp.GetService<IDbInitializer>();
-    if (initializer is not null)
-    {
-        try
-        {
-            initializer.Initialize();
-        }
-        catch (Exception initEx)
-        {
-            Log.Error(initEx, "DbInitializer threw an exception during Initialize(). Continuing without DB initialization.");
-        }
-    }
-    else
-    {
-        Log.Warning("IDbInitializer service not registered. Skipping DB initialization.");
-    }
-}
-catch (Exception ex)
-{
-    // Catch any DI/build-time issues gracefully so the app doesn't crash on startup
-    Log.Error(ex, "Exception while attempting to run DB initializer scope. Continuing startup.");
+    var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+    initializer.Initialize();
 }
 
 // pipeline
@@ -183,3 +162,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
