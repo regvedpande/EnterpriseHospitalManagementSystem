@@ -1,15 +1,17 @@
 ﻿// Areas/Admin/Controllers/ContactsController.cs
 using System;
-using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Hospital.Services.Interfaces;
+using Hospital.Utilities;
 using Hospital.ViewModels;
 
 namespace Hospital.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = WebSiteRoles.Website_Admin)]
     public class ContactsController : Controller
     {
         private readonly IContactService _contactService;
@@ -36,6 +38,7 @@ namespace Hospital.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
             _contactService.InsertContact(vm);
+            TempData["success"] = "Contact created successfully.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -52,87 +55,67 @@ namespace Hospital.Web.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
             _contactService.UpdateContact(vm);
+            TempData["success"] = "Contact updated successfully.";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
             _contactService.DeleteContact(id);
+            TempData["success"] = "Contact deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-        // CSV export - generate CSV from current data
         public IActionResult ExportContactsCsv()
         {
-            // fetch all (use large page size to get all, or adapt your service to provide "all")
-            var page = 1;
-            var pageSize = int.MaxValue;
-            var list = _contactService.GetAll(page, pageSize)?.Data ?? Enumerable.Empty<ContactViewModel>();
+            var list = _contactService.GetAll(1, int.MaxValue)?.Data ?? Enumerable.Empty<ContactViewModel>();
 
             var sb = new StringBuilder();
-            // header (try to use common properties)
-            var header = "Id,Name,Email,Phone,Message";
-            sb.AppendLine(header);
+            // Only columns that exist on ContactViewModel
+            sb.AppendLine("Id,Email,Phone,HospitalInfoId");
 
             foreach (var c in list)
             {
-                var id = SafeGetProperty(c, "Id");
-                var name = SafeGetProperty(c, "Name");
-                var email = SafeGetProperty(c, "Email");
-                var phone = SafeGetProperty(c, "Phone");
-                var message = SafeGetProperty(c, "Message");
-
-                var line = $"{EscapeCsv(id)},{EscapeCsv(name)},{EscapeCsv(email)},{EscapeCsv(phone)},{EscapeCsv(message)}";
+                var line = $"{c.Id}," +
+                           $"{EscapeCsv(c.Email)}," +
+                           $"{EscapeCsv(c.Phone)}," +
+                           $"{c.HospitalInfoId}";
                 sb.AppendLine(line);
             }
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-            return File(bytes, "text/csv", "contacts.csv");
+            return File(bytes, "text/csv", $"contacts_{DateTime.Now:yyyyMMdd}.csv");
         }
 
-        // "PDF" export - simple placeholder that returns CSV bytes with PDF content-type.
-        // Replace with real PDF generation if you want formatted PDF output.
         public IActionResult ExportContactsPdf()
         {
-            var page = 1;
-            var pageSize = int.MaxValue;
-            var list = _contactService.GetAll(page, pageSize)?.Data ?? Enumerable.Empty<ContactViewModel>();
+            var list = _contactService.GetAll(1, int.MaxValue)?.Data ?? Enumerable.Empty<ContactViewModel>();
 
             var sb = new StringBuilder();
             sb.AppendLine("Contacts Export");
-            sb.AppendLine("----------------");
+            sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm}");
+            sb.AppendLine(new string('-', 40));
+
             foreach (var c in list)
             {
-                sb.AppendLine($"Id: {SafeGetProperty(c, "Id")}");
-                sb.AppendLine($"Name: {SafeGetProperty(c, "Name")}");
-                sb.AppendLine($"Email: {SafeGetProperty(c, "Email")}");
-                sb.AppendLine($"Phone: {SafeGetProperty(c, "Phone")}");
-                sb.AppendLine("");
+                sb.AppendLine($"Id:             {c.Id}");
+                sb.AppendLine($"Email:          {c.Email}");
+                sb.AppendLine($"Phone:          {c.Phone}");
+                sb.AppendLine($"HospitalInfoId: {c.HospitalInfoId}");
+                sb.AppendLine();
             }
 
-            var bytes = System.Text.Encoding.UTF8.GetBytes(sb.ToString());
-            // Not a real PDF generator — returns plain text with PDF content-type. Replace with PDF lib if needed.
-            return File(bytes, "application/pdf", "contacts.pdf");
-        }
-
-        private static string SafeGetProperty(object obj, string name)
-        {
-            if (obj == null) return string.Empty;
-            var prop = obj.GetType().GetProperty(name) ?? obj.GetType().GetProperties().FirstOrDefault();
-            if (prop == null) return string.Empty;
-            var v = prop.GetValue(obj);
-            return v?.ToString() ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
+            return File(bytes, "application/pdf", $"contacts_{DateTime.Now:yyyyMMdd}.pdf");
         }
 
         private static string EscapeCsv(string s)
         {
-            if (s == null) return "";
-            if (s.Contains(",") || s.Contains("\"") || s.Contains("\r") || s.Contains("\n"))
-            {
-                var escaped = s.Replace("\"", "\"\"");
-                return $"\"{escaped}\"";
-            }
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            if (s.Contains(',') || s.Contains('"') || s.Contains('\r') || s.Contains('\n'))
+                return $"\"{s.Replace("\"", "\"\"")}\"";
             return s;
         }
     }

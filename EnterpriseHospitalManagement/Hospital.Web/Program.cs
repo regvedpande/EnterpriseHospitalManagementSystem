@@ -7,12 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
-// your project namespaces (adjust if different)
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services;
@@ -29,40 +27,53 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
-// --- Add MVC + configure Razor view search locations so views inside "Hospital.Web/Views" are found ---
+// MVC + Razor Pages (Razor Pages is REQUIRED for Identity UI)
 builder.Services.AddControllersWithViews()
     .AddRazorOptions(options =>
     {
+        // Area paths — {2}=Area, {1}=Controller, {0}=Action
+        options.AreaViewLocationFormats.Clear();
+        options.AreaViewLocationFormats.Add("/Areas/{2}/Views/{1}/{0}.cshtml");
+        options.AreaViewLocationFormats.Add("/Areas/{2}/Views/Shared/{0}.cshtml");
+        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/{1}/{0}.cshtml");
+        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/Shared/{0}.cshtml");
+
+        // Non-area paths
         options.ViewLocationFormats.Insert(0, "/Hospital.Web/Views/{1}/{0}.cshtml");
         options.ViewLocationFormats.Insert(1, "/Hospital.Web/Views/Shared/{0}.cshtml");
     });
 
-// --- DbContext registration (reads DefaultConnection from appsettings) ---
+// REQUIRED: without this, /Identity/Account/Login returns 404
+builder.Services.AddRazorPages();
+
+// DbContext
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(conn))
 {
-    Log.Warning("DefaultConnection missing in configuration. DB access will fail until a valid connection string is provided.");
+    Log.Warning("DefaultConnection missing. Add it to appsettings.json — see appsettings.json output file.");
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
-    if (!string.IsNullOrWhiteSpace(conn))
-        options.UseSqlServer(conn);
-    else
-        options.UseSqlServer("");
+    options.UseSqlServer(!string.IsNullOrWhiteSpace(conn)
+        ? conn
+        : "Server=(localdb)\\mssqllocaldb;Database=EnterpriseHospitalManagement;Trusted_Connection=True;");
 });
 
-// Identity
+// Identity — AddDefaultUI() enables the built-in Login/Register Razor Pages
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = true;
     options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
     options.SignIn.RequireConfirmedEmail = false;
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultUI()           // REQUIRED: scaffolds /Identity/Account/Login, /Register, etc.
     .AddDefaultTokenProviders();
 
-// Repositories and unit of work
+// Repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -74,15 +85,12 @@ var jwtAudience = jwtSection.GetValue<string>("Audience");
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
-    Log.Warning("JWT Key missing. A temporary dev key will be used. Set Jwt:Key for production.");
-    jwtKey = Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+    Log.Warning("JWT Key missing. Using a temporary dev key. Set Jwt:Key in appsettings.json for production.");
+    jwtKey = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+           + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 }
-if (string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
-{
-    Log.Warning("Jwt:Issuer or Jwt:Audience missing. Defaulting to 'localhost' dev values.");
-    jwtIssuer ??= "localhost";
-    jwtAudience ??= "localhost";
-}
+jwtIssuer ??= "localhost";
+jwtAudience ??= "localhost";
 
 var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 builder.Services.AddAuthentication(options =>
@@ -92,7 +100,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.RequireHttpsMetadata = false;
+    options.RequireHttpsMetadata = false; // set true in production
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
@@ -119,46 +127,38 @@ builder.Services.AddScoped<ImageOperations>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SftpService>();
 
-// Identity email sender
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
-
 builder.Services.AddHttpContextAccessor();
 
-// Cookie configuration
+// Cookie redirects for Identity UI
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
     options.AccessDeniedPath = "/Identity/Account/AccessDenied";
 });
 
 var app = builder.Build();
 
-// DB initializer
+// DB initializer — skip entirely if no connection string to avoid startup crash
 using (var scope = app.Services.CreateScope())
 {
-    try
+    if (!string.IsNullOrWhiteSpace(conn))
     {
-        var initializer = scope.ServiceProvider.GetService<IDbInitializer>();
-        if (initializer != null)
+        try
         {
-            try
-            {
-                initializer.Initialize();
-                Log.Information("Database initializer executed.");
-            }
-            catch (Exception dbEx)
-            {
-                Log.Error(dbEx, "Database initializer failed. If you have no connection string / migrations this may be expected.");
-            }
+            var initializer = scope.ServiceProvider.GetService<IDbInitializer>();
+            initializer?.Initialize();
+            Log.Information("Database initializer executed successfully.");
         }
-        else
+        catch (Exception ex)
         {
-            Log.Warning("IDbInitializer is not registered in DI; skipping DB initialization.");
+            Log.Error(ex, "Database initializer failed.");
         }
     }
-    catch (Exception ex)
+    else
     {
-        Log.Error(ex, "Error while attempting to run DB initializer (DI issues?)");
+        Log.Warning("Skipping DB initialization — DefaultConnection not set in appsettings.json.");
     }
 }
 
@@ -182,13 +182,16 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Maps /Identity/Account/Login, /Identity/Account/Register, etc.
+app.MapRazorPages();
+
 try
 {
     app.Run();
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Host terminated unexpectedly");
+    Log.Fatal(ex, "Host terminated unexpectedly.");
 }
 finally
 {

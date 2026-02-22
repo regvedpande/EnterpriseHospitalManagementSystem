@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Hospital.Web/Controllers/HomeController.cs
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using EnterpriseHospitalManagement.Models;
+using Hospital.Models;
 using System.Diagnostics;
 
 namespace Hospital.Web.Controllers
@@ -8,6 +9,7 @@ namespace Hospital.Web.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+
         public HomeController(ILogger<HomeController> logger) => _logger = logger;
 
         public IActionResult Index() => View();
@@ -17,7 +19,10 @@ namespace Hospital.Web.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }

@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace Hospital.ViewModels
+﻿// Hospital.Models/ErrorViewModel.cs
+namespace Hospital.Models
 {
     public class ErrorViewModel
     {
-        public string? RequestId { get; set; }
-
+        public string RequestId { get; set; }
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
 }

@@ -1,8 +1,339 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome to Enterprise Hospital Management System</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #0f4c81 0%, #1a6bbf 50%, #00b4d8 100%);
+        color: white;
+        padding: 5rem 3rem 4rem;
+        border-radius: 16px;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+
+        .hero-section::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            right: 80px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 50%;
+        }
+
+    .hero-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.15);
+        color: #e0f2fe;
+        padding: 0.3rem 1rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        margin-bottom: 1.25rem;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .hero-title {
+        font-size: 2.6rem;
+        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.05rem;
+        opacity: 0.85;
+        max-width: 520px;
+        line-height: 1.7;
+        margin-bottom: 0;
+    }
+
+    .hero-actions {
+        margin-top: 2rem;
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-hero-primary {
+        background: white;
+        color: #0f4c81;
+        font-weight: 600;
+        padding: 0.65rem 1.6rem;
+        border-radius: 8px;
+        border: none;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-hero-primary:hover {
+            background: #f1f5f9;
+            color: #0f4c81;
+            text-decoration: none;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+        }
+
+    .btn-hero-outline {
+        background: transparent;
+        color: white;
+        font-weight: 600;
+        padding: 0.65rem 1.6rem;
+        border-radius: 8px;
+        border: 2px solid rgba(255,255,255,0.45);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+        .btn-hero-outline:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+            border-color: white;
+        }
+
+    .stat-card {
+        text-align: center;
+        padding: 1.5rem 1rem;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+    }
+
+    .stat-icon {
+        font-size: 1.6rem;
+        color: #0f4c81;
+        margin-bottom: 0.4rem;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin: 0;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        padding: 1.75rem;
+        height: 100%;
+        transition: all 0.2s;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(15,76,129,0.1);
+            border-color: #bfdbfe;
+        }
+
+    .feature-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.4rem;
+        color: #1e293b;
+    }
+
+    .feature-desc {
+        color: #64748b;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .section-eyebrow {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: #0f4c81;
+        text-transform: uppercase;
+        margin-bottom: 0.4rem;
+    }
+
+    .section-heading {
+        font-size: 1.7rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <div class="hero-badge">
+                <i class="fas fa-shield-alt mr-1"></i> Trusted Healthcare Platform
+            </div>
+            <h1 class="hero-title">
+                Enterprise Hospital<br />Management System
+            </h1>
+            <p class="hero-subtitle">
+                A unified platform for hospitals, doctors, and patients.
+                Manage rooms, staff, and patient care — all from one secure dashboard.
+            </p>
+            <div class="hero-actions">
+                @if (!User.Identity.IsAuthenticated)
+                {
+                    <a href="/Identity/Account/Register" class="btn-hero-primary">
+                        <i class="fas fa-user-plus"></i> Get Started
+                    </a>
+                    <a href="/Identity/Account/Login" class="btn-hero-outline">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a>
+                }
+                else if (User.IsInRole("Website_Admin"))
+                {
+                    <a asp-area="Admin" asp-controller="Hospitals" asp-action="Index" class="btn-hero-primary">
+                        <i class="fas fa-th-large"></i> Admin Dashboard
+                    </a>
+                }
+                else if (User.IsInRole("Website_Doctor"))
+                {
+                    <a asp-area="Doctor" asp-controller="Doctors" asp-action="Index" class="btn-hero-primary">
+                        <i class="fas fa-calendar-alt"></i> My Schedule
+                    </a>
+                }
+                else
+                {
+                    <a asp-area="Patient" asp-controller="Home" asp-action="Index" class="btn-hero-primary">
+                        <i class="fas fa-th-large"></i> My Dashboard
+                    </a>
+                }
+            </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-flex justify-content-end align-items-center">
+            <span style="font-size: 7rem; opacity: 0.12;"><i class="fas fa-hospital-alt"></i></span>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Row -->
+<div class="row mb-5">
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <p class="stat-label">24/7 Operations</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-lock"></i></div>
+            <p class="stat-label">Secure & Compliant</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+            <p class="stat-label">Real-Time Analytics</p>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 mb-3">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <p class="stat-label">Multi-Role Access</p>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="mb-5">
+    <p class="section-eyebrow">Core Features</p>
+    <h2 class="section-heading">Everything you need to run a hospital</h2>
+    <p class="text-muted mb-4" style="font-size:0.9rem;">
+        From room management to doctor scheduling, every aspect of hospital operations in one place.
+    </p>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#dbeafe; color:#1d4ed8;">
+                    <i class="fas fa-hospital"></i>
+                </div>
+                <div class="feature-title">Hospital Management</div>
+                <p class="feature-desc">Register and manage multiple hospital branches with full location, type, and operational detail tracking.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#dcfce7; color:#16a34a;">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <div class="feature-title">Room &amp; Bed Tracking</div>
+                <p class="feature-desc">Monitor room availability, types, and occupancy status in real time to ensure patients always get care.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#fef9c3; color:#ca8a04;">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="feature-title">Doctor Scheduling</div>
+                <p class="feature-desc">Doctors manage their timing schedules, specializations, and appointments with a dedicated portal.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#fce7f3; color:#be185d;">
+                    <i class="fas fa-address-book"></i>
+                </div>
+                <div class="feature-title">Contact Management</div>
+                <p class="feature-desc">Maintain a full hospital contact directory with one-click CSV and PDF export for reporting.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#ede9fe; color:#7c3aed;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="feature-title">Role-Based Access</div>
+                <p class="feature-desc">Secure login with distinct portals for Admins, Doctors, and Patients — each sees only what they need.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon" style="background:#ffedd5; color:#c2410c;">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <div class="feature-title">Reports &amp; Exports</div>
+                <p class="feature-desc">Export any data to CSV or PDF for compliance, auditing, and administrative reporting in one click.</p>
+            </div>
+        </div>
+    </div>
 </div>
