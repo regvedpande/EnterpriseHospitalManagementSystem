@@ -20,24 +20,31 @@ namespace Hospital.Utilities
         public string GenerateToken(ApplicationUser user, string role)
         {
             var jwtSection = _config.GetSection("Jwt");
-            var key = jwtSection.GetValue<string>("Key");
-            var issuer = jwtSection.GetValue<string>("Issuer");
-            var audience = jwtSection.GetValue<string>("Audience");
+            var key = jwtSection.GetValue<string>("Key") ?? "HospitalDefaultDevKey_MustChange_In_Production_32Chars!";
+            var issuer = jwtSection.GetValue<string>("Issuer") ?? "Hospital";
+            var audience = jwtSection.GetValue<string>("Audience") ?? "Hospital";
             var expiry = jwtSection.GetValue<int>("ExpiryMinutes");
+            if (expiry <= 0) expiry = 60;
 
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? user.Email),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? user.Email ?? user.Id),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName ?? user.Email),
+                new Claim(ClaimTypes.Name, user.UserName ?? user.Email ?? user.Id),
                 new Claim(ClaimTypes.Role, role ?? "")
             };
 
             var keyBytes = Encoding.UTF8.GetBytes(key);
-            var credentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256);
+            var credentials = new SigningCredentials(
+                new SymmetricSecurityKey(keyBytes),
+                SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(issuer, audience, claims, expires: DateTime.UtcNow.AddMinutes(expiry), signingCredentials: credentials);
+            var token = new JwtSecurityToken(
+                issuer, audience, claims,
+                expires: DateTime.UtcNow.AddMinutes(expiry),
+                signingCredentials: credentials);
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

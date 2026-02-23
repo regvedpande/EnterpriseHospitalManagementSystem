@@ -12,8 +12,8 @@ namespace Hospital.Models
 
         [Required]
         [ForeignKey(nameof(Doctor))]
-        public string DoctorId { get; set; }
-        public ApplicationUser Doctor { get; set; }
+        public string DoctorId { get; set; } = string.Empty;
+        public ApplicationUser Doctor { get; set; } = null!;
 
         [Required]
         public DateTime ScheduleDate { get; set; }

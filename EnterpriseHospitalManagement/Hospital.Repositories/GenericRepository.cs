@@ -21,14 +21,12 @@ namespace Hospital.Repositories
 
         public T? GetById(int id) => _dbSet.Find(id);
 
-        // Add: same behaviour as Insert
         public void Add(T entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
             _dbSet.Add(entity);
         }
 
-        // keep Insert for compatibility with older code
         public void Insert(T entity) => Add(entity);
 
         public void Update(T entity)
@@ -37,17 +35,13 @@ namespace Hospital.Repositories
             _dbSet.Update(entity);
         }
 
-        // Delete by id (finds and removes if found)
         public void Delete(int id)
         {
             var entity = GetById(id);
             if (entity != null)
-            {
                 _dbSet.Remove(entity);
-            }
         }
 
-        // Delete by passing the entity directly
         public void Delete(T entity)
         {
             if (entity == null) throw new ArgumentNullException(nameof(entity));
@@ -56,7 +50,6 @@ namespace Hospital.Repositories
 
         public void Save() => _context.SaveChanges();
 
-        // return the EF SaveChangesAsync result (int)
         public Task<int> SaveAsync() => _context.SaveChangesAsync();
     }
 }

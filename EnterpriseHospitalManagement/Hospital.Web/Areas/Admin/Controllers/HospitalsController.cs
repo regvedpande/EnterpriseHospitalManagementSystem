@@ -33,24 +33,17 @@ namespace Hospital.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(HospitalInfoViewModel vm)
         {
-            if (ModelState.IsValid)
-            {
-                _hospitalService.InsertHospitalInfo(vm);
-                TempData["success"] = "Hospital created successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(vm);
+            if (!ModelState.IsValid) return View(vm);
+            _hospitalService.InsertHospitalInfo(vm);
+            TempData["success"] = "Hospital created successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
             var vm = _hospitalService.GetHospitalById(id);
-            if (vm == null)
-            {
-                return NotFound();
-            }
+            if (vm == null) return NotFound();
             return View(vm);
         }
 
@@ -58,14 +51,10 @@ namespace Hospital.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(HospitalInfoViewModel vm)
         {
-            if (ModelState.IsValid)
-            {
-                _hospitalService.UpdateHospitalInfo(vm);
-                TempData["success"] = "Hospital updated successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(vm);
+            if (!ModelState.IsValid) return View(vm);
+            _hospitalService.UpdateHospitalInfo(vm);
+            TempData["success"] = "Hospital updated successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -75,6 +64,30 @@ namespace Hospital.Web.Areas.Admin.Controllers
             _hospitalService.DeleteHospitalInfo(id);
             TempData["success"] = "Hospital deleted successfully.";
             return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult ExportCsv()
+        {
+            var list = _hospitalService.GetAll(1, int.MaxValue).Data;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Id,Name,Type,City,PinCode,Country");
+            foreach (var h in list)
+                sb.AppendLine($"{h.Id},{h.Name},{h.Type},{h.City},{h.PinCode},{h.Country}");
+            return File(System.Text.Encoding.UTF8.GetBytes(sb.ToString()), "text/csv",
+                $"hospitals_{System.DateTime.Now:yyyyMMdd}.csv");
+        }
+
+        public IActionResult ExportPdf()
+        {
+            var list = _hospitalService.GetAll(1, int.MaxValue).Data;
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Hospitals Export");
+            foreach (var h in list)
+            {
+                sb.AppendLine($"Id: {h.Id} | Name: {h.Name} | Type: {h.Type} | City: {h.City}");
+            }
+            return File(System.Text.Encoding.UTF8.GetBytes(sb.ToString()), "application/pdf",
+                $"hospitals_{System.DateTime.Now:yyyyMMdd}.pdf");
         }
     }
 }

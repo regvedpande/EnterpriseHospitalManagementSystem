@@ -12,7 +12,7 @@ namespace Hospital.ViewModels
         public int Id { get; set; }
 
         [Required]
-        public string DoctorId { get; set; }
+        public string DoctorId { get; set; } = "";
 
         [Required]
         [Display(Name = "Schedule Date")]
@@ -43,14 +43,13 @@ namespace Hospital.ViewModels
         [Display(Name = "Status")]
         public Status Status { get; set; }
 
+        // Dropdowns (not posted, just for view binding)
         public List<SelectListItem> MorningShiftStart { get; set; } = new();
         public List<SelectListItem> MorningShiftEnd { get; set; } = new();
         public List<SelectListItem> AfternoonShiftStart { get; set; } = new();
         public List<SelectListItem> AfternoonShiftEnd { get; set; } = new();
 
-        public TimingViewModel()
-        {
-        }
+        public TimingViewModel() { }
 
         public TimingViewModel(Timing model)
         {
@@ -65,20 +64,17 @@ namespace Hospital.ViewModels
             Status = model.Status;
         }
 
-        public Timing ConvertViewModel()
+        public Timing ToModel() => new Timing
         {
-            return new Timing
-            {
-                Id = Id,
-                DoctorId = DoctorId,
-                ScheduleDate = ScheduleDate,
-                MorningShiftStartTime = MorningShiftStartTime,
-                MorningShiftEndTime = MorningShiftEndTime,
-                AfternoonShiftStartTime = AfternoonShiftStartTime,
-                AfternoonShiftEndTime = AfternoonShiftEndTime,
-                Duration = Duration,
-                Status = Status
-            };
-        }
+            Id = Id,
+            DoctorId = DoctorId,
+            ScheduleDate = ScheduleDate,
+            MorningShiftStartTime = MorningShiftStartTime,
+            MorningShiftEndTime = MorningShiftEndTime,
+            AfternoonShiftStartTime = AfternoonShiftStartTime,
+            AfternoonShiftEndTime = AfternoonShiftEndTime,
+            Duration = Duration,
+            Status = Status
+        };
     }
 }

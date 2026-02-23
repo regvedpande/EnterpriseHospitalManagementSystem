@@ -37,7 +37,6 @@ namespace Hospital.Web.Areas.Doctor.Controllers
                 Duration = 30,
                 Status = Status.Available
             };
-
             PopulateShiftDropdowns();
             return View(vm);
         }
@@ -46,34 +45,27 @@ namespace Hospital.Web.Areas.Doctor.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AddTiming(TimingViewModel vm)
         {
+            // Set DoctorId from logged-in user BEFORE validation
+            var claimsIdentity = (ClaimsIdentity?)User.Identity;
+            var claim = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier);
+            if (claim != null)
+                vm.DoctorId = claim.Value;
+
             PopulateShiftDropdowns();
 
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim != null)
-            {
-                vm.DoctorId = claim.Value;
-            }
+            if (!ModelState.IsValid)
+                return View(vm);
 
-            if (ModelState.IsValid)
-            {
-                _doctorService.AddTiming(vm);
-                TempData["success"] = "Timing created successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(vm);
+            _doctorService.AddTiming(vm);
+            TempData["success"] = "Timing created successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
             var vm = _doctorService.GetTimingById(id);
-            if (vm == null)
-            {
-                return NotFound();
-            }
-
+            if (vm == null) return NotFound();
             PopulateShiftDropdowns();
             return View(vm);
         }
@@ -83,15 +75,10 @@ namespace Hospital.Web.Areas.Doctor.Controllers
         public IActionResult Edit(TimingViewModel vm)
         {
             PopulateShiftDropdowns();
-
-            if (ModelState.IsValid)
-            {
-                _doctorService.UpdateTiming(vm);
-                TempData["success"] = "Timing updated successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(vm);
+            if (!ModelState.IsValid) return View(vm);
+            _doctorService.UpdateTiming(vm);
+            TempData["success"] = "Timing updated successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -105,27 +92,26 @@ namespace Hospital.Web.Areas.Doctor.Controllers
 
         private void PopulateShiftDropdowns()
         {
-            var morningShiftStart = new List<SelectListItem>();
-            var morningShiftEnd = new List<SelectListItem>();
-            var afternoonShiftStart = new List<SelectListItem>();
-            var afternoonShiftEnd = new List<SelectListItem>();
+            var morningStart = new List<SelectListItem>();
+            var morningEnd = new List<SelectListItem>();
+            var afternoonStart = new List<SelectListItem>();
+            var afternoonEnd = new List<SelectListItem>();
 
-            for (int i = 9; i <= 12; i++)
+            for (int i = 6; i <= 12; i++)
             {
-                morningShiftStart.Add(new SelectListItem { Text = $"{i}:00", Value = i.ToString() });
-                morningShiftEnd.Add(new SelectListItem { Text = $"{i}:00", Value = i.ToString() });
+                morningStart.Add(new SelectListItem { Text = $"{i:D2}:00", Value = i.ToString() });
+                morningEnd.Add(new SelectListItem { Text = $"{i:D2}:00", Value = i.ToString() });
+            }
+            for (int i = 12; i <= 20; i++)
+            {
+                afternoonStart.Add(new SelectListItem { Text = $"{i:D2}:00", Value = i.ToString() });
+                afternoonEnd.Add(new SelectListItem { Text = $"{i:D2}:00", Value = i.ToString() });
             }
 
-            for (int i = 13; i <= 18; i++)
-            {
-                afternoonShiftStart.Add(new SelectListItem { Text = $"{i}:00", Value = i.ToString() });
-                afternoonShiftEnd.Add(new SelectListItem { Text = $"{i}:00", Value = i.ToString() });
-            }
-
-            ViewBag.MorningShiftStart = new SelectList(morningShiftStart, "Value", "Text");
-            ViewBag.MorningShiftEnd = new SelectList(morningShiftEnd, "Value", "Text");
-            ViewBag.AfternoonShiftStart = new SelectList(afternoonShiftStart, "Value", "Text");
-            ViewBag.AfternoonShiftEnd = new SelectList(afternoonShiftEnd, "Value", "Text");
+            ViewBag.MorningShiftStart = new SelectList(morningStart, "Value", "Text");
+            ViewBag.MorningShiftEnd = new SelectList(morningEnd, "Value", "Text");
+            ViewBag.AfternoonShiftStart = new SelectList(afternoonStart, "Value", "Text");
+            ViewBag.AfternoonShiftEnd = new SelectList(afternoonEnd, "Value", "Text");
         }
     }
 }

@@ -3,8 +3,6 @@ using Hospital.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Hospital.Web.Controllers
 {
@@ -16,7 +14,10 @@ namespace Hospital.Web.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly JwtService _jwtService;
 
-        public ApiAuthController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, JwtService jwtService)
+        public ApiAuthController(
+            SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            JwtService jwtService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -25,30 +26,36 @@ namespace Hospital.Web.Controllers
 
         public class LoginRequest
         {
-            public string Email { get; set; }
-            public string Password { get; set; }
+            public string Email { get; set; } = "";
+            public string Password { get; set; } = "";
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
+            if (model == null || string.IsNullOrWhiteSpace(model.Email))
+                return BadRequest("Email is required.");
+
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return Unauthorized("Invalid credentials");
+            if (user == null)
+                return Unauthorized(new { message = "Invalid credentials." });
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: false);
-            if (!result.Succeeded) return Unauthorized("Invalid credentials");
+            if (!result.Succeeded)
+                return Unauthorized(new { message = "Invalid credentials." });
 
-            // get role
             var roles = await _userManager.GetRolesAsync(user);
             var role = roles.Count > 0 ? roles[0] : "";
-
-            // generate jwt
             var token = _jwtService.GenerateToken(user, role);
 
-            // also sign in cookie for UI if needed:
-            await _signInManager.SignInAsync(user, isPersistent: false);
+            return Ok(new { token, role, expiresInMinutes = 60 });
+        }
 
-            return Ok(new { token, expiresInMinutes = 60 });
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok(new { message = "Logged out." });
         }
     }
 }

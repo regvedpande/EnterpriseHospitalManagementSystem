@@ -12,15 +12,15 @@ namespace Hospital.Models
         [Required]
         [ForeignKey(nameof(Supplier))]
         public int SupplierId { get; set; }
-        public Supplier Supplier { get; set; }
+        public Supplier Supplier { get; set; } = null!;
 
         [Required]
         [ForeignKey(nameof(Medicine))]
         public int MedicineId { get; set; }
-        public Medicine Medicine { get; set; }
+        public Medicine Medicine { get; set; } = null!;
 
         [Required]
-        public string Company { get; set; }
+        public string Company { get; set; } = string.Empty;
 
         [Required]
         public int Quantity { get; set; }
@@ -32,6 +32,6 @@ namespace Hospital.Models
         public DateTime ExpireDate { get; set; }
 
         [Required]
-        public string Country { get; set; }
+        public string Country { get; set; } = string.Empty;
     }
 }

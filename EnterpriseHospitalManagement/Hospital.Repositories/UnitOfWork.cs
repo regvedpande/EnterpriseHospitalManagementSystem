@@ -1,17 +1,10 @@
-﻿using System;
+﻿using EnterpriseHospitalManagement.Hospital.Repositories;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Hospital.Models;
 
 namespace Hospital.Repositories
 {
-    public interface IUnitOfWork : IDisposable
-    {
-        IGenericRepository<T> Repository<T>() where T : class;
-        void Save();
-        Task SaveAsync();
-    }
-
     public class UnitOfWork : IUnitOfWork
     {
         private readonly ApplicationDbContext _context;
@@ -38,14 +31,13 @@ namespace Hospital.Repositories
         public Task SaveAsync() => _context.SaveChangesAsync();
 
         private bool _disposed;
+
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposed)
             {
                 if (disposing)
-                {
                     _context?.Dispose();
-                }
                 _disposed = true;
             }
         }

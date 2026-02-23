@@ -28,7 +28,7 @@ namespace Hospital.Repositories
         {
             base.OnModelCreating(builder);
 
-            // Appointment
+            // Appointment - two FK to same table, restrict cascade to avoid cycles
             builder.Entity<Appointment>()
                 .HasOne(a => a.Doctor)
                 .WithMany(d => d.AppointmentsAsDoctor)
@@ -41,7 +41,7 @@ namespace Hospital.Repositories
                 .HasForeignKey(a => a.PatientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // PatientReport
+            // PatientReport - two FK to same table
             builder.Entity<PatientReport>()
                 .HasOne(pr => pr.Doctor)
                 .WithMany(d => d.PatientReportsAsDoctor)

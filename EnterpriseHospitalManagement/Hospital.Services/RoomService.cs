@@ -1,12 +1,10 @@
-﻿// Hospital.Services/RoomService.cs
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Hospital.Utilities;
-using Hospital.ViewModels;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
+using Hospital.Utilities;
+using Hospital.ViewModels;
 
 namespace Hospital.Services
 {
@@ -21,8 +19,7 @@ namespace Hospital.Services
 
         public PagedResult<RoomViewModel> GetAll(int pageNumber, int pageSize)
         {
-            var list = _repo.GetAll()?.ToList() ?? new List<Room>();
-
+            var list = _repo.GetAll().ToList();
             return new PagedResult<RoomViewModel>
             {
                 Data = list
@@ -36,87 +33,44 @@ namespace Hospital.Services
             };
         }
 
-        public RoomViewModel GetRoomById(int roomId)
+        public RoomViewModel? GetRoomById(int roomId)
         {
             var model = _repo.GetById(roomId);
             return model == null ? null : new RoomViewModel(model);
         }
 
-        public void InsertRoom(RoomViewModel roomViewModel)
+        public void InsertRoom(RoomViewModel vm)
         {
-            if (roomViewModel == null) return;
-
-            // Use ConvertViewModel extension implemented above
-            var model = roomViewModel.ConvertViewModel();
-            var addMi = _repo.GetType().GetMethod("Add");
-            if (addMi != null)
-            {
-                addMi.Invoke(_repo, new object[] { model });
-            }
-            else
-            {
-                // fallback if repo exposes Add
-                _repo.AddOrUpdate(model);
-            }
-
-            _repo.SaveChanges();
+            if (vm == null) return;
+            var model = vm.ToModel();
+            model.Id = 0;
+            _repo.Add(model);
+            _repo.Save();
         }
 
-        public void UpdateRoom(RoomViewModel roomViewModel)
+        public void UpdateRoom(RoomViewModel vm)
         {
-            if (roomViewModel == null) return;
-
-            // get id (common property names)
-            var idProp = roomViewModel.GetType().GetProperty("Id") ?? roomViewModel.GetType().GetProperty("ID");
-            var id = 0;
-            if (idProp != null)
-            {
-                var v = idProp.GetValue(roomViewModel);
-                id = v == null ? 0 : Convert.ToInt32(v);
-            }
-
-            var existing = _repo.GetById(id);
+            if (vm == null) return;
+            var existing = _repo.GetById(vm.Id);
             if (existing == null)
             {
-                InsertRoom(roomViewModel);
+                InsertRoom(vm);
                 return;
             }
-
-            // copy properties by name
-            var newModel = roomViewModel.ConvertViewModel();
-            // copy only properties that exist in model (reflection)
-            foreach (var p in newModel.GetType().GetProperties())
-            {
-                var target = existing.GetType().GetProperty(p.Name);
-                if (target != null && target.CanWrite)
-                {
-                    try { target.SetValue(existing, p.GetValue(newModel)); } catch { }
-                }
-            }
-
-            var updateMi = _repo.GetType().GetMethod("Update");
-            if (updateMi != null)
-                updateMi.Invoke(_repo, new object[] { existing });
-
-            _repo.SaveChanges();
+            existing.RoomNumber = vm.RoomNumber;
+            existing.Type = vm.Type;
+            existing.Status = vm.Status;
+            existing.HospitalId = vm.HospitalId;
+            _repo.Update(existing);
+            _repo.Save();
         }
 
         public void DeleteRoom(int roomId)
         {
             var existing = _repo.GetById(roomId);
             if (existing == null) return;
-
-            var deleteMi = _repo.GetType().GetMethod("Delete", new[] { existing.GetType() });
-            if (deleteMi != null)
-                deleteMi.Invoke(_repo, new object[] { existing });
-            else
-            {
-                // fallback - try Delete(int) if available
-                var deleteById = _repo.GetType().GetMethod("Delete", new[] { typeof(int) });
-                deleteById?.Invoke(_repo, new object[] { roomId });
-            }
-
-            _repo.SaveChanges();
+            _repo.Delete(existing);
+            _repo.Save();
         }
     }
 }

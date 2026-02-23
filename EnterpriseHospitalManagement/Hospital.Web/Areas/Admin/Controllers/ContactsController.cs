@@ -1,5 +1,4 @@
-﻿// Areas/Admin/Controllers/ContactsController.cs
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -21,12 +20,13 @@ namespace Hospital.Web.Areas.Admin.Controllers
             _contactService = contactService;
         }
 
-        public IActionResult Index(int page = 1, int pageSize = 25)
+        public IActionResult Index(int pageNumber = 1, int pageSize = 25)
         {
-            var result = _contactService.GetAll(page, pageSize);
+            var result = _contactService.GetAll(pageNumber, pageSize);
             return View(result);
         }
 
+        [HttpGet]
         public IActionResult Create()
         {
             return View(new ContactViewModel());
@@ -42,6 +42,7 @@ namespace Hospital.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
         public IActionResult Edit(int id)
         {
             var vm = _contactService.GetContactById(id);
@@ -68,50 +69,38 @@ namespace Hospital.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult ExportContactsCsv()
+        // FIX: renamed to match view links (ExportCsv / ExportPdf)
+        public IActionResult ExportCsv()
         {
-            var list = _contactService.GetAll(1, int.MaxValue)?.Data ?? Enumerable.Empty<ContactViewModel>();
-
+            var list = _contactService.GetAll(1, int.MaxValue).Data;
             var sb = new StringBuilder();
-            // Only columns that exist on ContactViewModel
             sb.AppendLine("Id,Email,Phone,HospitalInfoId");
-
             foreach (var c in list)
             {
-                var line = $"{c.Id}," +
-                           $"{EscapeCsv(c.Email)}," +
-                           $"{EscapeCsv(c.Phone)}," +
-                           $"{c.HospitalInfoId}";
-                sb.AppendLine(line);
+                sb.AppendLine($"{c.Id},{EscapeCsv(c.Email)},{EscapeCsv(c.Phone)},{c.HospitalInfoId}");
             }
-
-            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-            return File(bytes, "text/csv", $"contacts_{DateTime.Now:yyyyMMdd}.csv");
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", $"contacts_{DateTime.Now:yyyyMMdd}.csv");
         }
 
-        public IActionResult ExportContactsPdf()
+        public IActionResult ExportPdf()
         {
-            var list = _contactService.GetAll(1, int.MaxValue)?.Data ?? Enumerable.Empty<ContactViewModel>();
-
+            var list = _contactService.GetAll(1, int.MaxValue).Data;
             var sb = new StringBuilder();
             sb.AppendLine("Contacts Export");
             sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm}");
             sb.AppendLine(new string('-', 40));
-
             foreach (var c in list)
             {
-                sb.AppendLine($"Id:             {c.Id}");
-                sb.AppendLine($"Email:          {c.Email}");
-                sb.AppendLine($"Phone:          {c.Phone}");
-                sb.AppendLine($"HospitalInfoId: {c.HospitalInfoId}");
+                sb.AppendLine($"Id: {c.Id}");
+                sb.AppendLine($"Email: {c.Email}");
+                sb.AppendLine($"Phone: {c.Phone}");
+                sb.AppendLine($"Hospital Id: {c.HospitalInfoId}");
                 sb.AppendLine();
             }
-
-            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-            return File(bytes, "application/pdf", $"contacts_{DateTime.Now:yyyyMMdd}.pdf");
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/pdf", $"contacts_{DateTime.Now:yyyyMMdd}.pdf");
         }
 
-        private static string EscapeCsv(string s)
+        private static string EscapeCsv(string? s)
         {
             if (string.IsNullOrEmpty(s)) return string.Empty;
             if (s.Contains(',') || s.Contains('"') || s.Contains('\r') || s.Contains('\n'))

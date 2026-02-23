@@ -33,24 +33,17 @@ namespace Hospital.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(RoomViewModel vm)
         {
-            if (ModelState.IsValid)
-            {
-                _roomService.InsertRoom(vm);
-                TempData["success"] = "Room created successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(vm);
+            if (!ModelState.IsValid) return View(vm);
+            _roomService.InsertRoom(vm);
+            TempData["success"] = "Room created successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public IActionResult Edit(int id)
         {
             var vm = _roomService.GetRoomById(id);
-            if (vm == null)
-            {
-                return NotFound();
-            }
+            if (vm == null) return NotFound();
             return View(vm);
         }
 
@@ -58,14 +51,10 @@ namespace Hospital.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(RoomViewModel vm)
         {
-            if (ModelState.IsValid)
-            {
-                _roomService.UpdateRoom(vm);
-                TempData["success"] = "Room updated successfully.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            return View(vm);
+            if (!ModelState.IsValid) return View(vm);
+            _roomService.UpdateRoom(vm);
+            TempData["success"] = "Room updated successfully.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]

@@ -14,6 +14,7 @@ namespace Hospital.Models
         [Required]
         public string Type { get; set; }
 
+        /// <summary>0 = Available, 1 = Occupied, 2 = Maintenance</summary>
         [Required]
         public int Status { get; set; }
 

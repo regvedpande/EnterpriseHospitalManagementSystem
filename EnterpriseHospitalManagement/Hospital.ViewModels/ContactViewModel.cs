@@ -7,13 +7,16 @@ namespace Hospital.ViewModels
     {
         public int Id { get; set; }
 
-        [Required, EmailAddress]
-        public string Email { get; set; }
-
-        [Required, Phone]
-        public string Phone { get; set; }
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
 
         [Required]
+        [Phone]
+        public string Phone { get; set; } = "";
+
+        [Required]
+        [Display(Name = "Hospital")]
         public int HospitalInfoId { get; set; }
 
         public ContactViewModel() { }
@@ -27,7 +30,7 @@ namespace Hospital.ViewModels
             HospitalInfoId = c.HospitalId;
         }
 
-        public Contact ConvertViewModel() => new Contact
+        public Contact ToModel() => new Contact
         {
             Id = this.Id,
             Email = this.Email,

@@ -20,34 +20,30 @@ namespace Hospital.Services
         public PagedResult<ApplicationUserViewModel> GetAll(int pageNumber, int pageSize)
         {
             var query = _repo.GetAll().ToList();
-
             return BuildPagedResult(query, pageNumber, pageSize);
         }
 
         public PagedResult<ApplicationUserViewModel> GetAllDoctors(int pageNumber, int pageSize)
         {
             var query = _repo.GetAll()
-                .Where(x => x.Role == "Doctor")
+                .Where(x => x.IsDoctor)
                 .ToList();
-
             return BuildPagedResult(query, pageNumber, pageSize);
         }
 
         public PagedResult<ApplicationUserViewModel> GetAllPatients(int pageNumber, int pageSize)
         {
             var query = _repo.GetAll()
-                .Where(x => x.Role == "Patient")
+                .Where(x => !x.IsDoctor)
                 .ToList();
-
             return BuildPagedResult(query, pageNumber, pageSize);
         }
 
         public PagedResult<ApplicationUserViewModel> SearchDoctors(int pageNumber, int pageSize, string search)
         {
             var query = _repo.GetAll()
-                .Where(x => x.Role == "Doctor" && x.Name.Contains(search))
+                .Where(x => x.IsDoctor && x.Name.Contains(search ?? ""))
                 .ToList();
-
             return BuildPagedResult(query, pageNumber, pageSize);
         }
 

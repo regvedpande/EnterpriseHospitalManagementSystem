@@ -10,8 +10,8 @@ namespace Hospital.Models
 
         [Required]
         [ForeignKey(nameof(Employee))]
-        public string EmployeeId { get; set; }
-        public ApplicationUser Employee { get; set; }
+        public string EmployeeId { get; set; } = string.Empty;
+        public ApplicationUser Employee { get; set; } = null!;
 
         [Required]
         [Column(TypeName = "decimal(18, 2)")]
@@ -30,6 +30,6 @@ namespace Hospital.Models
         public decimal Compensation { get; set; }
 
         [Required]
-        public string AccountNumber { get; set; }
+        public string AccountNumber { get; set; } = string.Empty;
     }
 }

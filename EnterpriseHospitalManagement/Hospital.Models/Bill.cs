@@ -13,12 +13,12 @@ namespace Hospital.Models
 
         [Required]
         [ForeignKey(nameof(Patient))]
-        public string PatientId { get; set; }
-        public ApplicationUser Patient { get; set; }
+        public string PatientId { get; set; } = string.Empty;
+        public ApplicationUser Patient { get; set; } = null!;
 
         [ForeignKey(nameof(Insurance))]
         public int? InsuranceId { get; set; }
-        public Insurance Insurance { get; set; }
+        public Insurance? Insurance { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18, 2)")]

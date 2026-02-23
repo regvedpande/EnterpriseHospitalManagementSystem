@@ -10,7 +10,7 @@ namespace Hospital.Models
         public int Id { get; set; }
 
         [Required]
-        public string PolicyNumber { get; set; }
+        public string PolicyNumber { get; set; } = string.Empty;
 
         [Required]
         public DateTime StartDate { get; set; }
@@ -18,6 +18,6 @@ namespace Hospital.Models
         [Required]
         public DateTime EndDate { get; set; }
 
-        public ICollection<Bill> Bills { get; set; }
+        public ICollection<Bill> Bills { get; set; } = new List<Bill>();
     }
 }
