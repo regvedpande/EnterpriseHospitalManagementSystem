@@ -1,0 +1,65 @@
+@model IEnumerable<Hospital.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "All Users";
+}
+
+<div class="page-header">
+    <div>
+        <h2>All Users</h2>
+        <p>Manage registered users</p>
+    </div>
+    <div>
+        <a asp-action="AllDoctors" class="btn btn-outline-primary btn-sm mr-1">
+            <i class="fas fa-user-md mr-1"></i>Doctors
+        </a>
+        <a asp-action="AllPatients" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-procedures mr-1"></i>Patients
+        </a>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No users registered yet.</div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th><th>Email</th><th>Username</th><th>Phone</th><th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="rounded-circle mr-2 d-inline-flex align-items-center justify-content-center"
+                                      style="width:28px;height:28px;background:#0f4c81;color:#fff;font-weight:700;font-size:.75rem;">
+                                    @u.Name.Substring(0,1).ToUpper()
+                                </span>
+                                @u.Name
+                            </td>
+                            <td>@u.Email</td>
+                            <td>@u.UserName</td>
+                            <td>@u.PhoneNumber</td>
+                            <td>
+                                @if (u.IsDoctor)
+                                {
+                                    <span class="badge badge-primary">Doctor</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-secondary">Patient</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

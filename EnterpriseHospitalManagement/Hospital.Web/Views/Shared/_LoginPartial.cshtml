@@ -1,23 +1,52 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @using Hospital.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
 
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var displayName = user?.Name ?? User.Identity?.Name ?? "User";
+}
+
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
-        <li class="nav-item">
-            <a class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index">Hello @User.Identity?.Name!</a>
-        </li>
-        <li class="nav-item">
-            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
-                <button type="submit" class="btn btn-link nav-link">Logout</button>
-            </form>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#"
+               id="userDropdown" data-toggle="dropdown">
+                <span class="rounded-circle mr-2 d-flex align-items-center justify-content-center"
+                      style="width:28px;height:28px;background:#0f4c81;color:white;font-size:.75rem;font-weight:700;">
+                    @displayName.Substring(0, 1).ToUpper()
+                </span>
+                @displayName
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow-sm"
+                 style="border:1px solid #e2e8f0;border-radius:10px;min-width:180px;">
+                <a class="dropdown-item" asp-area="Identity" asp-page="/Account/Manage/Index">
+                    <i class="fas fa-user-cog mr-2 text-muted"></i>My Account
+                </a>
+                <div class="dropdown-divider"></div>
+                <form asp-area="Identity" asp-page="/Account/Logout"
+                      asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
+                    <button type="submit" class="dropdown-item text-danger">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
+                </form>
+            </div>
         </li>
     }
     else
     {
-        <li class="nav-item"><a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a></li>
-        <li class="nav-item"><a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a></li>
+        <li class="nav-item">
+            <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">
+                <i class="fas fa-user-plus"></i>Register
+            </a>
+        </li>
+        <li class="nav-item ml-1">
+            <a class="nav-link btn btn-primary text-white px-3" style="border-radius:7px;"
+               asp-area="Identity" asp-page="/Account/Login">
+                <i class="fas fa-sign-in-alt"></i>Login
+            </a>
+        </li>
     }
 </ul>

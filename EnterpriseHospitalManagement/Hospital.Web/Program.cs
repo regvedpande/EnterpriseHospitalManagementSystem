@@ -1,16 +1,12 @@
 using EnterpriseHospitalManagement.Hospital.Repositories;
 using Hospital.Models;
-using Hospital.Repositories;
+using Hospital.Repositories;      // IUnitOfWork, UnitOfWork, IGenericRepository, GenericRepository
 using Hospital.Services;
 using Hospital.Services.Interfaces;
 using Hospital.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System;
@@ -22,17 +18,16 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .WriteTo.Console()
-    .WriteTo.File("logs/log-.txt", rollingInterval: Serilog.RollingInterval.Day)
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
-
 builder.Host.UseSerilog();
 
 // ── MVC + Razor Pages ─────────────────────────────────────────────────────────
-// DO NOT override RazorOptions view location formats — the defaults already
-// resolve /Views/{Controller}/{Action}.cshtml and /Areas/{area}/Views/... correctly.
-// Custom overrides were causing "view not found" errors.
+// NOTE: Do NOT use AddRazorOptions to override view location formats.
+// The defaults already resolve /Views/{Controller}/{Action}.cshtml
+// and /Areas/{area}/Views/{Controller}/{Action}.cshtml correctly.
 builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages(); // Required for Identity UI (/Identity/Account/Login etc.)
+builder.Services.AddRazorPages(); // Required for Identity UI
 
 // ── Database ──────────────────────────────────────────────────────────────────
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -54,10 +49,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     options.SignIn.RequireConfirmedEmail = false;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultUI()           // Scaffolds /Identity/Account/* Razor Pages
+.AddDefaultUI()
 .AddDefaultTokenProviders();
 
-// ── Cookie config (Identity UI uses cookies) ──────────────────────────────────
+// ── Cookie (Identity UI default scheme) ──────────────────────────────────────
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
@@ -67,38 +62,35 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromHours(8);
 });
 
-// ── JWT for API endpoints (/api/...) only ─────────────────────────────────────
-// Cookie auth remains the DEFAULT scheme for MVC views.
-// JWT is a named secondary scheme used only by [Authorize(AuthenticationSchemes="JwtBearer")]
+// ── JWT (secondary scheme for API only) ──────────────────────────────────────
 var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection.GetValue<string>("Key")
-    ?? "HospitalAppSuperSecretKey_ChangeInProd_MustBe32Chars!!";
+var jwtKey = jwtSection.GetValue<string>("Key") ?? "HospitalAppSuperSecretKey_ChangeInProd_32Chars!!";
 var jwtIssuer = jwtSection.GetValue<string>("Issuer") ?? "Hospital";
 var jwtAudience = jwtSection.GetValue<string>("Audience") ?? "Hospital";
-var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 
 builder.Services.AddAuthentication()
-    .AddJwtBearer("JwtBearer", options =>
+    .AddJwtBearer("JwtBearer", opts =>
     {
-        options.RequireHttpsMetadata = false;
-        options.SaveToken = true;
-        options.TokenValidationParameters = new TokenValidationParameters
+        opts.RequireHttpsMetadata = false;
+        opts.SaveToken = true;
+        opts.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ClockSkew = TimeSpan.Zero
         };
     });
 
 // ── Repositories ──────────────────────────────────────────────────────────────
+// IUnitOfWork is in Hospital.Repositories namespace — this resolves CS0246 and CS0311
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-// ── Application services ──────────────────────────────────────────────────────
+// ── Services ──────────────────────────────────────────────────────────────────
 builder.Services.AddScoped<IApplicationUserService, ApplicationUserService>();
 builder.Services.AddScoped<IContactService, ContactService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
@@ -114,30 +106,27 @@ builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSende
 builder.Services.AddHttpContextAccessor();
 
 // ── CORS ──────────────────────────────────────────────────────────────────────
-builder.Services.AddCors(options =>
-    options.AddDefaultPolicy(p =>
+builder.Services.AddCors(opts =>
+    opts.AddDefaultPolicy(p =>
         p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
 // ─────────────────────────────────────────────────────────────────────────────
 
-// ── DB seed ───────────────────────────────────────────────────────────────────
+// ── Seed ──────────────────────────────────────────────────────────────────────
 if (!string.IsNullOrWhiteSpace(conn))
 {
     using var scope = app.Services.CreateScope();
     try
     {
         scope.ServiceProvider.GetRequiredService<IDbInitializer>().Initialize();
-        Log.Information("Database initialized.");
+        Log.Information("Database seeded.");
     }
-    catch (Exception ex)
-    {
-        Log.Error(ex, "Database initialization failed.");
-    }
+    catch (Exception ex) { Log.Error(ex, "DB seed failed."); }
 }
 
-// ── Middleware pipeline ───────────────────────────────────────────────────────
+// ── Pipeline ──────────────────────────────────────────────────────────────────
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -151,7 +140,6 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Area route must come BEFORE the default route
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
@@ -160,9 +148,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Identity Razor Pages
 app.MapRazorPages();
 
 try { app.Run(); }
-catch (Exception ex) { Log.Fatal(ex, "Host terminated unexpectedly."); }
+catch (Exception ex) { Log.Fatal(ex, "Host terminated."); }
 finally { Log.CloseAndFlush(); }

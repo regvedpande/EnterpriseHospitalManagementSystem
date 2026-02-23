@@ -1,10 +1,12 @@
-﻿using Hospital.Services.Interfaces;
+using System;
+using System.Text;
+using Hospital.Services.Interfaces;
 using Hospital.Utilities;
 using Hospital.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Hospital.Web.Areas.Admin.Controllers
+namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = WebSiteRoles.Website_Admin)]
@@ -17,6 +19,7 @@ namespace Hospital.Web.Areas.Admin.Controllers
             _hospitalService = hospitalService;
         }
 
+        // IHospitalInfoService.GetAll(pageNumber, pageSize) → PagedResult<HospitalInfoViewModel>
         public IActionResult Index(int pageNumber = 1, int pageSize = 10)
         {
             var model = _hospitalService.GetAll(pageNumber, pageSize);
@@ -24,13 +27,9 @@ namespace Hospital.Web.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
-        {
-            return View(new HospitalInfoViewModel());
-        }
+        public IActionResult Create() => View(new HospitalInfoViewModel());
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Create(HospitalInfoViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
@@ -47,8 +46,7 @@ namespace Hospital.Web.Areas.Admin.Controllers
             return View(vm);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Edit(HospitalInfoViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
@@ -57,37 +55,36 @@ namespace Hospital.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
             _hospitalService.DeleteHospitalInfo(id);
-            TempData["success"] = "Hospital deleted successfully.";
+            TempData["success"] = "Hospital deleted.";
             return RedirectToAction(nameof(Index));
         }
 
         public IActionResult ExportCsv()
         {
             var list = _hospitalService.GetAll(1, int.MaxValue).Data;
-            var sb = new System.Text.StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("Id,Name,Type,City,PinCode,Country");
             foreach (var h in list)
                 sb.AppendLine($"{h.Id},{h.Name},{h.Type},{h.City},{h.PinCode},{h.Country}");
-            return File(System.Text.Encoding.UTF8.GetBytes(sb.ToString()), "text/csv",
-                $"hospitals_{System.DateTime.Now:yyyyMMdd}.csv");
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv",
+                $"hospitals_{DateTime.Now:yyyyMMdd}.csv");
         }
 
         public IActionResult ExportPdf()
         {
             var list = _hospitalService.GetAll(1, int.MaxValue).Data;
-            var sb = new System.Text.StringBuilder();
+            var sb = new StringBuilder();
             sb.AppendLine("Hospitals Export");
+            sb.AppendLine($"Generated: {DateTime.Now:yyyy-MM-dd HH:mm}");
+            sb.AppendLine(new string('-', 40));
             foreach (var h in list)
-            {
                 sb.AppendLine($"Id: {h.Id} | Name: {h.Name} | Type: {h.Type} | City: {h.City}");
-            }
-            return File(System.Text.Encoding.UTF8.GetBytes(sb.ToString()), "application/pdf",
-                $"hospitals_{System.DateTime.Now:yyyyMMdd}.pdf");
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/pdf",
+                $"hospitals_{DateTime.Now:yyyyMMdd}.pdf");
         }
     }
 }

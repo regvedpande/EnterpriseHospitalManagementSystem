@@ -1,41 +1,44 @@
-﻿@using Hospital.ViewModels
-@model ContactViewModel
+@using Hospital.Areas.Admin.Controllers
+@model Hospital.ViewModels.ContactViewModel
 @{
     ViewData["Title"] = "Create Contact";
 }
 
 <div class="page-header">
     <h2>Create Contact</h2>
-    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left mr-1"></i>Back</a>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left mr-1"></i>Back
+    </a>
 </div>
 
 <div class="card shadow-sm p-4" style="max-width:480px;">
     <form asp-action="Create" method="post">
         <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2"></div>
+
         <div class="form-group">
-            <label asp-for="Email" class="font-weight-bold"></label>
+            <label asp-for="Email" class="font-weight-600"></label>
             <input asp-for="Email" class="form-control" placeholder="contact@hospital.com" />
             <span asp-validation-for="Email" class="text-danger small"></span>
         </div>
         <div class="form-group">
-            <label asp-for="Phone" class="font-weight-bold"></label>
+            <label asp-for="Phone" class="font-weight-600"></label>
             <input asp-for="Phone" class="form-control" placeholder="+1 555-0000" />
             <span asp-validation-for="Phone" class="text-danger small"></span>
         </div>
         <div class="form-group">
-            <label asp-for="HospitalInfoId" class="font-weight-bold">Hospital ID</label>
+            <label asp-for="HospitalInfoId" class="font-weight-600">Hospital ID</label>
             <input asp-for="HospitalInfoId" class="form-control" type="number" min="1" />
             <span asp-validation-for="HospitalInfoId" class="text-danger small"></span>
         </div>
         <div class="mt-3">
-            <button type="submit" class="btn btn-primary mr-2"><i class="fas fa-save mr-1"></i>Create</button>
+            <button type="submit" class="btn btn-primary mr-2">
+                <i class="fas fa-save mr-1"></i>Create
+            </button>
             <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
         </div>
     </form>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

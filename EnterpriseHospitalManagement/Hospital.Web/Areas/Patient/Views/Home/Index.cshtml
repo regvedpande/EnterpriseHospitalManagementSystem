@@ -1,0 +1,93 @@
+@using Microsoft.AspNetCore.Identity
+@using Hospital.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Patient Dashboard";
+    var user = await UserManager.GetUserAsync(User);
+}
+
+<style>
+    .dash-card { background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:1.5rem;transition:all .2s; }
+    .dash-card:hover { transform:translateY(-2px);box-shadow:0 6px 20px rgba(15,76,129,.09); }
+    .dash-card .icon { width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;margin-bottom:.85rem; }
+    .dash-card h6 { font-weight:700;margin-bottom:.25rem;font-size:.95rem; }
+    .dash-card p { font-size:.83rem;color:#64748b;margin:0; }
+</style>
+
+<div class="d-flex align-items-center mb-4 p-3 rounded"
+     style="background:linear-gradient(135deg,#0f4c81,#00b4d8);color:#fff;">
+    <span class="rounded-circle mr-3 d-flex align-items-center justify-content-center"
+          style="width:52px;height:52px;background:rgba(255,255,255,.2);font-size:1.4rem;font-weight:700;">
+        @(user?.Name?.Substring(0,1).ToUpper() ?? "P")
+    </span>
+    <div>
+        <h4 class="mb-0 font-weight-bold">Welcome, @(user?.Name ?? "Patient")!</h4>
+        <p class="mb-0" style="opacity:.85;font-size:.875rem;">
+            <i class="fas fa-calendar-alt mr-1"></i>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="dash-card">
+            <div class="icon" style="background:#dbeafe;color:#1d4ed8;">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <h6>Appointments</h6>
+            <p>View and manage your upcoming appointments with doctors.</p>
+            <a href="#" class="btn btn-outline-primary btn-sm mt-2">View Appointments</a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="dash-card">
+            <div class="icon" style="background:#dcfce7;color:#16a34a;">
+                <i class="fas fa-file-medical"></i>
+            </div>
+            <h6>Medical Reports</h6>
+            <p>Access your diagnoses and medical history reports.</p>
+            <a href="#" class="btn btn-outline-success btn-sm mt-2">View Reports</a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="dash-card">
+            <div class="icon" style="background:#fef9c3;color:#ca8a04;">
+                <i class="fas fa-pills"></i>
+            </div>
+            <h6>Prescriptions</h6>
+            <p>View prescribed medicines and treatment plans.</p>
+            <a href="#" class="btn btn-outline-warning btn-sm mt-2">View Prescriptions</a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="dash-card">
+            <div class="icon" style="background:#fce7f3;color:#be185d;">
+                <i class="fas fa-flask"></i>
+            </div>
+            <h6>Lab Results</h6>
+            <p>Check your latest laboratory test results.</p>
+            <a href="#" class="btn btn-outline-danger btn-sm mt-2">View Labs</a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="dash-card">
+            <div class="icon" style="background:#ede9fe;color:#7c3aed;">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <h6>Bills &amp; Payments</h6>
+            <p>View your billing history and pending payments.</p>
+            <a href="#" class="btn btn-outline-secondary btn-sm mt-2">View Bills</a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="dash-card">
+            <div class="icon" style="background:#ffedd5;color:#c2410c;">
+                <i class="fas fa-user-cog"></i>
+            </div>
+            <h6>My Profile</h6>
+            <p>Update your personal information and contact details.</p>
+            <a asp-area="Identity" asp-page="/Account/Manage/Index"
+               class="btn btn-outline-secondary btn-sm mt-2">Edit Profile</a>
+        </div>
+    </div>
+</div>

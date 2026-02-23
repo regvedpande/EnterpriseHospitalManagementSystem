@@ -1,13 +1,12 @@
-﻿using System;
-using System.Linq;
+using System;
 using System.Text;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using Hospital.Services.Interfaces;
 using Hospital.Utilities;
 using Hospital.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Hospital.Web.Areas.Admin.Controllers
+namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = WebSiteRoles.Website_Admin)]
@@ -20,6 +19,7 @@ namespace Hospital.Web.Areas.Admin.Controllers
             _contactService = contactService;
         }
 
+        // IContactService.GetAll(pageNumber, pageSize) → PagedResult<ContactViewModel>
         public IActionResult Index(int pageNumber = 1, int pageSize = 25)
         {
             var result = _contactService.GetAll(pageNumber, pageSize);
@@ -27,13 +27,9 @@ namespace Hospital.Web.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        public IActionResult Create()
-        {
-            return View(new ContactViewModel());
-        }
+        public IActionResult Create() => View(new ContactViewModel());
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Create(ContactViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
@@ -50,8 +46,7 @@ namespace Hospital.Web.Areas.Admin.Controllers
             return View(vm);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Edit(ContactViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
@@ -60,26 +55,23 @@ namespace Hospital.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
             _contactService.DeleteContact(id);
-            TempData["success"] = "Contact deleted successfully.";
+            TempData["success"] = "Contact deleted.";
             return RedirectToAction(nameof(Index));
         }
 
-        // FIX: renamed to match view links (ExportCsv / ExportPdf)
         public IActionResult ExportCsv()
         {
             var list = _contactService.GetAll(1, int.MaxValue).Data;
             var sb = new StringBuilder();
             sb.AppendLine("Id,Email,Phone,HospitalInfoId");
             foreach (var c in list)
-            {
-                sb.AppendLine($"{c.Id},{EscapeCsv(c.Email)},{EscapeCsv(c.Phone)},{c.HospitalInfoId}");
-            }
-            return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv", $"contacts_{DateTime.Now:yyyyMMdd}.csv");
+                sb.AppendLine($"{c.Id},{Escape(c.Email)},{Escape(c.Phone)},{c.HospitalInfoId}");
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "text/csv",
+                $"contacts_{DateTime.Now:yyyyMMdd}.csv");
         }
 
         public IActionResult ExportPdf()
@@ -97,13 +89,14 @@ namespace Hospital.Web.Areas.Admin.Controllers
                 sb.AppendLine($"Hospital Id: {c.HospitalInfoId}");
                 sb.AppendLine();
             }
-            return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/pdf", $"contacts_{DateTime.Now:yyyyMMdd}.pdf");
+            return File(Encoding.UTF8.GetBytes(sb.ToString()), "application/pdf",
+                $"contacts_{DateTime.Now:yyyyMMdd}.pdf");
         }
 
-        private static string EscapeCsv(string? s)
+        private static string Escape(string? s)
         {
             if (string.IsNullOrEmpty(s)) return string.Empty;
-            if (s.Contains(',') || s.Contains('"') || s.Contains('\r') || s.Contains('\n'))
+            if (s.Contains(',') || s.Contains('"'))
                 return $"\"{s.Replace("\"", "\"\"")}\"";
             return s;
         }

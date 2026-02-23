@@ -1,37 +1,33 @@
-﻿using Hospital.Services.Interfaces;
+using Hospital.Services.Interfaces;
 using Hospital.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Hospital.Web.Areas.Admin.Controllers
+namespace Hospital.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = WebSiteRoles.Website_Admin)]
     public class UsersController : Controller
     {
-        private readonly IApplicationUserService _userService;
+        private readonly IApplicationUserService _service;
+        public UsersController(IApplicationUserService service) => _service = service;
 
-        public UsersController(IApplicationUserService userService)
+        public IActionResult Index()
         {
-            _userService = userService;
+            var users = _service.GetAllUsers();
+            return View(users);
         }
 
-        public IActionResult Index(int pageNumber = 1, int pageSize = 10)
+        public IActionResult AllDoctors()
         {
-            var model = _userService.GetAll(pageNumber, pageSize);
-            return View(model);
+            var doctors = _service.GetAllDoctors();
+            return View(doctors);
         }
 
-        public IActionResult AllDoctors(int pageNumber = 1, int pageSize = 10)
+        public IActionResult AllPatients()
         {
-            var model = _userService.GetAllDoctors(pageNumber, pageSize);
-            return View(model);
-        }
-
-        public IActionResult AllPatients(int pageNumber = 1, int pageSize = 10)
-        {
-            var model = _userService.GetAllPatients(pageNumber, pageSize);
-            return View(model);
+            var patients = _service.GetAllPatients();
+            return View(patients);
         }
     }
 }
