@@ -1,33 +1,41 @@
+// Hospital.Web/Areas/Admin/Controllers/UsersController.cs
 using Hospital.Services.Interfaces;
 using Hospital.Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Hospital.Areas.Admin.Controllers
+namespace Hospital.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = WebSiteRoles.Website_Admin)]
     public class UsersController : Controller
     {
-        private readonly IApplicationUserService _service;
-        public UsersController(IApplicationUserService service) => _service = service;
+        private readonly IApplicationUserService _userService;
 
-        public IActionResult Index()
+        public UsersController(IApplicationUserService userService)
         {
-            var users = _service.GetAllUsers();
-            return View(users);
+            _userService = userService;
         }
 
-        public IActionResult AllDoctors()
+        // FIX: use GetAll() not GetAllUsers() — matches actual interface
+        public IActionResult Index(int pageNumber = 1, int pageSize = 10)
         {
-            var doctors = _service.GetAllDoctors();
-            return View(doctors);
+            var model = _userService.GetAll(pageNumber, pageSize);
+            return View(model);
         }
 
-        public IActionResult AllPatients()
+        // FIX: GetAllDoctors takes (pageNumber, pageSize) — pass both params explicitly
+        public IActionResult AllDoctors(int pageNumber = 1, int pageSize = 10)
         {
-            var patients = _service.GetAllPatients();
-            return View(patients);
+            var model = _userService.GetAllDoctors(pageNumber, pageSize);
+            return View(model);
+        }
+
+        // FIX: GetAllPatients takes (pageNumber, pageSize) — pass both params explicitly
+        public IActionResult AllPatients(int pageNumber = 1, int pageSize = 10)
+        {
+            var model = _userService.GetAllPatients(pageNumber, pageSize);
+            return View(model);
         }
     }
 }

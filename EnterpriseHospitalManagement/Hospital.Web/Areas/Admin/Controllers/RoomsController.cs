@@ -1,63 +1,77 @@
+// Hospital.Web/Areas/Admin/Controllers/RoomsController.cs
 using Hospital.Services.Interfaces;
 using Hospital.Utilities;
+using Hospital.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Hospital.ViewModels;
 
-namespace Hospital.Areas.Admin.Controllers
+namespace Hospital.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Authorize(Roles = WebSiteRoles.Website_Admin)]
     public class RoomsController : Controller
     {
-        private readonly IRoomService _service;
-        public RoomsController(IRoomService service) => _service = service;
+        private readonly IRoomService _roomService;
 
+        public RoomsController(IRoomService roomService)
+        {
+            _roomService = roomService;
+        }
+
+        // FIX: use GetAll() not GetAllRooms() — matches actual IRoomService interface
         public IActionResult Index(int pageNumber = 1, int pageSize = 10)
         {
-            var all = _service.GetAllRooms();
-            var paged = new PagedResult<RoomViewModel>
-            {
-                Data       = all.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList(),
-                TotalCount = all.Count(),
-                PageNumber = pageNumber,
-                PageSize   = pageSize
-            };
-            return View(paged);
+            var model = _roomService.GetAll(pageNumber, pageSize);
+            return View(model);
         }
 
-        public IActionResult Create() => View(new RoomViewModel());
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View(new RoomViewModel());
+        }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        // FIX: use InsertRoom() not AddRoom()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Create(RoomViewModel vm)
         {
-            if (!ModelState.IsValid) return View(vm);
-            _service.AddRoom(vm);
-            TempData["success"] = "Room created successfully.";
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                _roomService.InsertRoom(vm);
+                TempData["success"] = "Room created successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(vm);
         }
 
+        [HttpGet]
         public IActionResult Edit(int id)
         {
-            var room = _service.GetRoomById(id);
-            if (room == null) return NotFound();
-            return View(room);
+            var vm = _roomService.GetRoomById(id);
+            if (vm == null) return NotFound();
+            return View(vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(RoomViewModel vm)
         {
-            if (!ModelState.IsValid) return View(vm);
-            _service.UpdateRoom(vm);
-            TempData["success"] = "Room updated successfully.";
-            return RedirectToAction(nameof(Index));
+            if (ModelState.IsValid)
+            {
+                _roomService.UpdateRoom(vm);
+                TempData["success"] = "Room updated successfully.";
+                return RedirectToAction(nameof(Index));
+            }
+            return View(vm);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            _service.DeleteRoom(id);
-            TempData["success"] = "Room deleted.";
+            _roomService.DeleteRoom(id);
+            TempData["success"] = "Room deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
     }

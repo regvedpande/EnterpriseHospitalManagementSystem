@@ -1,69 +1,68 @@
-@model IEnumerable<Hospital.Models.Timing>
+@model Hospital.Utilities.PagedResult<Hospital.ViewModels.TimingViewModel>
 @{
-    ViewData["Title"] = "My Schedule";
+    ViewData["Title"] = "My Timings";
 }
 
-<div class="page-header">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2>My Schedule</h2>
-        <p>Manage your timing availability</p>
+        <h2 class="mb-0" style="font-weight:700; color:#1e293b;">My Timings</h2>
+        <p class="text-muted mb-0" style="font-size:0.875rem;">Manage your schedule and availability</p>
     </div>
-    <a asp-action="AddTiming" class="btn btn-primary btn-sm">
-        <i class="fas fa-plus mr-1"></i>Add Timing
+    <a asp-action="AddTiming" class="btn btn-primary">
+        <i class="fas fa-plus mr-1"></i> Add Timing
     </a>
 </div>
 
-@if (!Model.Any())
+@if (Model?.Data == null || !Model.Data.Any())
 {
     <div class="alert alert-info">
-        <i class="fas fa-info-circle mr-2"></i>No timings added yet.
-        <a asp-action="AddTiming">Add your first timing slot.</a>
+        No timings found. <a asp-action="AddTiming">Add your first timing slot.</a>
     </div>
 }
 else
 {
-    <div class="card shadow-sm">
+    <div class="card shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead>
+                <thead style="background:#f1f5f9;">
                     <tr>
-                        <th>Date</th>
+                        <th>Schedule Date</th>
                         <th>Morning Shift</th>
                         <th>Afternoon Shift</th>
-                        <th>Duration (min)</th>
+                        <th>Slot Duration</th>
                         <th>Status</th>
-                        <th width="100">Actions</th>
+                        <th class="text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var t in Model)
+                    @foreach (var item in Model.Data)
                     {
-                        var statusLabel = t.Status == Hospital.Models.Enums.Status.Active ? "Active" : "Inactive";
-                        var statusClass = t.Status == Hospital.Models.Enums.Status.Active ? "success" : "secondary";
                         <tr>
-                            <td>@t.ScheduleDate.ToString("MMM dd, yyyy")</td>
+                            <td>@item.ScheduleDate.ToString("dd MMM yyyy")</td>
+                            <td>@item.MorningShiftStartTime:00 – @item.MorningShiftEndTime:00</td>
+                            <td>@item.AfternoonShiftStartTime:00 – @item.AfternoonShiftEndTime:00</td>
+                            <td>@item.Duration min</td>
                             <td>
-                                <span class="badge badge-light border">
-                                    @t.MorningShiftStartTime:00 – @t.MorningShiftEndTime:00
-                                </span>
+                                @{
+                                    // Status is Hospital.Models.Enums.Status — use ToString(), no null check needed (non-nullable enum)
+                                    var statusStr = item.Status.ToString();
+                                    var badgeClass = statusStr == "Active" ? "badge-success"
+                                    : statusStr == "Inactive" ? "badge-secondary"
+                                    : "badge-warning";
+                                }
+                                <span class="badge @badgeClass">@statusStr</span>
                             </td>
-                            <td>
-                                <span class="badge badge-light border">
-                                    @t.AfternoonShiftStartTime:00 – @t.AfternoonShiftEndTime:00
-                                </span>
-                            </td>
-                            <td>@t.Duration</td>
-                            <td><span class="badge badge-@statusClass">@statusLabel</span></td>
-                            <td>
-                                <a asp-action="Edit" asp-route-id="@t.Id"
-                                   class="btn btn-sm btn-warning" title="Edit">
-                                    <i class="fas fa-edit"></i>
+                            <td class="text-right">
+                                <a asp-action="Edit" asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-primary mr-1">
+                                    <i class="fas fa-edit"></i> Edit
                                 </a>
-                                <form asp-action="Delete" asp-route-id="@t.Id" method="post"
-                                      class="d-inline" onsubmit="return confirm('Delete this timing?')">
+                                <form asp-action="Delete" asp-route-id="@item.Id"
+                                      method="post" style="display:inline;"
+                                      onsubmit="return confirm('Delete this timing?');">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Delete">
-                                        <i class="fas fa-trash"></i>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i> Delete
                                     </button>
                                 </form>
                             </td>
@@ -73,4 +72,15 @@ else
             </table>
         </div>
     </div>
+
+    <cs-pager cs-paging-pagesize="@Model.PageSize"
+              cs-paging-pagenumber="@Model.PageNumber"
+              cs-paging-totalitems="@Model.TotalItems.ToString()"
+              cs-pagenumber-param="pageNumber"
+              asp-action="Index"
+              cs-pager-li-current-class="page-item active"
+              cs-pager-li-other-class="page-item"
+              cs-pager-link-current-class="page-link"
+              cs-pager-link-other-class="page-link">
+    </cs-pager>
 }

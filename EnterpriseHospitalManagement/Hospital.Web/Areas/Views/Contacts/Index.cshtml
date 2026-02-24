@@ -1,48 +1,65 @@
-﻿@using Hospital.ViewModels
-@using Hospital.Utilities
-@model PagedResult<ContactViewModel>
+﻿@* Hospital.Web/Areas/Admin/Views/Contacts/Index.cshtml *@
+@model Hospital.Utilities.PagedResult<Hospital.ViewModels.ContactViewModel>
 @{
     ViewData["Title"] = "Contacts";
 }
 
-<div class="page-header">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2>Contacts</h2>
-        <p>Manage hospital contact records</p>
+        <h2 class="mb-0" style="font-weight:700; color:#1e293b;">Contacts</h2>
+        <p class="text-muted mb-0" style="font-size:0.875rem;">Manage hospital contacts</p>
     </div>
-    <div>
-        <a asp-action="Create" class="btn btn-primary btn-sm mr-1"><i class="fas fa-plus mr-1"></i>Add Contact</a>
-        <a asp-action="ExportCsv" class="btn btn-outline-secondary btn-sm mr-1"><i class="fas fa-file-csv mr-1"></i>CSV</a>
-        <a asp-action="ExportPdf" class="btn btn-outline-secondary btn-sm"><i class="fas fa-file-pdf mr-1"></i>PDF</a>
+    <div class="d-flex gap-2" style="gap:0.5rem;">
+        <a asp-action="ExportContactsCsv" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-file-csv mr-1"></i> Export CSV
+        </a>
+        <a asp-action="ExportContactsPdf" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-file-pdf mr-1"></i> Export PDF
+        </a>
+        <a asp-action="Create" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus mr-1"></i> Add Contact
+        </a>
     </div>
 </div>
 
-@if (!Model.Data.Any())
+@if (Model?.Data == null || !Model.Data.Any())
 {
-    <div class="alert alert-info"><i class="fas fa-info-circle mr-2"></i>No contacts yet. <a asp-action="Create">Add the first one.</a></div>
+    <div class="alert alert-info">No contacts found. <a asp-action="Create">Add the first contact.</a></div>
 }
 else
 {
-    <div class="card shadow-sm">
+    <div class="card shadow-sm border-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead>
-                    <tr><th>#</th><th>Email</th><th>Phone</th><th>Hospital ID</th><th width="100">Actions</th></tr>
+                <thead style="background:#f1f5f9;">
+                    <tr>
+                        <th>Id</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Hospital ID</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model.Data)
                     {
                         <tr>
-                            <td class="text-muted">@item.Id</td>
+                            <td>@item.Id</td>
                             <td>@item.Email</td>
                             <td>@item.Phone</td>
                             <td>@item.HospitalInfoId</td>
-                            <td>
-                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
-                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline"
-                                      onsubmit="return confirm('Delete this contact?')">
+                            <td class="text-right">
+                                <a asp-action="Edit" asp-route-id="@item.Id"
+                                   class="btn btn-sm btn-outline-primary mr-1">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                                <form asp-action="Delete" asp-route-id="@item.Id"
+                                      method="post" style="display:inline;"
+                                      onsubmit="return confirm('Delete this contact?');">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
                                 </form>
                             </td>
                         </tr>
@@ -51,17 +68,15 @@ else
             </table>
         </div>
     </div>
-    @if (Model.TotalPages > 1)
-    {
-        <nav class="mt-3">
-            <ul class="pagination pagination-sm">
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                    <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                        <a class="page-link" asp-action="Index" asp-route-pageNumber="@i" asp-route-pageSize="@Model.PageSize">@i</a>
-                    </li>
-                }
-            </ul>
-        </nav>
-    }
+
+    <cs-pager cs-paging-pagesize="@Model.PageSize"
+              cs-paging-pagenumber="@Model.PageNumber"
+              cs-paging-totalitems="@Model.TotalItems"
+              cs-pagenumber-param="page"
+              asp-action="Index"
+              cs-pager-li-current-class="page-item active"
+              cs-pager-li-other-class="page-item"
+              cs-pager-link-current-class="page-link"
+              cs-pager-link-other-class="page-link">
+    </cs-pager>
 }
