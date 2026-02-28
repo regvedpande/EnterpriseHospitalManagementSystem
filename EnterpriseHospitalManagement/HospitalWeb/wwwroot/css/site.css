@@ -1,0 +1,18 @@
+/* site.css - EnterpriseHospitalManagement */
+html { font-size: 14px; }
+@media (min-width: 768px) { html { font-size: 16px; } }
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #0f4c81;
+}
+
+html { position: relative; min-height: 100%; }
+body { margin-bottom: 60px; }
+
+.font-weight-600 { font-weight: 600; }
+
+.table th { font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; border-top: none; }
+.table td { vertical-align: middle; }
+
+.card { border-radius: 12px; }
+.badge { font-size: 0.75rem; padding: 0.35em 0.65em; border-radius: 6px; }

@@ -1,0 +1,48 @@
+@model Hospital.Utilities.PagedResult<Hospital.ViewModels.HospitalInfoViewModel>
+@{ ViewData["Title"] = "Hospitals"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="mb-0" style="font-weight:700;">Hospitals</h2><p class="text-muted mb-0" style="font-size:0.875rem;">Manage hospital branches</p></div>
+    <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus mr-1"></i>Add Hospital</a>
+</div>
+
+@if (Model?.Data == null || !Model.Data.Any())
+{
+    <div class="alert alert-info">No hospitals found. <a asp-action="Create">Add the first hospital.</a></div>
+}
+else
+{
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background:#f1f5f9;">
+                    <tr><th>Name</th><th>Type</th><th>City</th><th>Country</th><th>Pin Code</th><th class="text-right">Actions</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Data)
+                    {
+                        <tr>
+                            <td><strong>@item.Name</strong></td>
+                            <td>@item.Type</td>
+                            <td>@item.City</td>
+                            <td>@item.Country</td>
+                            <td>@item.PinCode</td>
+                            <td class="text-right">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary mr-1"><i class="fas fa-edit"></i></a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" style="display:inline;" onsubmit="return confirm('Delete this hospital?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <cs-pager cs-paging-pagesize="@Model.PageSize" cs-paging-pagenumber="@Model.PageNumber"
+              cs-paging-totalitems="@Model.TotalItems.ToString()" cs-pagenumber-param="pageNumber"
+              asp-action="Index" cs-pager-li-current-class="page-item active"
+              cs-pager-li-other-class="page-item" cs-pager-link-current-class="page-link"
+              cs-pager-link-other-class="page-link"></cs-pager>
+}

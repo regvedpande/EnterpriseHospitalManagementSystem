@@ -1,0 +1,39 @@
+@model Hospital.Utilities.PagedResult<Hospital.ViewModels.ApplicationUserViewModel>
+@{ ViewData["Title"] = "Doctors"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div><h2 class="mb-0" style="font-weight:700;">Doctors</h2><p class="text-muted mb-0" style="font-size:0.875rem;">All registered doctors</p></div>
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left mr-1"></i>All Users</a>
+</div>
+
+@if (Model?.Data == null || !Model.Data.Any())
+{
+    <div class="alert alert-info">No doctors found.</div>
+}
+else
+{
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background:#f1f5f9;">
+                    <tr><th>Name</th><th>Email</th><th>City</th><th>Gender</th><th>Specialist</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Data)
+                    {
+                        <tr>
+                            <td><i class="fas fa-user-md text-primary mr-1"></i>@item.Name</td>
+                            <td>@item.Email</td><td>@item.City</td><td>@item.Gender</td>
+                            <td>@if (!string.IsNullOrEmpty(item.Specialist)) { <span class="badge badge-info">@item.Specialist</span> }</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <cs-pager cs-paging-pagesize="@Model.PageSize" cs-paging-pagenumber="@Model.PageNumber"
+              cs-paging-totalitems="@Model.TotalItems.ToString()" cs-pagenumber-param="pageNumber"
+              asp-action="AllDoctors" cs-pager-li-current-class="page-item active"
+              cs-pager-li-other-class="page-item" cs-pager-link-current-class="page-link"
+              cs-pager-link-other-class="page-link"></cs-pager>
+}
