@@ -15,19 +15,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System;
-using System.IO;
 using System.Text;
 
-// FIX: Set content root to Hospital.Web project folder so views are found correctly.
-// The solution root is one level up from Hospital.Web, so we need to point down into it.
-var webProjectPath = Path.Combine(Directory.GetCurrentDirectory(), "Hospital.Web");
-var contentRoot = Directory.Exists(webProjectPath) ? webProjectPath : Directory.GetCurrentDirectory();
-
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    ContentRootPath = contentRoot
-});
+var builder = WebApplication.CreateBuilder(args);
 
 // Serilog
 Log.Logger = new LoggerConfiguration()
@@ -37,9 +27,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
-Log.Information("Content root: {Root}", contentRoot);
-
-// MVC + Razor Pages
+// MVC + Razor Pages (required for Identity UI login/register pages)
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -73,10 +61,9 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // JWT
-var jwtSection = builder.Configuration.GetSection("Jwt");
-var jwtKey = jwtSection.GetValue<string>("Key");
-var jwtIssuer = jwtSection.GetValue<string>("Issuer");
-var jwtAudience = jwtSection.GetValue<string>("Audience");
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "localhost";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "localhost";
 
 if (string.IsNullOrWhiteSpace(jwtKey))
 {
@@ -84,10 +71,7 @@ if (string.IsNullOrWhiteSpace(jwtKey))
     jwtKey = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
            + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
 }
-jwtIssuer ??= "localhost";
-jwtAudience ??= "localhost";
 
-var keyBytes = Encoding.UTF8.GetBytes(jwtKey);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -104,7 +88,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero
     };
 });
@@ -125,6 +109,7 @@ builder.Services.AddScoped<SftpService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 builder.Services.AddHttpContextAccessor();
 
+// Cookie paths for Identity UI
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
@@ -151,7 +136,7 @@ using (var scope = app.Services.CreateScope())
     }
     else
     {
-        Log.Warning("Skipping DB initialization - DefaultConnection not set.");
+        Log.Warning("Skipping DB initialization — DefaultConnection not set.");
     }
 }
 
@@ -167,6 +152,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Area route MUST come before default
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
@@ -175,6 +161,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Maps /Identity/Account/Login etc.
 app.MapRazorPages();
 
 try
