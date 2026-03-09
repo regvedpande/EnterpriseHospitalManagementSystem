@@ -1,46 +1,155 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Hospital</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-    <link rel="stylesheet" href="~/css/site.css"/>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark" style="background:#0f4c81;">
-    <a class="navbar-brand font-weight-bold" asp-controller="Home" asp-action="Index" asp-area="">
-        <i class="fas fa-hospital-alt mr-2"></i>HMS
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ml-auto">
-            @await Html.PartialAsync("_LoginPartial")
-        </ul>
+
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background:#0f4c81;">
+        <a class="navbar-brand font-weight-bold" asp-controller="Home" asp-action="Index" asp-area="">
+            <i class="fas fa-hospital-alt mr-2"></i>HMS
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index" asp-area="">
+                        <i class="fas fa-home mr-1"></i>Home
+                    </a>
+                </li>
+
+                @if (User.IsInRole("Website_Admin"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
+                            <i class="fas fa-hospital mr-1"></i>Hospitals
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Admin" asp-controller="Rooms" asp-action="Index">
+                            <i class="fas fa-door-open mr-1"></i>Rooms
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Admin" asp-controller="Contacts" asp-action="Index">
+                            <i class="fas fa-address-book mr-1"></i>Contacts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Admin" asp-controller="Users" asp-action="Index">
+                            <i class="fas fa-users mr-1"></i>Users
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Website_Doctor"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
+                            <i class="fas fa-calendar-alt mr-1"></i>My Timings
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Website_Patient"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Patient" asp-controller="Home" asp-action="Index">
+                            <i class="fas fa-th-large mr-1"></i>Dashboard
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <ul class="navbar-nav ml-auto">
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-user-circle mr-1"></i>@User.Identity.Name
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                            @if (User.IsInRole("Website_Admin"))
+                            {
+                                <a class="dropdown-item" asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                                </a>
+                            }
+                            @if (User.IsInRole("Website_Doctor"))
+                            {
+                                <a class="dropdown-item" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                                </a>
+                            }
+                            @if (User.IsInRole("Website_Patient"))
+                            {
+                                <a class="dropdown-item" asp-area="Patient" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                                </a>
+                            }
+                            <div class="dropdown-divider"></div>
+                            <form asp-controller="Auth" asp-action="Logout" asp-area="" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
+                            </form>
+                        </div>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Auth" asp-action="Login" asp-area="">
+                            <i class="fas fa-sign-in-alt mr-1"></i>Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Auth" asp-action="Register" asp-area="">
+                            <i class="fas fa-user-plus mr-1"></i>Register
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        @if (TempData["success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle mr-2"></i>@TempData["success"]
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        }
+        @if (TempData["error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-circle mr-2"></i>@TempData["error"]
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+            </div>
+        }
+
+        @RenderBody()
     </div>
-</nav>
-<div class="container mt-4">
-    @if (TempData["success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">
-            @TempData["success"]
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
+
+    <footer class="border-top footer text-muted mt-5 py-3">
+        <div class="container text-center">
+            <small>&copy; @DateTime.Now.Year — Enterprise Hospital Management System</small>
         </div>
-    }
-    @if (TempData["error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">
-            @TempData["error"]
-            <button type="button" class="close" data-dismiss="alert">&times;</button>
-        </div>
-    }
-    @RenderBody()
-</div>
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-@RenderSection("Scripts", required: false)
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>

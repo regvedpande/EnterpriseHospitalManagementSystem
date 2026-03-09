@@ -1,5 +1,7 @@
 using Hospital.Models;
 using Hospital.Utilities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -8,6 +10,8 @@ namespace Hospital.Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    // ✅ Explicitly use JWT scheme for all API endpoints
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class ApiAuthController : ControllerBase
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
@@ -20,17 +24,18 @@ namespace Hospital.Web.Controllers
             JwtService jwtService)
         {
             _signInManager = signInManager;
-            _userManager   = userManager;
-            _jwtService    = jwtService;
+            _userManager = userManager;
+            _jwtService = jwtService;
         }
 
         public class LoginRequest
         {
-            public string Email    { get; set; }
-            public string Password { get; set; }
+            public string Email { get; set; } = "";
+            public string Password { get; set; } = "";
         }
 
         [HttpPost("login")]
+        [AllowAnonymous] // login endpoint must be public
         public async Task<IActionResult> Login([FromBody] LoginRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
@@ -40,10 +45,9 @@ namespace Hospital.Web.Controllers
             if (!result.Succeeded) return Unauthorized("Invalid credentials");
 
             var roles = await _userManager.GetRolesAsync(user);
-            var role  = roles.Count > 0 ? roles[0] : "";
+            var role = roles.Count > 0 ? roles[0] : "";
             var token = _jwtService.GenerateToken(user, role);
 
-            await _signInManager.SignInAsync(user, isPersistent: false);
             return Ok(new { token, expiresInMinutes = 60 });
         }
     }

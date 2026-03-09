@@ -33,7 +33,7 @@ namespace EnterpriseHospitalManagement
                 .CreateLogger();
             builder.Host.UseSerilog();
 
-            // MVC + Razor Pages (required for Identity UI login/register pages)
+            // MVC + Razor Pages
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
 
@@ -66,7 +66,7 @@ namespace EnterpriseHospitalManagement
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // JWT
+            // JWT — registered as additional scheme only, used explicitly by API controllers
             var jwtKey = builder.Configuration["Jwt:Key"];
             var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "localhost";
             var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "localhost";
@@ -78,12 +78,15 @@ namespace EnterpriseHospitalManagement
                        + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
             }
 
+            // ✅ KEY FIX: Identity cookie is default scheme for MVC pages.
+            // JWT is an additional scheme used only by [Authorize(AuthenticationSchemes = "Bearer")] on API controllers.
             builder.Services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+                options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
             })
-            .AddJwtBearer(options =>
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 options.RequireHttpsMetadata = false;
                 options.SaveToken = true;
@@ -115,12 +118,12 @@ namespace EnterpriseHospitalManagement
             builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
             builder.Services.AddHttpContextAccessor();
 
-            // Cookie paths for Identity UI
+            // ✅ Cookie redirects to your AuthController, not Identity UI
             builder.Services.ConfigureApplicationCookie(options =>
             {
-                options.LoginPath = "/Identity/Account/Login";
-                options.LogoutPath = "/Identity/Account/Logout";
-                options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+                options.LoginPath = "/Auth/Login";
+                options.LogoutPath = "/Auth/Logout";
+                options.AccessDeniedPath = "/Auth/Login";
             });
 
             var app = builder.Build();
@@ -167,7 +170,6 @@ namespace EnterpriseHospitalManagement
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-            // Maps /Identity/Account/Login etc.
             app.MapRazorPages();
 
             try
