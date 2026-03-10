@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
-
-namespace Hospital.Utilities
+﻿namespace Hospital.ViewModels
 {
+    /// <summary>Generic paged result wrapper used by all list views.</summary>
     public class PagedResult<T>
     {
-        public List<T> Data { get; set; } = new();
-        public int PageNumber { get; set; }
-        public int PageSize { get; set; }
-        public int TotalItems { get; set; }
-        public int TotalPages =>
-            PageSize == 0 ? 0 : (int)System.Math.Ceiling((double)TotalItems / PageSize);
+        public List<T> Items { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int PageNumber { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
+        public bool HasPrev => PageNumber > 1;
+        public bool HasNext => PageNumber < TotalPages;
     }
 }

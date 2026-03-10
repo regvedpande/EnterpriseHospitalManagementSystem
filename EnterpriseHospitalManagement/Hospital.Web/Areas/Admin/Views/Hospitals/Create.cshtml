@@ -1,0 +1,60 @@
+@model Hospital.ViewModels.HospitalInfoViewModel
+@{
+    bool isEdit = Model.Id > 0;
+    ViewData["Title"]       = isEdit ? "Edit Hospital" : "Add Hospital";
+    ViewData["ShowSidebar"] = true;
+}
+
+<div class="page-header">
+  <div>
+    <div class="page-title">@ViewData["Title"]</div>
+  </div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div class="form-card">
+  <div class="form-card-header">
+    <h2><i class="fas fa-hospital"></i> @ViewData["Title"]</h2>
+  </div>
+  <div class="form-card-body">
+    <form asp-action="@(isEdit ? "Edit" : "Create")" method="post">
+      @Html.AntiForgeryToken()
+      @if (isEdit) { <input type="hidden" asp-for="Id"/> }
+      <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex")"></div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" asp-for="Name">Hospital Name *</label>
+          <input asp-for="Name" class="form-control" placeholder="City General Hospital"/>
+          <span asp-validation-for="Name" class="invalid-feedback"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" asp-for="PhoneNumber">Phone</label>
+          <input asp-for="PhoneNumber" class="form-control" placeholder="+1 555-0000"/>
+          <span asp-validation-for="PhoneNumber" class="invalid-feedback"></span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" asp-for="Address">Address</label>
+        <input asp-for="Address" class="form-control" placeholder="123 Medical Ave"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" asp-for="Email">Email</label>
+        <input asp-for="Email" class="form-control" placeholder="info@hospital.com"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" asp-for="Description">Description</label>
+        <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description…"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-save"></i> @(isEdit ? "Save Changes" : "Create Hospital")
+        </button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial"/> }

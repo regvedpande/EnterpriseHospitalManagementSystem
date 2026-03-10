@@ -1,0 +1,48 @@
+@model Hospital.Models.ApplicationUser
+@{
+    ViewData["Title"]       = "Edit Roles";
+    ViewData["ShowSidebar"] = true;
+    var allRoles  = ViewBag.AllRoles  as List<string> ?? new List<string>();
+    var userRoles = ViewBag.UserRoles as IList<string> ?? new List<string>();
+}
+<div class="page-header">
+  <div><div class="page-title">Edit Roles</div><small class="text-muted">@Model.Name — @Model.Email</small></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-card">
+  <div class="form-card-header"><h2><i class="fas fa-user-tag"></i> Assign Roles</h2></div>
+  <div class="form-card-body">
+    <form asp-action="EditRoles" asp-route-id="@Model.Id" method="post">
+      @Html.AntiForgeryToken()
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        Selecting multiple roles is allowed. Changes take effect immediately on next login.
+      </div>
+      @foreach (var role in allRoles)
+      {
+        var rid = "role_" + role;
+        <div class="form-group" style="display:flex; align-items:center; gap:.75rem; padding:.5rem; border:1px solid var(--border); border-radius:8px; margin-bottom:.5rem;">
+          <input type="checkbox" name="selectedRoles" value="@role" id="@rid"
+                 @(userRoles.Contains(role) ? "checked" : "")
+                 style="width:18px; height:18px;"/>
+          <label for="@rid" style="margin:0; font-weight:500; cursor:pointer;">
+            @{
+              var icon = role switch {
+                "Website_Admin"   => "fas fa-crown",
+                "Website_Doctor"  => "fas fa-stethoscope",
+                "Website_Patient" => "fas fa-user",
+                _                 => "fas fa-tag"
+              };
+              var label = role.Replace("Website_", "");
+            }
+            <i class="@icon" style="margin-right:.4rem;"></i>@label
+          </label>
+        </div>
+      }
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Roles</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

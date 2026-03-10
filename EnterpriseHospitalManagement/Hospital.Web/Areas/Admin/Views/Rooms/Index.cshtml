@@ -1,0 +1,79 @@
+@model Hospital.ViewModels.PagedResult<Hospital.ViewModels.RoomViewModel>
+@{
+    ViewData["Title"]       = "Rooms";
+    ViewData["ShowSidebar"] = true;
+    ViewData["Page"]        = Model.PageNumber;
+    ViewData["TotalPages"]  = Model.TotalPages;
+    ViewData["Size"]        = Model.PageSize;
+    ViewData["TotalCount"]  = Model.TotalCount;
+    ViewData["PagCtrl"]     = "Rooms";
+    ViewData["PagAction"]   = "Index";
+    ViewData["PagArea"]     = "Admin";
+}
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Rooms</div>
+    <small class="text-muted">Track room availability across branches</small>
+  </div>
+  <div class="page-actions">
+    <a asp-action="DownloadPdf"   class="btn btn-secondary btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
+    <a asp-action="DownloadExcel" class="btn btn-secondary btn-sm"><i class="fas fa-file-excel"></i> Excel</a>
+    <a asp-action="Create"        class="btn btn-primary"><i class="fas fa-plus"></i> Add Room</a>
+  </div>
+</div>
+
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" class="search-input" placeholder="Search rooms…"
+             oninput="filterTable('roomSearch','roomTable')" id="roomSearch"/>
+    </div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount total</span>
+  </div>
+  @if (!Model.Items.Any())
+  {
+    <div class="empty-state">
+      <i class="fas fa-door-open"></i>
+      <h3>No rooms yet</h3>
+      <a asp-action="Create" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Add Room</a>
+    </div>
+  }
+  else
+  {
+    <table id="roomTable">
+      <thead>
+        <tr>
+          <th>#</th><th>Room No</th><th>Type</th><th>Hospital</th><th>Status</th><th style="width:120px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @{ int i = (Model.PageNumber - 1) * Model.PageSize + 1; }
+        @foreach (var r in Model.Items)
+        {
+          <tr>
+            <td><span class="text-muted">@(i++)</span></td>
+            <td><strong>@r.RoomNumber</strong></td>
+            <td>@r.RoomType</td>
+            <td>@r.HospitalName</td>
+            <td>
+              @if (r.IsAvailable)
+              { <span class="badge badge-success"><i class="fas fa-check-circle"></i> Available</span> }
+              else
+              { <span class="badge badge-danger"><i class="fas fa-times-circle"></i> Occupied</span> }
+            </td>
+            <td>
+              <div class="td-actions">
+                <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+                <form id="del-r-@r.Id" asp-action="Delete" asp-route-id="@r.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()</form>
+                <button type="button" onclick="confirmDelete('del-r-@r.Id')" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

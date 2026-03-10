@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Welcome";
+    ViewData["ShowSidebar"] = false;
+}
+
+<div class="hero">
+  <h1>Enterprise Hospital<br/>Management System</h1>
+  <p>A unified platform connecting hospitals, doctors, and patients — streamlined for modern healthcare.</p>
+  <div class="hero-actions">
+    <a asp-controller="Auth" asp-action="Login"    asp-area="" class="hero-btn hero-btn-primary">
+      <i class="fas fa-sign-in-alt"></i> Login
+    </a>
+    <a asp-controller="Auth" asp-action="Register" asp-area="" class="hero-btn hero-btn-outline">
+      <i class="fas fa-user-plus"></i> Register
+    </a>
+  </div>
+</div>
+
+<section class="features">
+  <h2 class="section-title">Everything in one place</h2>
+  <p class="section-sub">Manage your hospital operations with confidence</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="color:#0f4c81">🏥</div>
+      <h3>Hospital Management</h3>
+      <p>Manage branches, staff, and operations across all locations from a single dashboard.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="color:#1a9e5f">👨‍⚕️</div>
+      <h3>Doctor Scheduling</h3>
+      <p>Doctors manage their availability, timings, and patient appointments with ease.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="color:#f59e0b">🚪</div>
+      <h3>Room Tracking</h3>
+      <p>Real-time room availability across all branches — always know what's free.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="color:#0e7490">📊</div>
+      <h3>Reports & Exports</h3>
+      <p>Generate PDF and Excel reports instantly for hospitals, rooms, and doctors.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="color:#7c3aed">🔐</div>
+      <h3>Role-Based Access</h3>
+      <p>Admin, Doctor, and Patient roles — each with precisely scoped permissions.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="color:#e53e3e">📧</div>
+      <h3>Email Notifications</h3>
+      <p>Automated SMTP notifications keep everyone informed in real time.</p>
+    </div>
+  </div>
+</section>
+
+<footer style="background:#0a3358; color:rgba(255,255,255,.6); text-align:center; padding:1.5rem;">
+  <small>&copy; @DateTime.Now.Year — Enterprise Hospital Management System</small>
+</footer>

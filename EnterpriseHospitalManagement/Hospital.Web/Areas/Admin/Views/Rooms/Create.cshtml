@@ -1,0 +1,42 @@
+@model Hospital.ViewModels.RoomViewModel
+@{
+    ViewData["Title"]       = "Add Room";
+    ViewData["ShowSidebar"] = true;
+}
+<div class="page-header">
+  <div><div class="page-title">Add Room</div></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-card">
+  <div class="form-card-header"><h2><i class="fas fa-door-open"></i> Add Room</h2></div>
+  <div class="form-card-body">
+    <form asp-action="Create" method="post">
+      @Html.AntiForgeryToken()
+      <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex")"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" asp-for="RoomNumber">Room Number *</label>
+          <input asp-for="RoomNumber" class="form-control" placeholder="e.g. 101A"/>
+          <span asp-validation-for="RoomNumber" class="invalid-feedback"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" asp-for="RoomType">Room Type</label>
+          <input asp-for="RoomType" class="form-control" placeholder="ICU / General / VIP"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" asp-for="HospitalId">Hospital *</label>
+        <select asp-for="HospitalId" class="form-control" asp-items="ViewBag.Hospitals"></select>
+      </div>
+      <div class="form-group" style="display:flex; align-items:center; gap:.75rem;">
+        <input asp-for="IsAvailable" type="checkbox" id="IsAvailable" style="width:18px; height:18px;"/>
+        <label for="IsAvailable" class="form-label" style="margin:0;">Available</label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create Room</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial"/> }
