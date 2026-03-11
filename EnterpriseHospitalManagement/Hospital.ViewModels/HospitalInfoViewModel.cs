@@ -25,6 +25,19 @@ namespace Hospital.ViewModels
         [Required]
         public string Country { get; set; } = "";
 
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get; set; } = "";
+
+        [Display(Name = "Address")]
+        public string Address { get; set; } = "";
+
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
+
+        [Display(Name = "Description")]
+        public string Description { get; set; } = "";
+
         public HospitalInfoViewModel() { }
 
         public HospitalInfoViewModel(HospitalInfo model)

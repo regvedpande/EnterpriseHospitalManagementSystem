@@ -7,6 +7,9 @@ namespace Hospital.ViewModels
     {
         public int Id { get; set; }
 
+        [Display(Name = "Contact Name")]
+        public string Name { get; set; } = "";
+
         [Required]
         [EmailAddress]
         public string Email { get; set; } = "";
@@ -15,9 +18,19 @@ namespace Hospital.ViewModels
         [Phone]
         public string Phone { get; set; } = "";
 
+        [Phone]
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get => Phone; set => Phone = value; }
+
         [Required]
         [Display(Name = "Hospital")]
         public int HospitalInfoId { get; set; }
+
+        /// <summary>Alias for <see cref="HospitalInfoId"/>.</summary>
+        public int HospitalId { get => HospitalInfoId; set => HospitalInfoId = value; }
+
+        [Display(Name = "Hospital")]
+        public string HospitalName { get; set; } = "";
 
         public ContactViewModel() { }
 

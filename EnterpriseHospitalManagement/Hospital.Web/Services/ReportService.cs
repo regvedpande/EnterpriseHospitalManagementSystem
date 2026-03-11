@@ -30,7 +30,7 @@ namespace Hospital.Services
                 page.Header().Text("Hospitals Report").FontSize(20).Bold().FontColor(Colors.Blue.Darken3);
                 page.Content().Table(t =>
                 {
-                    t.ColumnsDefinition(cd => { cd.FixedColumn(30); cd.RelativeColumn(3); cd.RelativeColumn(3); cd.RelativeColumn(2); });
+                    t.ColumnsDefinition(cd => { cd.ConstantColumn(30); cd.RelativeColumn(3); cd.RelativeColumn(3); cd.RelativeColumn(2); });
                     t.Header(h => { foreach (var col in new[] { "#", "Name", "Address", "Phone" }) h.Cell().Background(Colors.Blue.Darken3).Padding(5).Text(col).FontColor(Colors.White).Bold(); });
                     int i = 1;
                     foreach (var item in items)
@@ -80,7 +80,7 @@ namespace Hospital.Services
                 page.Header().Text("Rooms Report").FontSize(20).Bold().FontColor(Colors.Orange.Darken3);
                 page.Content().Table(t =>
                 {
-                    t.ColumnsDefinition(cd => { cd.FixedColumn(30); cd.RelativeColumn(2); cd.RelativeColumn(2); cd.RelativeColumn(2); cd.RelativeColumn(2); });
+                    t.ColumnsDefinition(cd => { cd.ConstantColumn(30); cd.RelativeColumn(2); cd.RelativeColumn(2); cd.RelativeColumn(2); cd.RelativeColumn(2); });
                     t.Header(h => { foreach (var col in new[] { "#", "Room No", "Type", "Hospital", "Status" }) h.Cell().Background(Colors.Orange.Darken3).Padding(5).Text(col).FontColor(Colors.White).Bold(); });
                     int i = 1;
                     foreach (var item in items)
@@ -131,7 +131,7 @@ namespace Hospital.Services
                 page.Header().Text("Doctors / Timings Report").FontSize(20).Bold().FontColor(Colors.Green.Darken3);
                 page.Content().Table(t =>
                 {
-                    t.ColumnsDefinition(cd => { cd.FixedColumn(30); cd.RelativeColumn(3); cd.RelativeColumn(3); cd.RelativeColumn(2); });
+                    t.ColumnsDefinition(cd => { cd.ConstantColumn(30); cd.RelativeColumn(3); cd.RelativeColumn(3); cd.RelativeColumn(2); });
                     t.Header(h => { foreach (var col in new[] { "#", "Doctor", "Specialty", "Hospital" }) h.Cell().Background(Colors.Green.Darken3).Padding(5).Text(col).FontColor(Colors.White).Bold(); });
                     int i = 1;
                     foreach (var item in items)

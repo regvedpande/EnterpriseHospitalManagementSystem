@@ -76,5 +76,72 @@ namespace Hospital.Services
             _repo.Delete(existing);
             _repo.Save();
         }
+
+        // ── Doctor-view operations ──────────────────────────────────────────────
+
+        public PagedResult<DoctorViewModel> GetAll(int pageNumber, int pageSize)
+        {
+            var list = _repo.GetAll().ToList();
+            return new PagedResult<DoctorViewModel>
+            {
+                Items = list
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(t => new DoctorViewModel
+                    {
+                        Id = t.Id,
+                        DoctorName = t.DoctorId,
+                        Specialty = "",
+                        HospitalName = ""
+                    })
+                    .ToList(),
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalCount = list.Count
+            };
+        }
+
+        public DoctorViewModel? GetDoctorById(int id)
+        {
+            var t = _repo.GetById(id);
+            if (t == null) return null;
+            return new DoctorViewModel
+            {
+                Id = t.Id,
+                DoctorName = t.DoctorId,
+                Specialty = "",
+                HospitalName = ""
+            };
+        }
+
+        public void InsertDoctor(DoctorViewModel vm)
+        {
+            if (vm == null) return;
+            var model = new Timing
+            {
+                Id = 0,
+                DoctorId = vm.DoctorName,
+                ScheduleDate = DateTime.UtcNow,
+                Duration = 30,
+                Status = Models.Enums.Status.Available
+            };
+            _repo.Add(model);
+            _repo.Save();
+        }
+
+        public void UpdateDoctor(DoctorViewModel vm)
+        {
+            if (vm == null) return;
+            var existing = _repo.GetById(vm.Id);
+            if (existing == null) { InsertDoctor(vm); return; }
+            existing.DoctorId = vm.DoctorName;
+            _repo.Update(existing);
+            _repo.Save();
+        }
+
+        public void DeleteDoctor(int id)
+        {
+            DeleteTiming(id);
+        }
     }
 }

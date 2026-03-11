@@ -4,7 +4,15 @@
     public class PagedResult<T>
     {
         public List<T> Items { get; set; } = new();
+
+        /// <summary>Alias for <see cref="Items"/> used by some service classes.</summary>
+        public List<T> Data { get => Items; set => Items = value; }
+
         public int TotalCount { get; set; }
+
+        /// <summary>Alias for <see cref="TotalCount"/> used by some service classes.</summary>
+        public int TotalItems { get => TotalCount; set => TotalCount = value; }
+
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 10;
         public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
