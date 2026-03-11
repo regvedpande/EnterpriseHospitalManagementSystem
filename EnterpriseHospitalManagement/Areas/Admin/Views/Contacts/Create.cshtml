@@ -1,0 +1,42 @@
+@model Hospital.ViewModels.ContactViewModel
+@{
+    ViewData["Title"]       = "Add Contact";
+    ViewData["ShowSidebar"] = true;
+}
+<div class="page-header">
+  <div><div class="page-title">Add Contact</div></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-card">
+  <div class="form-card-header"><h2><i class="fas fa-address-book"></i> Add Contact</h2></div>
+  <div class="form-card-body">
+    <form asp-action="Create" method="post">
+      @Html.AntiForgeryToken()
+      <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex")"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" asp-for="Name">Name *</label>
+          <input asp-for="Name" class="form-control"/>
+          <span asp-validation-for="Name" class="invalid-feedback"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" asp-for="PhoneNumber">Phone</label>
+          <input asp-for="PhoneNumber" class="form-control"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" asp-for="Email">Email</label>
+        <input asp-for="Email" class="form-control"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" asp-for="HospitalId">Hospital</label>
+        <select asp-for="HospitalId" class="form-control" asp-items="ViewBag.Hospitals"></select>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial"/> }

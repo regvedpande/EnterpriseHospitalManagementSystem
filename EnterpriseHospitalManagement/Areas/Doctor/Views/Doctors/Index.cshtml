@@ -1,0 +1,68 @@
+@model Hospital.ViewModels.PagedResult<Hospital.ViewModels.DoctorViewModel>
+@{
+    ViewData["Title"]       = "My Timings";
+    ViewData["ShowSidebar"] = true;
+    ViewData["Page"]        = Model.PageNumber;
+    ViewData["TotalPages"]  = Model.TotalPages;
+    ViewData["Size"]        = Model.PageSize;
+    ViewData["TotalCount"]  = Model.TotalCount;
+    ViewData["PagCtrl"]     = "Doctors";
+    ViewData["PagAction"]   = "Index";
+    ViewData["PagArea"]     = "Doctor";
+}
+<div class="page-header">
+  <div><div class="page-title">My Timings</div><small class="text-muted">Manage your schedule</small></div>
+  <div class="page-actions">
+    <a asp-action="DownloadPdf"   class="btn btn-secondary btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
+    <a asp-action="DownloadExcel" class="btn btn-secondary btn-sm"><i class="fas fa-file-excel"></i> Excel</a>
+    <a asp-action="Create"        class="btn btn-primary"><i class="fas fa-plus"></i> Add Timing</a>
+  </div>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" class="search-input" placeholder="Search…"
+             oninput="filterTable('dSearch','dTable')" id="dSearch"/>
+    </div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount records</span>
+  </div>
+  @if (!Model.Items.Any())
+  {
+    <div class="empty-state">
+      <i class="fas fa-calendar-alt"></i>
+      <h3>No timings added yet</h3>
+      <a asp-action="Create" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Add Timing</a>
+    </div>
+  }
+  else
+  {
+    <table id="dTable">
+      <thead>
+        <tr><th>#</th><th>Doctor</th><th>Specialty</th><th>Hospital</th><th>Day</th><th>Time</th><th style="width:120px;">Actions</th></tr>
+      </thead>
+      <tbody>
+        @{ int i = (Model.PageNumber - 1) * Model.PageSize + 1; }
+        @foreach (var d in Model.Items)
+        {
+          <tr>
+            <td><span class="text-muted">@(i++)</span></td>
+            <td><strong>@d.DoctorName</strong></td>
+            <td>@d.Specialty</td>
+            <td>@d.HospitalName</td>
+            <td>@d.Day</td>
+            <td>@d.StartTime — @d.EndTime</td>
+            <td>
+              <div class="td-actions">
+                <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+                <form id="del-d-@d.Id" asp-action="Delete" asp-route-id="@d.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()</form>
+                <button type="button" onclick="confirmDelete('del-d-@d.Id')" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

@@ -1,0 +1,87 @@
+@model Hospital.ViewModels.PagedResult<Hospital.ViewModels.HospitalInfoViewModel>
+@{
+    ViewData["Title"]       = "Hospitals";
+    ViewData["ShowSidebar"] = true;
+    ViewData["Page"]        = Model.PageNumber;
+    ViewData["TotalPages"]  = Model.TotalPages;
+    ViewData["Size"]        = Model.PageSize;
+    ViewData["TotalCount"]  = Model.TotalCount;
+    ViewData["PagCtrl"]     = "Hospitals";
+    ViewData["PagAction"]   = "Index";
+    ViewData["PagArea"]     = "Admin";
+}
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Hospitals</div>
+    <small class="text-muted">Manage all hospital branches</small>
+  </div>
+  <div class="page-actions">
+    <a asp-action="DownloadPdf"   class="btn btn-secondary btn-sm"><i class="fas fa-file-pdf"></i> PDF</a>
+    <a asp-action="DownloadExcel" class="btn btn-secondary btn-sm"><i class="fas fa-file-excel"></i> Excel</a>
+    <a asp-action="Create"        class="btn btn-primary"><i class="fas fa-plus"></i> Add Hospital</a>
+  </div>
+</div>
+
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" class="search-input" placeholder="Search hospitals…"
+             oninput="filterTable('hospitalSearch','hospitalTable')" id="hospitalSearch"/>
+    </div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount total</span>
+  </div>
+
+  @if (!Model.Items.Any())
+  {
+    <div class="empty-state">
+      <i class="fas fa-hospital"></i>
+      <h3>No hospitals yet</h3>
+      <p>Add your first hospital to get started.</p>
+      <a asp-action="Create" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Add Hospital</a>
+    </div>
+  }
+  else
+  {
+    <table id="hospitalTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th style="width:120px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @{ int i = (Model.PageNumber - 1) * Model.PageSize + 1; }
+        @foreach (var h in Model.Items)
+        {
+          <tr>
+            <td><span class="text-muted">@(i++)</span></td>
+            <td><strong>@h.Name</strong></td>
+            <td>@h.Address</td>
+            <td>@h.PhoneNumber</td>
+            <td>@h.Email</td>
+            <td>
+              <div class="td-actions">
+                <a asp-action="Edit" asp-route-id="@h.Id" class="btn btn-warning btn-sm btn-icon" title="Edit">
+                  <i class="fas fa-pen"></i>
+                </a>
+                <form id="del-h-@h.Id" asp-action="Delete" asp-route-id="@h.Id" method="post" style="display:inline;">
+                  @Html.AntiForgeryToken()
+                </form>
+                <button type="button" onclick="confirmDelete('del-h-@h.Id')" class="btn btn-danger btn-sm btn-icon" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

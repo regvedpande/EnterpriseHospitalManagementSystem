@@ -1,0 +1,84 @@
+@page
+@using Hospital.Web.Areas.Admin.Controllers
+@model List<UserRoleVm>
+@{
+    ViewData["Title"]       = "Users";
+    ViewData["ShowSidebar"] = true;
+    int page       = (int)(ViewBag.Page       ?? 1);
+    int totalPages = (int)(ViewBag.TotalPages ?? 1);
+    int size       = (int)(ViewBag.Size       ?? 10);
+}
+<div class="page-header">
+  <div><div class="page-title">Users</div><small class="text-muted">Manage users and roles</small></div>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap">
+      <i class="fas fa-search"></i>
+      <input type="text" class="search-input" placeholder="Search users…"
+             oninput="filterTable('uSearch','uTable')" id="uSearch"/>
+    </div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.Count users</span>
+  </div>
+  @if (!Model.Any())
+  {
+    <div class="empty-state"><i class="fas fa-users"></i><h3>No users found</h3></div>
+  }
+  else
+  {
+    <table id="uTable">
+      <thead>
+        <tr><th>#</th><th>Name</th><th>Email</th><th>Roles</th><th style="width:140px;">Actions</th></tr>
+      </thead>
+      <tbody>
+        @{ int i = (page - 1) * size + 1; }
+        @foreach (var vm in Model)
+        {
+          <tr>
+            <td><span class="text-muted">@(i++)</span></td>
+            <td><strong>@vm.User.Name</strong></td>
+            <td>@vm.User.Email</td>
+            <td>
+              @foreach (var role in vm.Roles)
+              {
+                var cls = role == "Website_Admin" ? "badge-info" : role == "Website_Doctor" ? "badge-success" : "badge-secondary";
+                <span class="badge @cls" style="margin-right:.25rem;">@role.Replace("Website_","")</span>
+              }
+              @if (!vm.Roles.Any()) { <span class="text-muted" style="font-size:.8rem;">No role</span> }
+            </td>
+            <td>
+              <div class="td-actions">
+                <a asp-action="EditRoles" asp-route-id="@vm.User.Id" class="btn btn-warning btn-sm">
+                  <i class="fas fa-user-tag"></i> Roles
+                </a>
+                <form id="del-u-@vm.User.Id" asp-action="Delete" asp-route-id="@vm.User.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()</form>
+                <button type="button" onclick="confirmDelete('del-u-@vm.User.Id')" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (totalPages > 1)
+    {
+      <div class="pagination-wrap">
+        <span class="pagination-info">Page @(page) of @(totalPages)</span>
+        <ul class="pagination">
+          <li class="page-item @(page <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-page="@(page-1)"><i class="fas fa-chevron-left" style="font-size:.7rem;"></i></a>
+          </li>
+          @for (int p = Math.Max(1, page-2); p <= Math.Min(totalPages, page+2); p++)
+          {
+            <li class="page-item @(p == page ? "active" : "")">
+              <a class="page-link" asp-action="Index" asp-route-page="@p">@p</a>
+            </li>
+          }
+          <li class="page-item @(page >= totalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="Index" asp-route-page="@(page+1)"><i class="fas fa-chevron-right" style="font-size:.7rem;"></i></a>
+          </li>
+        </ul>
+      </div>
+    }
+  }
+</div>

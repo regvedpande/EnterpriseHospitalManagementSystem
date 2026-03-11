@@ -1,0 +1,39 @@
+@* Parameters: page (int), totalPages (int), action (string), controller (string), area (string) *@
+@{
+    var page       = (int)(ViewData["Page"]       ?? 1);
+    var totalPages = (int)(ViewData["TotalPages"] ?? 1);
+    var size       = (int)(ViewData["Size"]       ?? 10);
+    var ctrl       = ViewData["PagCtrl"]?.ToString()  ?? "";
+    var act        = ViewData["PagAction"]?.ToString() ?? "Index";
+    var areaStr    = ViewData["PagArea"]?.ToString()  ?? "";
+    var total      = (int)(ViewData["TotalCount"] ?? 0);
+    int start      = (page - 1) * size + 1;
+    int end        = Math.Min(page * size, total);
+}
+@if (totalPages > 1)
+{
+<div class="pagination-wrap">
+  <span class="pagination-info">Showing @start–@end of @total records</span>
+  <ul class="pagination">
+    <li class="page-item @(page <= 1 ? "disabled" : "")">
+      <a class="page-link" asp-area="@areaStr" asp-controller="@ctrl" asp-action="@act"
+         asp-route-page="@(page - 1)" asp-route-size="@size">
+        <i class="fas fa-chevron-left" style="font-size:.7rem;"></i>
+      </a>
+    </li>
+    @for (int i = Math.Max(1, page - 2); i <= Math.Min(totalPages, page + 2); i++)
+    {
+      <li class="page-item @(i == page ? "active" : "")">
+        <a class="page-link" asp-area="@areaStr" asp-controller="@ctrl" asp-action="@act"
+           asp-route-page="@i" asp-route-size="@size">@i</a>
+      </li>
+    }
+    <li class="page-item @(page >= totalPages ? "disabled" : "")">
+      <a class="page-link" asp-area="@areaStr" asp-controller="@ctrl" asp-action="@act"
+         asp-route-page="@(page + 1)" asp-route-size="@size">
+        <i class="fas fa-chevron-right" style="font-size:.7rem;"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+}

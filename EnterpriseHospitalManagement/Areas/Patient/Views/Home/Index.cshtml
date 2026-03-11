@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"]       = "Patient Dashboard";
+    ViewData["ShowSidebar"] = true;
+    int hospitalCount = (int)(ViewBag.HospitalCount ?? 0);
+    int doctorCount   = (int)(ViewBag.DoctorCount   ?? 0);
+    int roomCount     = (int)(ViewBag.RoomCount     ?? 0);
+    var doctors       = ViewBag.Doctors   as IEnumerable<Hospital.ViewModels.DoctorViewModel>   ?? Enumerable.Empty<Hospital.ViewModels.DoctorViewModel>();
+    var hospitals     = ViewBag.Hospitals as IEnumerable<Hospital.ViewModels.HospitalInfoViewModel> ?? Enumerable.Empty<Hospital.ViewModels.HospitalInfoViewModel>();
+}
+
+<div class="page-header">
+  <div>
+    <div class="page-title">Welcome back, @User.Identity?.Name?.Split('@')[0]! 👋</div>
+    <small class="text-muted">Here's what's happening in the hospital network</small>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue"><i class="fas fa-hospital"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">@hospitalCount</div>
+      <div class="stat-label">Hospitals</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green"><i class="fas fa-user-md"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">@doctorCount</div>
+      <div class="stat-label">Doctors</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-door-open"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">@roomCount</div>
+      <div class="stat-label">Rooms</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon teal"><i class="fas fa-heartbeat"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">24/7</div>
+      <div class="stat-label">Support</div>
+    </div>
+  </div>
+</div>
+
+<!-- Doctors -->
+@if (doctors.Any())
+{
+  <div class="card mb-3">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-user-md" style="color:var(--success); margin-right:.5rem;"></i>Available Doctors</span>
+    </div>
+    <div class="card-body">
+      <div class="doctor-grid">
+        @foreach (var d in doctors)
+        {
+          <div class="doctor-card">
+            <div class="doctor-avatar"><i class="fas fa-stethoscope"></i></div>
+            <div class="doctor-info">
+              <h4>@d.DoctorName</h4>
+              <p>@d.Specialty</p>
+              <p style="color:var(--primary); font-size:.8rem;">@d.Day  @d.StartTime–@d.EndTime</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Hospitals -->
+@if (hospitals.Any())
+{
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-hospital" style="color:var(--primary); margin-right:.5rem;"></i>Hospital Branches</span>
+    </div>
+    <div class="card-body">
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1rem;">
+        @foreach (var h in hospitals)
+        {
+          <div style="border:1px solid var(--border); border-radius:10px; padding:1rem; background:var(--surface);">
+            <h4 style="font-size:.95rem; font-weight:600; margin-bottom:.3rem;">@h.Name</h4>
+            @if (!string.IsNullOrEmpty(h.Address))
+            {
+              <p style="font-size:.8rem; color:var(--text-muted);"><i class="fas fa-map-marker-alt" style="margin-right:.35rem;"></i>@h.Address</p>
+            }
+            @if (!string.IsNullOrEmpty(h.PhoneNumber))
+            {
+              <p style="font-size:.8rem; color:var(--text-muted);"><i class="fas fa-phone" style="margin-right:.35rem;"></i>@h.PhoneNumber</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

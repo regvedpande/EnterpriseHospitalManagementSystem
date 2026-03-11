@@ -1,155 +1,222 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Hospital</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>@ViewData["Title"] — HMS</title>
+  <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="~/css/site.css"/>
+  @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background:#0f4c81;">
-        <a class="navbar-brand font-weight-bold" asp-controller="Home" asp-action="Index" asp-area="">
-            <i class="fas fa-hospital-alt mr-2"></i>HMS
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
+<!-- ── TOP NAV ─────────────────────────────────────────────────────────── -->
+<nav class="topbar">
+  <a class="topbar-brand" asp-controller="Home" asp-action="Index" asp-area="">
+    <i class="fas fa-hospital-alt"></i> HMS
+  </a>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-nav">
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+      <div class="user-dropdown" id="userDropdown">
+        <button class="user-btn" onclick="toggleDropdown()">
+          <span class="avatar">@(User.Identity.Name?.Substring(0,1).ToUpper() ?? "U")</span>
+          <span>@User.Identity.Name</span>
+          <i class="fas fa-chevron-down" style="font-size:.7rem; opacity:.7;"></i>
         </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Home" asp-action="Index" asp-area="">
-                        <i class="fas fa-home mr-1"></i>Home
-                    </a>
-                </li>
-
-                @if (User.IsInRole("Website_Admin"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
-                            <i class="fas fa-hospital mr-1"></i>Hospitals
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-controller="Rooms" asp-action="Index">
-                            <i class="fas fa-door-open mr-1"></i>Rooms
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-controller="Contacts" asp-action="Index">
-                            <i class="fas fa-address-book mr-1"></i>Contacts
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-controller="Users" asp-action="Index">
-                            <i class="fas fa-users mr-1"></i>Users
-                        </a>
-                    </li>
-                }
-
-                @if (User.IsInRole("Website_Doctor"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
-                            <i class="fas fa-calendar-alt mr-1"></i>My Timings
-                        </a>
-                    </li>
-                }
-
-                @if (User.IsInRole("Website_Patient"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Patient" asp-controller="Home" asp-action="Index">
-                            <i class="fas fa-th-large mr-1"></i>Dashboard
-                        </a>
-                    </li>
-                }
-            </ul>
-
-            <ul class="navbar-nav ml-auto">
-                @if (User.Identity != null && User.Identity.IsAuthenticated)
-                {
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-user-circle mr-1"></i>@User.Identity.Name
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            @if (User.IsInRole("Website_Admin"))
-                            {
-                                <a class="dropdown-item" asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
-                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-                                </a>
-                            }
-                            @if (User.IsInRole("Website_Doctor"))
-                            {
-                                <a class="dropdown-item" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
-                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-                                </a>
-                            }
-                            @if (User.IsInRole("Website_Patient"))
-                            {
-                                <a class="dropdown-item" asp-area="Patient" asp-controller="Home" asp-action="Index">
-                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-                                </a>
-                            }
-                            <div class="dropdown-divider"></div>
-                            <form asp-controller="Auth" asp-action="Logout" asp-area="" method="post">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="dropdown-item text-danger">
-                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                                </button>
-                            </form>
-                        </div>
-                    </li>
-                }
-                else
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Auth" asp-action="Login" asp-area="">
-                            <i class="fas fa-sign-in-alt mr-1"></i>Login
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Auth" asp-action="Register" asp-area="">
-                            <i class="fas fa-user-plus mr-1"></i>Register
-                        </a>
-                    </li>
-                }
-            </ul>
+        <div class="dropdown-menu-custom" id="dropdownMenu">
+          @if (User.IsInRole("Website_Admin"))
+          {
+            <a asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          @if (User.IsInRole("Website_Doctor"))
+          {
+            <a asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          @if (User.IsInRole("Website_Patient"))
+          {
+            <a asp-area="Patient" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          <div class="divider"></div>
+          <form asp-controller="Auth" asp-action="Logout" asp-area="" method="post" id="logoutForm">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </form>
         </div>
-    </nav>
+      </div>
+    }
+    else
+    {
+      <a class="nav-link" asp-controller="Auth" asp-action="Login" asp-area="">
+        <i class="fas fa-sign-in-alt"></i><span> Login</span>
+      </a>
+      <a class="nav-link" asp-controller="Auth" asp-action="Register" asp-area="">
+        <i class="fas fa-user-plus"></i><span> Register</span>
+      </a>
+    }
+  </div>
+</nav>
 
-    <div class="container mt-4">
-        @if (TempData["success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="fas fa-check-circle mr-2"></i>@TempData["success"]
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-            </div>
-        }
-        @if (TempData["error"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show">
-                <i class="fas fa-exclamation-circle mr-2"></i>@TempData["error"]
-                <button type="button" class="close" data-dismiss="alert">&times;</button>
-            </div>
-        }
+<!-- ── BODY ────────────────────────────────────────────────────────────── -->
+@{
+  var hasSidebar = ViewData["ShowSidebar"] as bool? ?? false;
+  var area       = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+}
+<div class="page-wrapper @(hasSidebar ? "with-sidebar" : "")">
+  @if (hasSidebar)
+  {
+    <aside class="sidebar">
+      @if (area == "Admin")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">Admin</div>
+          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Hospitals" ? "active" : "")"
+             asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
+            <i class="fas fa-hospital"></i> Hospitals
+          </a>
+          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Rooms" ? "active" : "")"
+             asp-area="Admin" asp-controller="Rooms" asp-action="Index">
+            <i class="fas fa-door-open"></i> Rooms
+          </a>
+          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Contacts" ? "active" : "")"
+             asp-area="Admin" asp-controller="Contacts" asp-action="Index">
+            <i class="fas fa-address-book"></i> Contacts
+          </a>
+          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
+             asp-area="Admin" asp-controller="Users" asp-action="Index">
+            <i class="fas fa-users"></i> Users
+          </a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">Reports</div>
+          <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadPdf">
+            <i class="fas fa-file-pdf"></i> Hospitals PDF
+          </a>
+          <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadExcel">
+            <i class="fas fa-file-excel"></i> Hospitals Excel
+          </a>
+          <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadPdf">
+            <i class="fas fa-file-pdf"></i> Rooms PDF
+          </a>
+          <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadExcel">
+            <i class="fas fa-file-excel"></i> Rooms Excel
+          </a>
+        </div>
+      }
+      @if (area == "Doctor")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">Doctor</div>
+          <a class="sidebar-link active" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
+            <i class="fas fa-calendar-alt"></i> My Timings
+          </a>
+          <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadPdf">
+            <i class="fas fa-file-pdf"></i> Export PDF
+          </a>
+          <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadExcel">
+            <i class="fas fa-file-excel"></i> Export Excel
+          </a>
+        </div>
+      }
+      @if (area == "Patient")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">Patient</div>
+          <a class="sidebar-link active" asp-area="Patient" asp-controller="Home" asp-action="Index">
+            <i class="fas fa-th-large"></i> Dashboard
+          </a>
+        </div>
+      }
+    </aside>
+  }
 
-        @RenderBody()
+  <div class="main-content">
+    @if (TempData["success"] != null)
+    {
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <span>@TempData["success"]</span>
+        <button class="alert-dismiss" onclick="this.parentElement.remove()">×</button>
+      </div>
+    }
+    @if (TempData["error"] != null)
+    {
+      <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>@TempData["error"]</span>
+        <button class="alert-dismiss" onclick="this.parentElement.remove()">×</button>
+      </div>
+    }
+    @RenderBody()
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Confirm Delete</div>
+    <div class="modal-text">Are you sure? This action cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
     </div>
+  </div>
+</div>
 
-    <footer class="border-top footer text-muted mt-5 py-3">
-        <div class="container text-center">
-            <small>&copy; @DateTime.Now.Year — Enterprise Hospital Management System</small>
-        </div>
-    </footer>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Dropdown toggle
+  function toggleDropdown() {
+    document.getElementById('dropdownMenu').classList.toggle('show');
+  }
+  document.addEventListener('click', function(e) {
+    const d = document.getElementById('userDropdown');
+    if (d && !d.contains(e.target)) document.getElementById('dropdownMenu')?.classList.remove('show');
+  });
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    @RenderSection("Scripts", required: false)
+  // Delete modal
+  let _deleteForm = null;
+  function confirmDelete(formId) {
+    _deleteForm = document.getElementById(formId);
+    document.getElementById('deleteModal').classList.add('active');
+  }
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('active');
+    _deleteForm = null;
+  }
+  document.getElementById('confirmDeleteBtn')?.addEventListener('click', function() {
+    if (_deleteForm) _deleteForm.submit();
+  });
+  document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+  });
+
+  // Auto-dismiss alerts after 4s
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(a => {
+      a.style.transition = 'opacity .4s'; a.style.opacity = '0';
+      setTimeout(() => a.remove(), 400);
+    });
+  }, 4000);
+
+  // Table search
+  function filterTable(inputId, tableId) {
+    const q = document.getElementById(inputId).value.toLowerCase();
+    document.querySelectorAll('#' + tableId + ' tbody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+</script>
+@await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
