@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Hospital.Models.Enums;
 
 namespace Hospital.Models
 {
@@ -12,6 +14,12 @@ namespace Hospital.Models
         [ForeignKey(nameof(Employee))]
         public string EmployeeId { get; set; } = string.Empty;
         public ApplicationUser Employee { get; set; } = null!;
+
+        public PayrollStatus Status { get; set; } = PayrollStatus.Draft;
+
+        public DateTime PayPeriodStart { get; set; }
+        public DateTime PayPeriodEnd { get; set; }
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Required]
         [Column(TypeName = "decimal(18, 2)")]

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,6 +12,10 @@ namespace Hospital.Models
 
         [Required]
         public string Diagnose { get; set; } = string.Empty;
+
+        public string? Notes { get; set; }
+
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         [Required]
         [ForeignKey(nameof(Doctor))]

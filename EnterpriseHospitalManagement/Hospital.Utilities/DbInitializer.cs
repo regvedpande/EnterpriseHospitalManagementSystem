@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 
 namespace Hospital.Utilities
 {
@@ -36,34 +37,73 @@ namespace Hospital.Utilities
                 // Migration might already be up-to-date
             }
 
-            // Seed roles
-            if (!_roleManager.RoleExistsAsync(WebSiteRoles.Website_Admin).GetAwaiter().GetResult())
+            // Seed all roles
+            var roles = new[]
             {
-                _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Admin)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Doctor)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(WebSiteRoles.Website_Patient)).GetAwaiter().GetResult();
+                WebSiteRoles.Website_Admin,
+                WebSiteRoles.Website_Doctor,
+                WebSiteRoles.Website_Patient,
+                WebSiteRoles.Website_Nurse,
+                WebSiteRoles.Website_Pharmacist,
+                WebSiteRoles.Website_LabTech,
+                WebSiteRoles.Website_Receptionist,
+                WebSiteRoles.Website_Accountant
+            };
+
+            foreach (var role in roles)
+            {
+                if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+                {
+                    _roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
+                }
             }
 
-            // Seed default admin user
-            var adminEmail = "admin@hospital.com";
-            if (_userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult() == null)
+            // Seed default users for each role
+            SeedUser("admin@hospital.com", "Admin@123", "System Admin", WebSiteRoles.Website_Admin, false);
+            SeedUser("doctor@hospital.com", "Doctor@123", "Dr. Sarah Johnson", WebSiteRoles.Website_Doctor, true, "Cardiology");
+            SeedUser("patient@hospital.com", "Patient@123", "John Smith", WebSiteRoles.Website_Patient, false);
+            SeedUser("nurse@hospital.com", "Nurse@123", "Emily Davis", WebSiteRoles.Website_Nurse, false);
+            SeedUser("pharmacist@hospital.com", "Pharmacist@123", "Michael Brown", WebSiteRoles.Website_Pharmacist, false);
+            SeedUser("labtech@hospital.com", "LabTech@123", "Lisa Wilson", WebSiteRoles.Website_LabTech, false);
+            SeedUser("receptionist@hospital.com", "Receptionist@123", "Anna Taylor", WebSiteRoles.Website_Receptionist, false);
+            SeedUser("accountant@hospital.com", "Accountant@123", "Robert Martinez", WebSiteRoles.Website_Accountant, false);
+
+            // Seed a default department
+            if (!_db.Departments.Any())
             {
-                var admin = new ApplicationUser
+                _db.Departments.AddRange(
+                    new Department { Name = "General Medicine", Description = "General medical consultations and treatments" },
+                    new Department { Name = "Cardiology", Description = "Heart and cardiovascular system" },
+                    new Department { Name = "Orthopedics", Description = "Bone and joint disorders" },
+                    new Department { Name = "Pediatrics", Description = "Medical care for infants, children, and adolescents" },
+                    new Department { Name = "Neurology", Description = "Nervous system disorders" },
+                    new Department { Name = "Dermatology", Description = "Skin conditions and treatments" }
+                );
+                _db.SaveChanges();
+            }
+        }
+
+        private void SeedUser(string email, string password, string name, string role, bool isDoctor, string? specialist = null)
+        {
+            if (_userManager.FindByEmailAsync(email).GetAwaiter().GetResult() == null)
+            {
+                var user = new ApplicationUser
                 {
-                    UserName = adminEmail,
-                    Email = adminEmail,
-                    Name = "System Admin",
+                    UserName = email,
+                    Email = email,
+                    Name = name,
                     Gender = Models.Enums.Gender.Other,
                     Address = "Hospital HQ",
                     DOB = new DateTime(1990, 1, 1),
-                    IsDoctor = false,
+                    IsDoctor = isDoctor,
+                    Specialist = specialist,
                     EmailConfirmed = true
                 };
 
-                var result = _userManager.CreateAsync(admin, "Admin@123").GetAwaiter().GetResult();
+                var result = _userManager.CreateAsync(user, password).GetAwaiter().GetResult();
                 if (result.Succeeded)
                 {
-                    _userManager.AddToRoleAsync(admin, WebSiteRoles.Website_Admin).GetAwaiter().GetResult();
+                    _userManager.AddToRoleAsync(user, role).GetAwaiter().GetResult();
                 }
             }
         }

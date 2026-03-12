@@ -1,5 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Hospital.Models.Enums;
 
 namespace Hospital.Models
 {
@@ -19,6 +21,16 @@ namespace Hospital.Models
         [ForeignKey(nameof(Insurance))]
         public int? InsuranceId { get; set; }
         public Insurance? Insurance { get; set; }
+
+        public BillStatus Status { get; set; } = BillStatus.Pending;
+
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        public DateTime? PaidDate { get; set; }
+
+        [ForeignKey(nameof(CreatedBy))]
+        public string? CreatedById { get; set; }
+        public ApplicationUser? CreatedBy { get; set; }
 
         [Required]
         [Column(TypeName = "decimal(18, 2)")]

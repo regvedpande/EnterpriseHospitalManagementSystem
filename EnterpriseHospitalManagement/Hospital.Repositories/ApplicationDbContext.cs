@@ -53,6 +53,59 @@ namespace Hospital.Repositories
                 .WithMany(p => p.PatientReportsAsPatient)
                 .HasForeignKey(pr => pr.PatientId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Appointment - CreatedBy FK (third FK to ApplicationUser)
+            builder.Entity<Appointment>()
+                .HasOne(a => a.CreatedBy)
+                .WithMany()
+                .HasForeignKey(a => a.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Bill - CreatedBy and Patient FKs
+            builder.Entity<Bill>()
+                .HasOne(b => b.Patient)
+                .WithMany()
+                .HasForeignKey(b => b.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Bill>()
+                .HasOne(b => b.CreatedBy)
+                .WithMany()
+                .HasForeignKey(b => b.CreatedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Lab - three FKs to ApplicationUser
+            builder.Entity<Lab>()
+                .HasOne(l => l.Patient)
+                .WithMany()
+                .HasForeignKey(l => l.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Lab>()
+                .HasOne(l => l.Doctor)
+                .WithMany()
+                .HasForeignKey(l => l.DoctorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Lab>()
+                .HasOne(l => l.Technician)
+                .WithMany()
+                .HasForeignKey(l => l.TechnicianId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Payroll - Employee FK
+            builder.Entity<Payroll>()
+                .HasOne(p => p.Employee)
+                .WithMany(u => u.Payrolls)
+                .HasForeignKey(p => p.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Insurance - Patient FK
+            builder.Entity<Insurance>()
+                .HasOne(i => i.Patient)
+                .WithMany()
+                .HasForeignKey(i => i.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

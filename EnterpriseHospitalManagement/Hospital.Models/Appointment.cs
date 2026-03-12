@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Hospital.Models.Enums;
 
 namespace Hospital.Models
 {
@@ -18,7 +19,14 @@ namespace Hospital.Models
         [Required]
         public DateTime CreatedDate { get; set; }
 
+        [Required]
+        public DateTime AppointmentDate { get; set; }
+
+        public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
+
         public string? Description { get; set; }
+
+        public string? Notes { get; set; }
 
         [Required]
         [ForeignKey(nameof(Doctor))]
@@ -29,5 +37,9 @@ namespace Hospital.Models
         [ForeignKey(nameof(Patient))]
         public string PatientId { get; set; } = string.Empty;
         public ApplicationUser Patient { get; set; } = null!;
+
+        [ForeignKey(nameof(CreatedBy))]
+        public string? CreatedById { get; set; }
+        public ApplicationUser? CreatedBy { get; set; }
     }
 }

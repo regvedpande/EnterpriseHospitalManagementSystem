@@ -16,6 +16,10 @@ namespace Hospital.Models
         [Required]
         [ForeignKey(nameof(PatientReport))]
         public int PatientReportId { get; set; }
-        public PatientReport PatientReport { get; set; }
+        public PatientReport PatientReport { get; set; } = null!;
+
+        public string? Dosage { get; set; }
+        public int Duration { get; set; }
+        public string? Instructions { get; set; }
     }
 }
