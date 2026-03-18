@@ -1,0 +1,25 @@
+@model AppointmentViewModel
+@{ ViewData["Title"] = "New Appointment"; ViewData["ShowSidebar"] = true; }
+<div class="page-header"><div><div class="page-title">New Appointment</div></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="form-card">
+  <div class="form-card-body">
+    <form asp-action="Create" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Number"/>
+      <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid?"none":"flex")"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" asp-for="DoctorId">Doctor *</label><select asp-for="DoctorId" class="form-control" asp-items="ViewBag.Doctors"><option value="">-- Select --</option></select></div>
+        <div class="form-group"><label class="form-label" asp-for="PatientId">Patient *</label><select asp-for="PatientId" class="form-control" asp-items="ViewBag.Patients"><option value="">-- Select --</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" asp-for="Type">Type *</label>
+          <select asp-for="Type" class="form-control"><option value="Consultation">Consultation</option><option value="Follow-up">Follow-up</option><option value="Emergency">Emergency</option><option value="Surgery">Surgery</option></select></div>
+        <div class="form-group"><label class="form-label" asp-for="AppointmentDate">Date & Time *</label><input asp-for="AppointmentDate" type="datetime-local" class="form-control"/></div>
+      </div>
+      <div class="form-group"><label class="form-label" asp-for="Description">Description</label><textarea asp-for="Description" class="form-control" rows="2"></textarea></div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create</button><a asp-action="Index" class="btn btn-secondary">Cancel</a></div>
+    </form>
+  </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial"/> }

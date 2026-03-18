@@ -1,0 +1,24 @@
+@model AppointmentViewModel
+@{ ViewData["Title"] = "Update Appointment"; ViewData["ShowSidebar"] = true; }
+<div class="page-header"><div><div class="page-title">Update Appointment</div></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="form-card">
+  <div class="form-card-header"><h2><i class="fas fa-pen"></i> Update Status & Notes</h2></div>
+  <div class="form-card-body">
+    <form asp-action="Edit" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id"/><input type="hidden" asp-for="Number"/><input type="hidden" asp-for="Type"/>
+      <input type="hidden" asp-for="DoctorId"/><input type="hidden" asp-for="PatientId"/><input type="hidden" asp-for="AppointmentDate"/>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Patient</label><p class="form-control-plaintext"><strong>@Model.PatientName</strong></p></div>
+        <div class="form-group"><label class="form-label">Date</label><p class="form-control-plaintext">@Model.AppointmentDate.ToString("MMM dd, yyyy hh:mm tt")</p></div>
+      </div>
+      <div class="form-group"><label class="form-label" asp-for="Status">Status</label><select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<Hospital.Models.Enums.AppointmentStatus>()"></select></div>
+      <div class="form-group"><label class="form-label" asp-for="Notes">Notes</label><textarea asp-for="Notes" class="form-control" rows="3"></textarea></div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

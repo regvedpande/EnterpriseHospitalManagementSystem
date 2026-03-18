@@ -95,18 +95,28 @@ namespace Hospital.Web.Controllers
 
         private IActionResult RoleRedirect()
         {
-            if (User.IsInRole(WebSiteRoles.Website_Admin))   return RedirectToAction("Index", "Hospitals",  new { area = "Admin" });
-            if (User.IsInRole(WebSiteRoles.Website_Doctor))  return RedirectToAction("Index", "Doctors",    new { area = "Doctor" });
-            if (User.IsInRole(WebSiteRoles.Website_Patient)) return RedirectToAction("Index", "Home",       new { area = "Patient" });
+            if (User.IsInRole(WebSiteRoles.Website_Admin))        return RedirectToAction("Index", "Hospitals",    new { area = "Admin" });
+            if (User.IsInRole(WebSiteRoles.Website_Doctor))       return RedirectToAction("Index", "Doctors",      new { area = "Doctor" });
+            if (User.IsInRole(WebSiteRoles.Website_Patient))      return RedirectToAction("Index", "Home",         new { area = "Patient" });
+            if (User.IsInRole(WebSiteRoles.Website_Nurse))        return RedirectToAction("Index", "Home",         new { area = "Nurse" });
+            if (User.IsInRole(WebSiteRoles.Website_Pharmacist))   return RedirectToAction("Index", "Home",         new { area = "Pharmacist" });
+            if (User.IsInRole(WebSiteRoles.Website_LabTech))      return RedirectToAction("Index", "Home",         new { area = "LabTech" });
+            if (User.IsInRole(WebSiteRoles.Website_Receptionist)) return RedirectToAction("Index", "Home",         new { area = "Receptionist" });
+            if (User.IsInRole(WebSiteRoles.Website_Accountant))   return RedirectToAction("Index", "Home",         new { area = "Accountant" });
             return RedirectToAction("Index", "Home");
         }
 
         private async Task<IActionResult> RoleRedirectAsync(ApplicationUser user)
         {
             var roles = await _users.GetRolesAsync(user);
-            if (roles.Contains(WebSiteRoles.Website_Admin))   return RedirectToAction("Index", "Hospitals",  new { area = "Admin" });
-            if (roles.Contains(WebSiteRoles.Website_Doctor))  return RedirectToAction("Index", "Doctors",    new { area = "Doctor" });
-            if (roles.Contains(WebSiteRoles.Website_Patient)) return RedirectToAction("Index", "Home",       new { area = "Patient" });
+            if (roles.Contains(WebSiteRoles.Website_Admin))        return RedirectToAction("Index", "Hospitals",    new { area = "Admin" });
+            if (roles.Contains(WebSiteRoles.Website_Doctor))       return RedirectToAction("Index", "Doctors",      new { area = "Doctor" });
+            if (roles.Contains(WebSiteRoles.Website_Patient))      return RedirectToAction("Index", "Home",         new { area = "Patient" });
+            if (roles.Contains(WebSiteRoles.Website_Nurse))        return RedirectToAction("Index", "Home",         new { area = "Nurse" });
+            if (roles.Contains(WebSiteRoles.Website_Pharmacist))   return RedirectToAction("Index", "Home",         new { area = "Pharmacist" });
+            if (roles.Contains(WebSiteRoles.Website_LabTech))      return RedirectToAction("Index", "Home",         new { area = "LabTech" });
+            if (roles.Contains(WebSiteRoles.Website_Receptionist)) return RedirectToAction("Index", "Home",         new { area = "Receptionist" });
+            if (roles.Contains(WebSiteRoles.Website_Accountant))   return RedirectToAction("Index", "Home",         new { area = "Accountant" });
             return RedirectToAction("Index", "Home");
         }
     }

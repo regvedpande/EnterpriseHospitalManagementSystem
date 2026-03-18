@@ -1,0 +1,24 @@
+@model PagedResult<AppointmentViewModel>
+@{ ViewData["Title"] = "My Appointments"; ViewData["ShowSidebar"] = true;
+   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
+   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
+   ViewData["PagCtrl"] = "Appointments"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Doctor"; }
+<div class="page-header"><div><div class="page-title">My Appointments</div><small class="text-muted">Your scheduled appointments</small></div></div>
+<div class="table-wrapper">
+  @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-calendar-check"></i><h3>No appointments</h3></div> }
+  else {
+    <table id="t">
+      <thead><tr><th>#</th><th>Number</th><th>Patient</th><th>Date</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
+        @foreach (var a in Model.Items) {
+          <tr><td>@(i++)</td><td><strong>@a.Number</strong></td><td>@a.PatientName</td>
+            <td>@a.AppointmentDate.ToString("MMM dd, yyyy hh:mm tt")</td><td>@a.Type</td>
+            <td><span class="badge bg-@(a.Status==Hospital.Models.Enums.AppointmentStatus.Completed?"success":"primary")">@a.Status</span></td>
+            <td><a asp-action="Edit" asp-route-id="@a.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a></td></tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

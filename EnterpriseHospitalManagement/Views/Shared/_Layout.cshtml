@@ -28,23 +28,21 @@
         </button>
         <div class="dropdown-menu-custom" id="dropdownMenu">
           @if (User.IsInRole("Website_Admin"))
-          {
-            <a asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
-              <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-          }
+          { <a asp-area="Admin" asp-controller="Hospitals" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
           @if (User.IsInRole("Website_Doctor"))
-          {
-            <a asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
-              <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-          }
+          { <a asp-area="Doctor" asp-controller="Doctors" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
           @if (User.IsInRole("Website_Patient"))
-          {
-            <a asp-area="Patient" asp-controller="Home" asp-action="Index">
-              <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-          }
+          { <a asp-area="Patient" asp-controller="Home" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
+          @if (User.IsInRole("Website_Nurse"))
+          { <a asp-area="Nurse" asp-controller="Home" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
+          @if (User.IsInRole("Website_Pharmacist"))
+          { <a asp-area="Pharmacist" asp-controller="Home" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
+          @if (User.IsInRole("Website_LabTech"))
+          { <a asp-area="LabTech" asp-controller="Home" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
+          @if (User.IsInRole("Website_Receptionist"))
+          { <a asp-area="Receptionist" asp-controller="Home" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
+          @if (User.IsInRole("Website_Accountant"))
+          { <a asp-area="Accountant" asp-controller="Home" asp-action="Index"><i class="fas fa-tachometer-alt"></i> Dashboard</a> }
           <div class="divider"></div>
           <form asp-controller="Auth" asp-action="Logout" asp-area="" method="post" id="logoutForm">
             @Html.AntiForgeryToken()
@@ -74,65 +72,95 @@
   @if (hasSidebar)
   {
     <aside class="sidebar">
+      @{ var ctrl = ViewContext.RouteData.Values["controller"]?.ToString(); }
       @if (area == "Admin")
       {
         <div class="sidebar-section">
-          <div class="sidebar-label">Admin</div>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Hospitals" ? "active" : "")"
-             asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
-            <i class="fas fa-hospital"></i> Hospitals
-          </a>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Rooms" ? "active" : "")"
-             asp-area="Admin" asp-controller="Rooms" asp-action="Index">
-            <i class="fas fa-door-open"></i> Rooms
-          </a>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Contacts" ? "active" : "")"
-             asp-area="Admin" asp-controller="Contacts" asp-action="Index">
-            <i class="fas fa-address-book"></i> Contacts
-          </a>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
-             asp-area="Admin" asp-controller="Users" asp-action="Index">
-            <i class="fas fa-users"></i> Users
-          </a>
+          <div class="sidebar-label">ADMIN</div>
+          <a class="sidebar-link @(ctrl=="Hospitals"?"active":"")" asp-area="Admin" asp-controller="Hospitals" asp-action="Index"><i class="fas fa-hospital"></i> Hospitals</a>
+          <a class="sidebar-link @(ctrl=="Rooms"?"active":"")" asp-area="Admin" asp-controller="Rooms" asp-action="Index"><i class="fas fa-door-open"></i> Rooms</a>
+          <a class="sidebar-link @(ctrl=="Departments"?"active":"")" asp-area="Admin" asp-controller="Departments" asp-action="Index"><i class="fas fa-sitemap"></i> Departments</a>
+          <a class="sidebar-link @(ctrl=="Users"?"active":"")" asp-area="Admin" asp-controller="Users" asp-action="Index"><i class="fas fa-users"></i> Users</a>
+          <a class="sidebar-link @(ctrl=="Contacts"?"active":"")" asp-area="Admin" asp-controller="Contacts" asp-action="Index"><i class="fas fa-address-book"></i> Contacts</a>
         </div>
         <div class="sidebar-section">
-          <div class="sidebar-label">Reports</div>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadPdf">
-            <i class="fas fa-file-pdf"></i> Hospitals PDF
-          </a>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadExcel">
-            <i class="fas fa-file-excel"></i> Hospitals Excel
-          </a>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadPdf">
-            <i class="fas fa-file-pdf"></i> Rooms PDF
-          </a>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadExcel">
-            <i class="fas fa-file-excel"></i> Rooms Excel
-          </a>
+          <div class="sidebar-label">CLINICAL</div>
+          <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Admin" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
+          <a class="sidebar-link @(ctrl=="PatientReports"?"active":"")" asp-area="Admin" asp-controller="PatientReports" asp-action="Index"><i class="fas fa-file-medical"></i> Reports</a>
+          <a class="sidebar-link @(ctrl=="Labs"?"active":"")" asp-area="Admin" asp-controller="Labs" asp-action="Index"><i class="fas fa-flask"></i> Lab Tests</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">PHARMACY</div>
+          <a class="sidebar-link @(ctrl=="Medicines"?"active":"")" asp-area="Admin" asp-controller="Medicines" asp-action="Index"><i class="fas fa-pills"></i> Medicines</a>
+          <a class="sidebar-link @(ctrl=="Suppliers"?"active":"")" asp-area="Admin" asp-controller="Suppliers" asp-action="Index"><i class="fas fa-truck"></i> Suppliers</a>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-label">FINANCE</div>
+          <a class="sidebar-link @(ctrl=="Bills"?"active":"")" asp-area="Admin" asp-controller="Bills" asp-action="Index"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
+          <a class="sidebar-link @(ctrl=="Insurance"?"active":"")" asp-area="Admin" asp-controller="Insurance" asp-action="Index"><i class="fas fa-shield-alt"></i> Insurance</a>
+          <a class="sidebar-link @(ctrl=="Payrolls"?"active":"")" asp-area="Admin" asp-controller="Payrolls" asp-action="Index"><i class="fas fa-money-check-alt"></i> Payroll</a>
         </div>
       }
       @if (area == "Doctor")
       {
         <div class="sidebar-section">
-          <div class="sidebar-label">Doctor</div>
-          <a class="sidebar-link active" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
-            <i class="fas fa-calendar-alt"></i> My Timings
-          </a>
-          <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadPdf">
-            <i class="fas fa-file-pdf"></i> Export PDF
-          </a>
-          <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadExcel">
-            <i class="fas fa-file-excel"></i> Export Excel
-          </a>
+          <div class="sidebar-label">DOCTOR</div>
+          <a class="sidebar-link @(ctrl=="Doctors"?"active":"")" asp-area="Doctor" asp-controller="Doctors" asp-action="Index"><i class="fas fa-calendar-alt"></i> My Timings</a>
+          <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Doctor" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
+          <a class="sidebar-link @(ctrl=="Patients"?"active":"")" asp-area="Doctor" asp-controller="Patients" asp-action="Index"><i class="fas fa-file-medical"></i> Patient Reports</a>
         </div>
       }
       @if (area == "Patient")
       {
         <div class="sidebar-section">
-          <div class="sidebar-label">Patient</div>
-          <a class="sidebar-link active" asp-area="Patient" asp-controller="Home" asp-action="Index">
-            <i class="fas fa-th-large"></i> Dashboard
-          </a>
+          <div class="sidebar-label">PATIENT</div>
+          <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Patient" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
+          <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Patient" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
+          <a class="sidebar-link @(ctrl=="Bills"?"active":"")" asp-area="Patient" asp-controller="Bills" asp-action="Index"><i class="fas fa-file-invoice-dollar"></i> My Bills</a>
+          <a class="sidebar-link @(ctrl=="Labs"?"active":"")" asp-area="Patient" asp-controller="Labs" asp-action="Index"><i class="fas fa-flask"></i> Lab Results</a>
+          <a class="sidebar-link @(ctrl=="Reports"?"active":"")" asp-area="Patient" asp-controller="Reports" asp-action="Index"><i class="fas fa-file-medical"></i> Reports</a>
+        </div>
+      }
+      @if (area == "Nurse")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">NURSE</div>
+          <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Nurse" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
+          <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Nurse" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
+        </div>
+      }
+      @if (area == "Pharmacist")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">PHARMACIST</div>
+          <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Pharmacist" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
+          <a class="sidebar-link @(ctrl=="Medicines"?"active":"")" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Index"><i class="fas fa-pills"></i> Medicines</a>
+          <a class="sidebar-link @(ctrl=="Prescriptions"?"active":"")" asp-area="Pharmacist" asp-controller="Prescriptions" asp-action="Index"><i class="fas fa-prescription"></i> Prescriptions</a>
+        </div>
+      }
+      @if (area == "LabTech")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">LAB TECH</div>
+          <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="LabTech" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
+          <a class="sidebar-link @(ctrl=="Labs"?"active":"")" asp-area="LabTech" asp-controller="Labs" asp-action="Index"><i class="fas fa-flask"></i> Lab Tests</a>
+        </div>
+      }
+      @if (area == "Receptionist")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">RECEPTIONIST</div>
+          <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Receptionist" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
+          <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Receptionist" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
+        </div>
+      }
+      @if (area == "Accountant")
+      {
+        <div class="sidebar-section">
+          <div class="sidebar-label">ACCOUNTANT</div>
+          <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Accountant" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
+          <a class="sidebar-link @(ctrl=="Bills"?"active":"")" asp-area="Accountant" asp-controller="Bills" asp-action="Index"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
+          <a class="sidebar-link @(ctrl=="Payrolls"?"active":"")" asp-area="Accountant" asp-controller="Payrolls" asp-action="Index"><i class="fas fa-money-check-alt"></i> Payroll</a>
         </div>
       }
     </aside>

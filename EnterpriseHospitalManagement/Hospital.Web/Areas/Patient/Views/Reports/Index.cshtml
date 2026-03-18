@@ -1,0 +1,23 @@
+@model PagedResult<PatientReportViewModel>
+@{ ViewData["Title"] = "My Reports"; ViewData["ShowSidebar"] = true;
+   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
+   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
+   ViewData["PagCtrl"] = "Reports"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Patient"; }
+<div class="page-header"><div><div class="page-title">My Medical Reports</div></div></div>
+<div class="table-wrapper">
+  @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-file-medical"></i><h3>No reports</h3></div> }
+  else {
+    <table id="t">
+      <thead><tr><th>#</th><th>Doctor</th><th>Diagnosis</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
+        @foreach (var r in Model.Items) {
+          <tr><td>@(i++)</td><td><strong>@r.DoctorName</strong></td><td>@r.Diagnose</td>
+            <td>@r.CreatedDate.ToString("MMM dd, yyyy")</td>
+            <td><a asp-action="Details" asp-route-id="@r.Id" class="btn btn-info btn-sm btn-icon"><i class="fas fa-eye"></i></a></td></tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

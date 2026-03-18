@@ -1,0 +1,6 @@
+@{ ViewData["Title"] = "Accountant Dashboard"; ViewData["ShowSidebar"] = true; }
+<div class="page-header"><div><div class="page-title">Welcome, @User.Identity?.Name</div><small class="text-muted">Accountant Dashboard</small></div></div>
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;"><i class="fas fa-file-invoice-dollar" style="color:#388e3c;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.BillCount</div><div class="stat-label">Bills</div></div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd;"><i class="fas fa-money-check-alt" style="color:#1976d2;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.PayrollCount</div><div class="stat-label">Payrolls</div></div></div>
+</div>

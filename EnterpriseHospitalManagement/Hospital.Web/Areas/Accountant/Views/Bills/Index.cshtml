@@ -1,0 +1,27 @@
+@model PagedResult<BillViewModel>
+@{ ViewData["Title"] = "Bills"; ViewData["ShowSidebar"] = true;
+   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
+   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
+   ViewData["PagCtrl"] = "Bills"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Accountant"; }
+<div class="page-header">
+  <div><div class="page-title">Bills</div></div>
+  <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> New Bill</a>
+</div>
+<div class="table-wrapper">
+  @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><h3>No bills</h3></div> }
+  else {
+    <table id="t">
+      <thead><tr><th>#</th><th>Bill #</th><th>Patient</th><th>Total</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
+        @foreach (var b in Model.Items) {
+          <tr><td>@(i++)</td><td><strong>@b.BillNumber</strong></td><td>@b.PatientName</td><td>@b.TotalBill.ToString("C")</td>
+            <td><span class="badge bg-@(b.Status==Hospital.Models.Enums.BillStatus.Paid?"success":"warning")">@b.Status</span></td>
+            <td>@b.CreatedDate.ToString("MMM dd, yyyy")</td>
+            <td><a asp-action="Edit" asp-route-id="@b.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a></td></tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

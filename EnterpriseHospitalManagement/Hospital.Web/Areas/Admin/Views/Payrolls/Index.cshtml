@@ -1,0 +1,36 @@
+@model PagedResult<PayrollViewModel>
+@{ ViewData["Title"] = "Payroll"; ViewData["ShowSidebar"] = true;
+   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
+   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
+   ViewData["PagCtrl"] = "Payrolls"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Admin"; }
+<div class="page-header">
+  <div><div class="page-title">Payroll</div><small class="text-muted">Manage employee payroll</small></div>
+  <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> New Payroll</a>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" class="search-input" placeholder="Search…" oninput="filterTable('s','t')" id="s"/></div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount total</span>
+  </div>
+  @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-money-check-alt"></i><h3>No payroll records</h3></div> }
+  else {
+    <table id="t">
+      <thead><tr><th>#</th><th>Employee</th><th>Period</th><th>Net Salary</th><th>Status</th><th style="width:120px;">Actions</th></tr></thead>
+      <tbody>
+        @{ int i = (Model.PageNumber - 1) * Model.PageSize + 1; }
+        @foreach (var p in Model.Items) {
+          <tr><td>@(i++)</td><td><strong>@p.EmployeeName</strong></td>
+            <td>@p.PayPeriodStart.ToString("MMM dd") - @p.PayPeriodEnd.ToString("MMM dd, yyyy")</td>
+            <td>@p.NetSalary.ToString("C")</td>
+            <td><span class="badge bg-@(p.Status == Hospital.Models.Enums.PayrollStatus.Paid ? "success" : p.Status == Hospital.Models.Enums.PayrollStatus.Approved ? "info" : "secondary")">@p.Status</span></td>
+            <td><div class="td-actions">
+              <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+              <form id="del-@p.Id" asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()</form>
+              <button type="button" onclick="confirmDelete('del-@p.Id')" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
+            </div></td></tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

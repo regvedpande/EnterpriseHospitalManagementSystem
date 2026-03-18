@@ -1,0 +1,6 @@
+@{ ViewData["Title"] = "Pharmacist Dashboard"; ViewData["ShowSidebar"] = true; }
+<div class="page-header"><div><div class="page-title">Welcome, @User.Identity?.Name</div><small class="text-muted">Pharmacist Dashboard</small></div></div>
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;"><i class="fas fa-pills" style="color:#388e3c;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.MedicineCount</div><div class="stat-label">Medicines</div></div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd;"><i class="fas fa-prescription" style="color:#1976d2;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.PrescriptionCount</div><div class="stat-label">Prescriptions</div></div></div>
+</div>

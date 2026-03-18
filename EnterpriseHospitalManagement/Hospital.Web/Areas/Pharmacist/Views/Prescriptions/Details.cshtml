@@ -1,0 +1,16 @@
+@model PatientReportViewModel
+@{ ViewData["Title"] = "Prescription Details"; ViewData["ShowSidebar"] = true; }
+<div class="page-header"><div><div class="page-title">Prescription Details</div></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="form-card">
+  <div class="form-card-body">
+    <p><strong>Patient:</strong> @Model.PatientName | <strong>Doctor:</strong> @Model.DoctorName | <strong>Date:</strong> @Model.CreatedDate.ToString("MMM dd, yyyy")</p>
+    <p><strong>Diagnosis:</strong> @Model.Diagnose</p>
+    @if (Model.Prescriptions.Any()) {
+      <h4 class="mt-3">Prescribed Medicines</h4>
+      <table><thead><tr><th>Medicine</th><th>Dosage</th><th>Duration (days)</th><th>Instructions</th></tr></thead>
+        <tbody>@foreach (var p in Model.Prescriptions) { <tr><td><strong>@p.MedicineName</strong></td><td>@p.Dosage</td><td>@p.Duration</td><td>@p.Instructions</td></tr> }</tbody>
+      </table>
+    } else { <p class="text-muted">No medicines prescribed.</p> }
+  </div>
+</div>

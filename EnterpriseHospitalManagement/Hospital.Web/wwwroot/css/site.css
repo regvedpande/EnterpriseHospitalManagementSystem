@@ -182,8 +182,8 @@ body {
 .stat-icon.green  { background: #d1fae5; color: var(--success); }
 .stat-icon.orange { background: #fef3c7; color: var(--warning); }
 .stat-icon.teal   { background: #cffafe; color: #0e7490; }
-.stat-body { min-width: 0; }
-.stat-value { font-size: 1.75rem; font-weight: 700; line-height: 1; }
+.stat-body, .stat-info { min-width: 0; }
+.stat-value, .stat-number { font-size: 1.75rem; font-weight: 700; line-height: 1; }
 .stat-label { font-size: .8rem; color: var(--text-muted); margin-top: .2rem; }
 
 /* ── BUTTONS ─────────────────────────────────────────────────────────────── */

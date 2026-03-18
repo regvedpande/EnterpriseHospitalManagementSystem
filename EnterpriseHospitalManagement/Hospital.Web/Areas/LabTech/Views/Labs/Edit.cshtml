@@ -1,0 +1,23 @@
+@model LabViewModel
+@{ ViewData["Title"] = "Update Lab Test"; ViewData["ShowSidebar"] = true; }
+<div class="page-header"><div><div class="page-title">Update Lab Test @Model.LabNumber</div></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a></div>
+<div class="form-card">
+  <div class="form-card-body">
+    <form asp-action="Edit" method="post">
+      @Html.AntiForgeryToken()
+      <input type="hidden" asp-for="Id"/><input type="hidden" asp-for="LabNumber"/>
+      <input type="hidden" asp-for="PatientId"/><input type="hidden" asp-for="DoctorId"/>
+      <input type="hidden" asp-for="TestType"/><input type="hidden" asp-for="TestCode"/>
+      <p><strong>Patient:</strong> @Model.PatientName | <strong>Test:</strong> @Model.TestType (@Model.TestCode)</p>
+      <div class="form-group"><label class="form-label" asp-for="Status">Status</label><select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<Hospital.Models.Enums.LabTestStatus>()"></select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" asp-for="Weight">Weight</label><input asp-for="Weight" class="form-control"/></div>
+        <div class="form-group"><label class="form-label" asp-for="BloodPressure">Blood Pressure</label><input asp-for="BloodPressure" type="number" class="form-control"/></div>
+      </div>
+      <div class="form-group"><label class="form-label" asp-for="Temperature">Temperature</label><input asp-for="Temperature" type="number" class="form-control"/></div>
+      <div class="form-group"><label class="form-label" asp-for="TestResult">Test Result</label><textarea asp-for="TestResult" class="form-control" rows="4"></textarea></div>
+      <div class="form-actions"><button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Results</button><a asp-action="Index" class="btn btn-secondary">Cancel</a></div>
+    </form>
+  </div>
+</div>

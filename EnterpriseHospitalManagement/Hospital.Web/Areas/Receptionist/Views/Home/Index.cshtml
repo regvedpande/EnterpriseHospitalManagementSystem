@@ -1,0 +1,7 @@
+@{ ViewData["Title"] = "Receptionist Dashboard"; ViewData["ShowSidebar"] = true; }
+<div class="page-header"><div><div class="page-title">Welcome, @User.Identity?.Name</div><small class="text-muted">Receptionist Dashboard</small></div></div>
+<div class="stats-grid">
+  <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd;"><i class="fas fa-calendar-check" style="color:#1976d2;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.AppointmentCount</div><div class="stat-label">Appointments</div></div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;"><i class="fas fa-users" style="color:#388e3c;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.PatientCount</div><div class="stat-label">Patients</div></div></div>
+  <div class="stat-card"><div class="stat-icon" style="background:#fff3e0;"><i class="fas fa-user-md" style="color:#f57c00;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.DoctorCount</div><div class="stat-label">Doctors</div></div></div>
+</div>

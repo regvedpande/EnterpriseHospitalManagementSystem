@@ -1,0 +1,33 @@
+@model PagedResult<DepartmentViewModel>
+@{ ViewData["Title"] = "Departments"; ViewData["ShowSidebar"] = true;
+   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
+   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
+   ViewData["PagCtrl"] = "Departments"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Admin"; }
+<div class="page-header">
+  <div><div class="page-title">Departments</div><small class="text-muted">Manage hospital departments</small></div>
+  <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> Add Department</a>
+</div>
+<div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" class="search-input" placeholder="Search…" oninput="filterTable('s','t')" id="s"/></div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount total</span>
+  </div>
+  @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-sitemap"></i><h3>No departments yet</h3></div> }
+  else {
+    <table id="t">
+      <thead><tr><th>#</th><th>Name</th><th>Description</th><th style="width:120px;">Actions</th></tr></thead>
+      <tbody>
+        @{ int i = (Model.PageNumber - 1) * Model.PageSize + 1; }
+        @foreach (var d in Model.Items) {
+          <tr><td>@(i++)</td><td><strong>@d.Name</strong></td><td>@d.Description</td>
+            <td><div class="td-actions">
+              <a asp-action="Edit" asp-route-id="@d.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+              <form id="del-@d.Id" asp-action="Delete" asp-route-id="@d.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()</form>
+              <button type="button" onclick="confirmDelete('del-@d.Id')" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
+            </div></td></tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>
