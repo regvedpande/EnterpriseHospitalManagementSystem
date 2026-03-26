@@ -9,10 +9,10 @@ namespace Hospital.Models
         public int Id { get; set; }
 
         [Required]
-        public string RoomNumber { get; set; }
+        public string RoomNumber { get; set; } = string.Empty;
 
         [Required]
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
 
         /// <summary>0 = Available, 1 = Occupied, 2 = Maintenance</summary>
         [Required]
@@ -21,6 +21,6 @@ namespace Hospital.Models
         [Required]
         [ForeignKey(nameof(Hospital))]
         public int HospitalId { get; set; }
-        public HospitalInfo Hospital { get; set; }
+        public HospitalInfo Hospital { get; set; } = null!;
     }
 }

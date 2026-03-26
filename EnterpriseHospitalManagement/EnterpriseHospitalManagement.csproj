@@ -5,6 +5,10 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RootNamespace>Hospital.Web</RootNamespace>
+		<!-- Exclude Hospital.Web sub-project build output from this project's glob.
+		     DefaultItemExcludes is evaluated before any items are created, making
+		     it the most reliable exclusion for both CLI MSBuild and Visual Studio. -->
+		<DefaultItemExcludes>$(DefaultItemExcludes);Hospital.Web\obj\**;Hospital.Web\bin\**</DefaultItemExcludes>
 	</PropertyGroup>
 
 	<ItemGroup>

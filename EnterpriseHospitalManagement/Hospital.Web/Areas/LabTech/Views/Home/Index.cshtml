@@ -1,6 +1,95 @@
-@{ ViewData["Title"] = "Lab Tech Dashboard"; ViewData["ShowSidebar"] = true; }
-<div class="page-header"><div><div class="page-title">Welcome, @User.Identity?.Name</div><small class="text-muted">Lab Technician Dashboard</small></div></div>
+@{
+    ViewData["Title"]       = "Lab Tech Dashboard";
+    ViewData["ShowSidebar"] = true;
+    int totalTests = (int)(ViewBag.TotalTests ?? 0);
+    int myTests    = (int)(ViewBag.MyTests    ?? 0);
+    string name = User.Identity?.Name ?? "Lab Technician";
+}
+
+<div class="welcome-banner">
+  <div>
+    <h2>Welcome, @name</h2>
+    <p>Laboratory Management — Process and update lab test results efficiently.</p>
+  </div>
+  <div class="welcome-actions">
+    <a asp-area="LabTech" asp-controller="Labs" asp-action="Index" class="btn btn-white">
+      <i class="fas fa-flask"></i> View Lab Tests
+    </a>
+  </div>
+</div>
+
 <div class="stats-grid">
-  <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd;"><i class="fas fa-flask" style="color:#1976d2;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.TotalTests</div><div class="stat-label">Total Tests</div></div></div>
-  <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;"><i class="fas fa-vials" style="color:#388e3c;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.MyTests</div><div class="stat-label">My Tests</div></div></div>
+  <a class="stat-card stat-link" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
+    <div class="stat-icon blue"><i class="fas fa-vials"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">@totalTests</div>
+      <div class="stat-label">Total Lab Orders</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <a class="stat-card stat-link" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
+    <div class="stat-icon green"><i class="fas fa-flask"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">@myTests</div>
+      <div class="stat-label">Assigned to Me</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-microscope"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">Lab</div>
+      <div class="stat-label">Processing Active</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon teal"><i class="fas fa-clock"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">24h</div>
+      <div class="stat-label">Avg Turnaround</div>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-two-col">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-tasks" style="color:var(--primary);margin-right:.5rem;"></i>Actions</span>
+    </div>
+    <div class="card-body nav-list">
+      <a class="nav-list-item" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
+        <i class="fas fa-list-alt"></i> All Lab Orders
+        <span class="badge badge-info ms-auto">@totalTests</span>
+      </a>
+      <a class="nav-list-item" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
+        <i class="fas fa-user-cog"></i> My Assigned Tests
+        <span class="badge badge-success ms-auto">@myTests</span>
+      </a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-info-circle" style="color:var(--accent);margin-right:.5rem;"></i>Test Status Guide</span>
+    </div>
+    <div class="card-body">
+      <div class="overview-list">
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-clipboard-list" style="color:var(--primary);"></i> Ordered</div>
+          <div class="ov-value"><span class="badge badge-info">Pending</span></div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-spinner" style="color:var(--warning);"></i> In Progress</div>
+          <div class="ov-value"><span class="badge badge-warning">Processing</span></div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-check-circle" style="color:var(--success);"></i> Completed</div>
+          <div class="ov-value"><span class="badge badge-success">Done</span></div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-ban" style="color:var(--danger);"></i> Cancelled</div>
+          <div class="ov-value"><span class="badge badge-danger">N/A</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

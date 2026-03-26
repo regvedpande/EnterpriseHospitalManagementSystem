@@ -1,4 +1,3 @@
-using EnterpriseHospitalManagement.Hospital.Repositories;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services;
@@ -20,7 +19,16 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorOptions(options =>
+    {
+        // Hospital.Web is a subdirectory that holds all controllers/views.
+        // Register its paths so ASP.NET MVC can discover views there.
+        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/{1}/{0}.cshtml");
+        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/Shared/{0}.cshtml");
+        options.ViewLocationFormats.Add("/Hospital.Web/Views/{1}/{0}.cshtml");
+        options.ViewLocationFormats.Add("/Hospital.Web/Views/Shared/{0}.cshtml");
+    });
 builder.Services.AddRazorPages();
 
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");

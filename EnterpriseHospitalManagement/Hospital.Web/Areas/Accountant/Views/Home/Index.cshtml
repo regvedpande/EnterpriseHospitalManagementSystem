@@ -1,6 +1,104 @@
-@{ ViewData["Title"] = "Accountant Dashboard"; ViewData["ShowSidebar"] = true; }
-<div class="page-header"><div><div class="page-title">Welcome, @User.Identity?.Name</div><small class="text-muted">Accountant Dashboard</small></div></div>
+@{
+    ViewData["Title"]       = "Accountant Dashboard";
+    ViewData["ShowSidebar"] = true;
+    int billCount    = (int)(ViewBag.BillCount    ?? 0);
+    int payrollCount = (int)(ViewBag.PayrollCount ?? 0);
+    string name = User.Identity?.Name ?? "Accountant";
+}
+
+<div class="welcome-banner">
+  <div>
+    <h2>Welcome, @name</h2>
+    <p>Finance & Accounting — Manage billing and payroll with full oversight.</p>
+  </div>
+  <div class="welcome-actions">
+    <a asp-area="Accountant" asp-controller="Bills" asp-action="Create" class="btn btn-white-solid">
+      <i class="fas fa-file-medical-alt"></i> Create Bill
+    </a>
+    <a asp-area="Accountant" asp-controller="Payrolls" asp-action="Create" class="btn btn-white">
+      <i class="fas fa-money-check-alt"></i> New Payroll
+    </a>
+  </div>
+</div>
+
 <div class="stats-grid">
-  <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;"><i class="fas fa-file-invoice-dollar" style="color:#388e3c;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.BillCount</div><div class="stat-label">Bills</div></div></div>
-  <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd;"><i class="fas fa-money-check-alt" style="color:#1976d2;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.PayrollCount</div><div class="stat-label">Payrolls</div></div></div>
+  <a class="stat-card stat-link" asp-area="Accountant" asp-controller="Bills" asp-action="Index">
+    <div class="stat-icon" style="background:#d1fae5;color:#065f46;"><i class="fas fa-file-invoice-dollar"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">@billCount</div>
+      <div class="stat-label">Total Bills</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <a class="stat-card stat-link" asp-area="Accountant" asp-controller="Payrolls" asp-action="Index">
+    <div class="stat-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-money-check-alt"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">@payrollCount</div>
+      <div class="stat-label">Payroll Records</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <div class="stat-card">
+    <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">Finance</div>
+      <div class="stat-label">Module Active</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon teal"><i class="fas fa-shield-alt"></i></div>
+    <div class="stat-body">
+      <div class="stat-value">Audit</div>
+      <div class="stat-label">Trail Enabled</div>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-two-col">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
+    </div>
+    <div class="card-body nav-list">
+      <a class="nav-list-item" asp-area="Accountant" asp-controller="Bills" asp-action="Create">
+        <i class="fas fa-file-medical-alt"></i> Create New Bill
+      </a>
+      <a class="nav-list-item" asp-area="Accountant" asp-controller="Bills" asp-action="Index">
+        <i class="fas fa-list-alt"></i> All Bills
+        <span class="badge badge-success ms-auto">@billCount</span>
+      </a>
+      <a class="nav-list-item" asp-area="Accountant" asp-controller="Payrolls" asp-action="Create">
+        <i class="fas fa-plus-circle"></i> New Payroll Entry
+      </a>
+      <a class="nav-list-item" asp-area="Accountant" asp-controller="Payrolls" asp-action="Index">
+        <i class="fas fa-money-check-alt"></i> All Payrolls
+        <span class="badge badge-info ms-auto">@payrollCount</span>
+      </a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-chart-pie" style="color:var(--primary);margin-right:.5rem;"></i>Financial Summary</span>
+    </div>
+    <div class="card-body">
+      <div class="overview-list">
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-file-invoice-dollar" style="color:#065f46;"></i> Total Bills Created</div>
+          <div class="ov-value"><span class="badge badge-success">@billCount</span></div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-money-check-alt" style="color:#1d4ed8;"></i> Payroll Records</div>
+          <div class="ov-value"><span class="badge badge-info">@payrollCount</span></div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-balance-scale" style="color:var(--warning);"></i> Financial Status</div>
+          <div class="ov-value"><span class="badge badge-warning">Review Required</span></div>
+        </div>
+      </div>
+      <div style="margin-top:1rem;padding:.875rem;background:#f0fdf4;border-radius:8px;font-size:.8rem;color:#065f46;border:1px solid #a7f3d0;">
+        <i class="fas fa-info-circle" style="margin-right:.4rem;"></i>
+        Review all pending bills and ensure payrolls are approved before month-end.
+      </div>
+    </div>
+  </div>
 </div>
