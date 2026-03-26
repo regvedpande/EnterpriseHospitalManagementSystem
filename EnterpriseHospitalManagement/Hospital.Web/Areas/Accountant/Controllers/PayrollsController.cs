@@ -51,5 +51,13 @@ namespace Hospital.Web.Areas.Accountant.Controllers
             TempData["success"] = "Payroll record updated.";
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            _svc.Delete(id);
+            TempData["success"] = "Payroll record deleted.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -102,10 +102,12 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<ImageOperations>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SftpService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
+builder.Services.AddScoped<Hospital.Utilities.ISmsService, Hospital.Utilities.TwilioSmsService>();
 builder.Services.AddHttpContextAccessor();
 
 // ── Cookie ────────────────────────────────────────────────────────────────────

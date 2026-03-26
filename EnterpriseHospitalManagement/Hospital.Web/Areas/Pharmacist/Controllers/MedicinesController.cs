@@ -42,5 +42,13 @@ namespace Hospital.Web.Areas.Pharmacist.Controllers
             TempData["success"] = "Medicine updated.";
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            _svc.Delete(id);
+            TempData["success"] = "Medicine deleted.";
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -23,6 +23,7 @@ namespace Hospital.Repositories
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
         public DbSet<Timing> Timings { get; set; }
+        public DbSet<PatientDocument> PatientDocuments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -105,6 +106,19 @@ namespace Hospital.Repositories
                 .HasOne(i => i.Patient)
                 .WithMany()
                 .HasForeignKey(i => i.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PatientDocument - Patient and UploadedBy FKs
+            builder.Entity<PatientDocument>()
+                .HasOne(d => d.Patient)
+                .WithMany()
+                .HasForeignKey(d => d.PatientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<PatientDocument>()
+                .HasOne(d => d.UploadedBy)
+                .WithMany()
+                .HasForeignKey(d => d.UploadedById)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

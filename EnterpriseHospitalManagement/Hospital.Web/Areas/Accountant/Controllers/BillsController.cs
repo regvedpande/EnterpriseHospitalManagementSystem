@@ -53,6 +53,14 @@ namespace Hospital.Web.Areas.Accountant.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public IActionResult Delete(int id)
+        {
+            _svc.Delete(id);
+            TempData["success"] = "Bill deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
         private void PopulateDropdowns()
         {
             ViewBag.Patients = new SelectList(_users.GetAllPatients(1, 200).Items, "Id", "Name");

@@ -1,0 +1,47 @@
+@using Hospital.ViewModels
+@model PagedResult<DocumentViewModel>
+@{ ViewData["Title"] = "Documents"; ViewData["ShowSidebar"] = true;
+   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
+   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
+   ViewData["PagCtrl"] = "Documents"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Admin"; }
+<div class="page-header">
+  <div><div class="page-title">Patient Documents</div><div class="page-subtitle">@Model.TotalCount document(s) on file</div></div>
+  <a asp-action="Upload" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Document</a>
+</div>
+<div class="table-wrapper">
+  @if (!Model.Items.Any())
+  {
+    <div class="empty-state"><i class="fas fa-folder-open"></i><h3>No documents uploaded yet</h3></div>
+  }
+  else
+  {
+    <table id="t">
+      <thead>
+        <tr><th>#</th><th>Patient</th><th>File</th><th>Type</th><th>Size</th><th>Uploaded By</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
+        @foreach (var d in Model.Items)
+        {
+          <tr>
+            <td>@(i++)</td>
+            <td><strong>@d.PatientName</strong></td>
+            <td><i class="fas fa-file-alt me-1"></i>@d.OriginalFileName</td>
+            <td><span class="badge badge-secondary">@d.DocumentType</span></td>
+            <td>@d.FileSizeDisplay</td>
+            <td>@d.UploadedByName</td>
+            <td>@d.UploadedDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+            <td>
+              <a asp-action="Download" asp-route-id="@d.Id" class="btn btn-info btn-sm btn-icon" title="Download"><i class="fas fa-download"></i></a>
+              <form asp-action="Delete" asp-route-id="@d.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this document?')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger btn-sm btn-icon" title="Delete"><i class="fas fa-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

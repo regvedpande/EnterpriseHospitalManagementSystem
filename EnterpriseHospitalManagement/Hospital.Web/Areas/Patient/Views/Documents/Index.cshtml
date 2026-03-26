@@ -1,0 +1,51 @@
+@using Hospital.ViewModels
+@model PagedResult<DocumentViewModel>
+@{ ViewData["Title"] = "My Documents"; ViewData["ShowSidebar"] = true;
+   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
+   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
+   ViewData["PagCtrl"] = "Documents"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Patient"; }
+<div class="page-header">
+  <div><div class="page-title">My Documents</div><div class="page-subtitle">@Model.TotalCount document(s)</div></div>
+  <a asp-action="Upload" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Document</a>
+</div>
+<div class="table-wrapper">
+  @if (!Model.Items.Any())
+  {
+    <div class="empty-state">
+      <i class="fas fa-folder-open"></i>
+      <h3>No documents yet</h3>
+      <p>Upload lab reports, prescriptions, insurance documents, and more.</p>
+      <a asp-action="Upload" class="btn btn-primary"><i class="fas fa-upload"></i> Upload your first document</a>
+    </div>
+  }
+  else
+  {
+    <table id="t">
+      <thead>
+        <tr><th>#</th><th>File</th><th>Type</th><th>Size</th><th>Description</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
+        @foreach (var d in Model.Items)
+        {
+          <tr>
+            <td>@(i++)</td>
+            <td><i class="fas fa-file-alt me-1"></i><strong>@d.OriginalFileName</strong></td>
+            <td><span class="badge badge-secondary">@d.DocumentType</span></td>
+            <td>@d.FileSizeDisplay</td>
+            <td>@(d.Description ?? "—")</td>
+            <td>@d.UploadedDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+            <td>
+              <a asp-action="Download" asp-route-id="@d.Id" class="btn btn-info btn-sm btn-icon" title="Download"><i class="fas fa-download"></i></a>
+              <form asp-action="Delete" asp-route-id="@d.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this document?')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger btn-sm btn-icon" title="Delete"><i class="fas fa-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <partial name="_Pagination"/>
+  }
+</div>

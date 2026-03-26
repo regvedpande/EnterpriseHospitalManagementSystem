@@ -16,7 +16,13 @@
         @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
         @foreach (var m in Model.Items) {
           <tr><td>@(i++)</td><td><strong>@m.Name</strong></td><td>@m.Type</td><td>@m.Cost.ToString("C")</td>
-            <td><a asp-action="Edit" asp-route-id="@m.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a></td></tr>
+            <td>
+              <a asp-action="Edit" asp-route-id="@m.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+              <form asp-action="Delete" asp-route-id="@m.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this medicine?')">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
+              </form>
+            </td></tr>
         }
       </tbody>
     </table>

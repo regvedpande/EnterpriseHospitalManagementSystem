@@ -50,9 +50,16 @@
             <input asp-for="DOB" type="date" class="form-control"/>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" asp-for="Address">Address <span style="color:var(--text-muted)">(optional)</span></label>
-          <input asp-for="Address" class="form-control" placeholder="Your address"/>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" asp-for="Address">Address <span style="color:var(--text-muted)">(optional)</span></label>
+            <input asp-for="Address" class="form-control" placeholder="Your address"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" asp-for="PhoneNumber">Phone Number <span style="color:var(--text-muted)">(optional)</span></label>
+            <input asp-for="PhoneNumber" class="form-control" placeholder="+1 555 000 0000"/>
+            <span asp-validation-for="PhoneNumber" class="invalid-feedback"></span>
+          </div>
         </div>
         <button type="submit" class="btn btn-success w-100 btn-lg" style="margin-top:.5rem;">
           <i class="fas fa-user-plus"></i> Create Account
