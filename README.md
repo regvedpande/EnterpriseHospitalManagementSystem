@@ -377,64 +377,59 @@ sequenceDiagram
 ## Role Portals & Feature Matrix
 
 ```mermaid
-mindmap
-  root((MedCore HMS))
-    Admin
-      User Management
-      All Appointments
-      All Bills
-      All Lab Tests
-      All Patient Reports
-      Hospitals & Rooms
-      Departments
-      Medicines & Suppliers
-      Insurance
-      Payroll
-      Documents
-      Contacts
-      PDF/Excel Exports
-      3 Chart.js Dashboards
-    Doctor
-      My Appointments
-      Create/Edit Appointments
-      Patient Reports
-      Write Medical Reports
-      Prescriptions
-      My Schedule & Timings
-      PDF/Excel Schedule Export
-      Trend + Status Charts
-    Patient
-      My Appointments
-      Book Appointment
-      My Bills
-      My Lab Results
-      My Medical Reports
-      My Documents
-      Upload Documents
-      Document Analytics
-    Nurse
-      View Appointments
-      Update Appointment Status
-      Appointment Status Charts
-    LabTech
-      Lab Orders List
-      Create Lab Order
-      Edit Lab Results
-      Status Charts
-    Pharmacist
-      Medicines Stock
-      Add/Edit Medicines
-      Prescriptions
-      Medicine Type Charts
-    Receptionist
-      Schedule Appointments
-      All Appointments
-      Status Overview
-    Accountant
-      Create/Edit Bills
-      Payroll Management
-      Revenue Charts
-      Financial Summary
+graph LR
+    HMS(["🏥 MedCore HMS"])
+
+    HMS --> ADM["🔴 Admin"]
+    ADM --> ADM1["User Management"]
+    ADM --> ADM2["Appointments · Bills · Labs"]
+    ADM --> ADM3["Patient Reports · Insurance"]
+    ADM --> ADM4["Hospitals · Rooms · Depts"]
+    ADM --> ADM5["Medicines · Suppliers"]
+    ADM --> ADM6["Payroll · Documents · Contacts"]
+    ADM --> ADM7["PDF/Excel Exports"]
+    ADM --> ADM8["3 Chart.js Dashboards"]
+
+    HMS --> DOC["🟢 Doctor"]
+    DOC --> DOC1["My Appointments — Create/Edit"]
+    DOC --> DOC2["Patient Reports — Write/View"]
+    DOC --> DOC3["Prescriptions"]
+    DOC --> DOC4["My Schedule & Timings"]
+    DOC --> DOC5["PDF/Excel Export"]
+    DOC --> DOC6["Trend + Status Charts"]
+
+    HMS --> PAT["🔵 Patient"]
+    PAT --> PAT1["My Appointments — Book"]
+    PAT --> PAT2["My Bills — View"]
+    PAT --> PAT3["My Lab Results"]
+    PAT --> PAT4["My Medical Reports"]
+    PAT --> PAT5["My Documents — Upload"]
+    PAT --> PAT6["Document Analytics"]
+
+    HMS --> NRS["🟣 Nurse"]
+    NRS --> NRS1["View & Update Appointments"]
+    NRS --> NRS2["Appointment Status Charts"]
+
+    HMS --> LAB["🟡 LabTech"]
+    LAB --> LAB1["Lab Orders — Create/Edit"]
+    LAB --> LAB2["Record Test Results"]
+    LAB --> LAB3["Status Doughnut Chart"]
+
+    HMS --> PHA["🟠 Pharmacist"]
+    PHA --> PHA1["Medicines Stock — CRUD"]
+    PHA --> PHA2["Prescriptions — View/Dispense"]
+    PHA --> PHA3["Medicine Type Bar Chart"]
+
+    HMS --> REC["⚪ Receptionist"]
+    REC --> REC1["Schedule Appointments"]
+    REC --> REC2["All Appointments — View/Edit"]
+    REC --> REC3["Status Overview Chart"]
+
+    HMS --> ACC["🟤 Accountant"]
+    ACC --> ACC1["Bills — Create/Edit"]
+    ACC --> ACC2["Payroll Management"]
+    ACC --> ACC3["Revenue Trend Chart"]
+    ACC --> ACC4["Financial Summary"]
 ```
 
 | Feature | Admin | Doctor | Patient | Nurse | LabTech | Pharmacist | Receptionist | Accountant |
