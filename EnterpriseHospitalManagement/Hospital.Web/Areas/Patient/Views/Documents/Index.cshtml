@@ -1,51 +1,193 @@
 @using Hospital.ViewModels
+@using Hospital.Models.Enums
 @model PagedResult<DocumentViewModel>
-@{ ViewData["Title"] = "My Documents"; ViewData["ShowSidebar"] = true;
-   ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
-   ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
-   ViewData["PagCtrl"] = "Documents"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Patient"; }
+@{
+    ViewData["Title"]       = "My Documents";
+    ViewData["ShowSidebar"] = true;
+    ViewData["Page"]        = Model.PageNumber;
+    ViewData["TotalPages"]  = Model.TotalPages;
+    ViewData["Size"]        = Model.PageSize;
+    ViewData["TotalCount"]  = Model.TotalCount;
+    ViewData["PagCtrl"]     = "Documents";
+    ViewData["PagAction"]   = "Index";
+    ViewData["PagArea"]     = "Patient";
+
+    // Document type analytics
+    var allDocs  = Model.Items;
+    var byType   = Enum.GetValues<DocumentType>()
+                       .Select(t => new { Type = t, Count = allDocs.Count(d => d.DocumentType == t) })
+                       .Where(x => x.Count > 0)
+                       .OrderByDescending(x => x.Count)
+                       .ToList();
+
+    var totalSize = allDocs.Sum(d => d.FileSizeBytes);
+    string sizeDisplay = totalSize >= 1_048_576
+        ? $"{totalSize / 1_048_576.0:F1} MB"
+        : $"{totalSize / 1_024.0:F0} KB";
+
+    // Icon + colour map per doc type
+    string DocIcon(DocumentType t) => t switch {
+        DocumentType.LabReport    => "fas fa-flask",
+        DocumentType.Prescription => "fas fa-prescription-bottle-alt",
+        DocumentType.Insurance    => "fas fa-shield-alt",
+        DocumentType.ConsentForm  => "fas fa-file-signature",
+        DocumentType.Referral     => "fas fa-share-square",
+        DocumentType.XRay         => "fas fa-x-ray",
+        DocumentType.Discharge    => "fas fa-hospital-user",
+        _                         => "fas fa-file-alt"
+    };
+    string DocColor(DocumentType t) => t switch {
+        DocumentType.LabReport    => "#0e7490",
+        DocumentType.Prescription => "#7c3aed",
+        DocumentType.Insurance    => "#1a9e5f",
+        DocumentType.ConsentForm  => "#0f4c81",
+        DocumentType.Referral     => "#ea580c",
+        DocumentType.XRay         => "#374151",
+        DocumentType.Discharge    => "#e11d48",
+        _                         => "#6b7280"
+    };
+    string DocBg(DocumentType t) => t switch {
+        DocumentType.LabReport    => "#cffafe",
+        DocumentType.Prescription => "#f3e8ff",
+        DocumentType.Insurance    => "#d1fae5",
+        DocumentType.ConsentForm  => "#dbeafe",
+        DocumentType.Referral     => "#fff7ed",
+        DocumentType.XRay         => "#f1f5f9",
+        DocumentType.Discharge    => "#fff1f2",
+        _                         => "#f1f5f9"
+    };
+    string FileIcon(DocumentViewModel d)
+    {
+        var ct = d.ContentType?.ToLower() ?? "";
+        var fn = d.OriginalFileName?.ToLower() ?? "";
+        if (ct.Contains("pdf") || fn.EndsWith(".pdf"))          return "fas fa-file-pdf";
+        if (ct.Contains("image") || fn.EndsWith(".jpg") || fn.EndsWith(".png")) return "fas fa-file-image";
+        if (ct.Contains("word") || fn.EndsWith(".docx"))        return "fas fa-file-word";
+        if (ct.Contains("excel") || fn.EndsWith(".xlsx"))       return "fas fa-file-excel";
+        if (ct.Contains("csv")  || fn.EndsWith(".csv"))         return "fas fa-file-csv";
+        return "fas fa-file-alt";
+    }
+    string FileIconColor(DocumentViewModel d)
+    {
+        var ct = d.ContentType?.ToLower() ?? "";
+        var fn = d.OriginalFileName?.ToLower() ?? "";
+        if (ct.Contains("pdf") || fn.EndsWith(".pdf"))          return "#e53e3e";
+        if (ct.Contains("image") || fn.EndsWith(".jpg") || fn.EndsWith(".png")) return "#0e7490";
+        if (ct.Contains("word") || fn.EndsWith(".docx"))        return "#1d4ed8";
+        if (ct.Contains("excel") || fn.EndsWith(".xlsx"))       return "#059669";
+        return "#718096";
+    }
+}
+
 <div class="page-header">
-  <div><div class="page-title">My Documents</div><div class="page-subtitle">@Model.TotalCount document(s)</div></div>
+  <div>
+    <div class="page-title">My Documents</div>
+    <div class="page-subtitle">@Model.TotalCount document(s) &nbsp;·&nbsp; @sizeDisplay total</div>
+  </div>
   <a asp-action="Upload" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Document</a>
 </div>
-<div class="table-wrapper">
-  @if (!Model.Items.Any())
-  {
-    <div class="empty-state">
-      <i class="fas fa-folder-open"></i>
-      <h3>No documents yet</h3>
-      <p>Upload lab reports, prescriptions, insurance documents, and more.</p>
-      <a asp-action="Upload" class="btn btn-primary"><i class="fas fa-upload"></i> Upload your first document</a>
+
+@if (!Model.Items.Any())
+{
+  <div class="card">
+    <div class="empty-state" style="padding:3.5rem 1rem;">
+      <i class="fas fa-folder-open" style="color:var(--text-muted);font-size:3.5rem;margin-bottom:1rem;"></i>
+      <h3>No documents uploaded yet</h3>
+      <p style="color:var(--text-muted);margin-bottom:1.25rem;">Upload lab reports, prescriptions, insurance cards, consent forms and more.</p>
+      <a asp-action="Upload" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Your First Document</a>
     </div>
-  }
-  else
-  {
-    <table id="t">
+  </div>
+}
+else
+{
+  <!-- ── Document Type Analytics ──────────────────────────────────────── -->
+  <div class="doc-type-grid">
+    @foreach (var g in byType)
+    {
+      <div class="doc-type-card">
+        <div class="dt-icon"><i class="@DocIcon(g.Type)" style="color:@DocColor(g.Type);"></i></div>
+        <div class="dt-count" style="color:@DocColor(g.Type);">@g.Count</div>
+        <div class="dt-label">@g.Type</div>
+      </div>
+    }
+    <div class="doc-type-card">
+      <div class="dt-icon"><i class="fas fa-hdd" style="color:var(--primary);"></i></div>
+      <div class="dt-count" style="color:var(--primary);">@sizeDisplay</div>
+      <div class="dt-label">Total Size</div>
+    </div>
+  </div>
+
+  <!-- ── Filter + Table ────────────────────────────────────────────────── -->
+  <div class="table-wrapper">
+    <div class="table-toolbar">
+      <div class="search-input-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" class="search-input" id="docSearch" placeholder="Search documents…"
+               oninput="filterTable('docSearch','docTable')">
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+        <span class="badge badge-info">@Model.TotalCount total</span>
+        <a asp-action="Upload" class="btn btn-primary btn-sm"><i class="fas fa-upload"></i> Upload</a>
+      </div>
+    </div>
+
+    <table id="docTable">
       <thead>
-        <tr><th>#</th><th>File</th><th>Type</th><th>Size</th><th>Description</th><th>Date</th><th>Actions</th></tr>
+        <tr>
+          <th>#</th>
+          <th>File</th>
+          <th>Type</th>
+          <th>Size</th>
+          <th>Description</th>
+          <th>Uploaded</th>
+          <th>Actions</th>
+        </tr>
       </thead>
       <tbody>
-        @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
+        @{ int row = (Model.PageNumber - 1) * Model.PageSize + 1; }
         @foreach (var d in Model.Items)
         {
           <tr>
-            <td>@(i++)</td>
-            <td><i class="fas fa-file-alt me-1"></i><strong>@d.OriginalFileName</strong></td>
-            <td><span class="badge badge-secondary">@d.DocumentType</span></td>
-            <td>@d.FileSizeDisplay</td>
-            <td>@(d.Description ?? "—")</td>
-            <td>@d.UploadedDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+            <td style="color:var(--text-muted);font-size:.8rem;">@(row++)</td>
             <td>
-              <a asp-action="Download" asp-route-id="@d.Id" class="btn btn-info btn-sm btn-icon" title="Download"><i class="fas fa-download"></i></a>
-              <form asp-action="Delete" asp-route-id="@d.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this document?')">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-danger btn-sm btn-icon" title="Delete"><i class="fas fa-trash"></i></button>
-              </form>
+              <div style="display:flex;align-items:center;gap:.6rem;">
+                <div style="width:34px;height:34px;border-radius:8px;background:@DocBg(d.DocumentType);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="@FileIcon(d)" style="color:@FileIconColor(d);font-size:1rem;"></i>
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:.875rem;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@d.OriginalFileName</div>
+                  <div style="font-size:.75rem;color:var(--text-muted);">@d.ContentType</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span style="display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:600;background:@DocBg(d.DocumentType);color:@DocColor(d.DocumentType);">
+                <i class="@DocIcon(d.DocumentType)"></i> @d.DocumentType
+              </span>
+            </td>
+            <td style="font-size:.875rem;color:var(--text-muted);">@d.FileSizeDisplay</td>
+            <td style="font-size:.875rem;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@(d.Description ?? "—")</td>
+            <td style="font-size:.875rem;color:var(--text-muted);white-space:nowrap;">@d.UploadedDate.ToLocalTime().ToString("MMM dd, yyyy")</td>
+            <td>
+              <div class="td-actions">
+                <a asp-action="Download" asp-route-id="@d.Id"
+                   class="btn btn-outline btn-sm btn-icon" title="Download">
+                  <i class="fas fa-download"></i>
+                </a>
+                <form asp-action="Delete" asp-route-id="@d.Id" method="post"
+                      id="del-@d.Id" class="d-inline">
+                  @Html.AntiForgeryToken()
+                  <button type="button" class="btn btn-danger btn-sm btn-icon" title="Delete"
+                          onclick="confirmDelete('del-@d.Id')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
             </td>
           </tr>
         }
       </tbody>
     </table>
     <partial name="_Pagination"/>
-  }
-</div>
+  </div>
+}

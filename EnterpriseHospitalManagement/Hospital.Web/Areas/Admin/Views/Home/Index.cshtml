@@ -1,141 +1,154 @@
+@using Hospital.Models.Enums
 @{
     ViewData["Title"]       = "Admin Dashboard";
     ViewData["ShowSidebar"] = true;
-    int patientCount     = (int)(ViewBag.PatientCount     ?? 0);
-    int doctorCount      = (int)(ViewBag.DoctorCount      ?? 0);
-    int appointmentCount = (int)(ViewBag.AppointmentCount ?? 0);
-    int billCount        = (int)(ViewBag.BillCount        ?? 0);
-    int labCount         = (int)(ViewBag.LabCount         ?? 0);
-    int hospitalCount    = (int)(ViewBag.HospitalCount    ?? 0);
-    int roomCount        = (int)(ViewBag.RoomCount        ?? 0);
-    int medicineCount    = (int)(ViewBag.MedicineCount    ?? 0);
-    int payrollCount     = (int)(ViewBag.PayrollCount     ?? 0);
-    int staffCount       = (int)(ViewBag.StaffCount       ?? 0);
+
+    int patientCount      = (int)(ViewBag.PatientCount     ?? 0);
+    int doctorCount       = (int)(ViewBag.DoctorCount      ?? 0);
+    int appointmentCount  = (int)(ViewBag.AppointmentCount ?? 0);
+    int billCount         = (int)(ViewBag.BillCount        ?? 0);
+    int labCount          = (int)(ViewBag.LabCount         ?? 0);
+    int hospitalCount     = (int)(ViewBag.HospitalCount    ?? 0);
+    int roomCount         = (int)(ViewBag.RoomCount        ?? 0);
+    int medicineCount     = (int)(ViewBag.MedicineCount    ?? 0);
+    int payrollCount      = (int)(ViewBag.PayrollCount     ?? 0);
+    int staffCount        = (int)(ViewBag.StaffCount       ?? 0);
+
+    int pendingBills  = (int)(ViewBag.PendingBills  ?? 0);
+    int paidBills     = (int)(ViewBag.PaidBills     ?? 0);
+    int overdueBills  = (int)(ViewBag.OverdueBills  ?? 0);
+    decimal totalRevenue  = (decimal)(ViewBag.TotalRevenue  ?? 0m);
+    decimal pendingAmount = (decimal)(ViewBag.PendingAmount ?? 0m);
+
+    string monthLabels      = ViewBag.MonthLabels      ?? "[]";
+    string apptByMonth      = ViewBag.ApptByMonth      ?? "[]";
+    string apptStatusLabels = ViewBag.ApptStatusLabels ?? "[]";
+    string apptStatusData   = ViewBag.ApptStatusData   ?? "[]";
+    string billStatusLabels = ViewBag.BillStatusLabels ?? "[]";
+    string billStatusData   = ViewBag.BillStatusData   ?? "[]";
+
+    var recentAppts = ViewBag.RecentAppointments as IEnumerable<Hospital.ViewModels.AppointmentViewModel>
+                      ?? Enumerable.Empty<Hospital.ViewModels.AppointmentViewModel>();
 }
 
 <div class="page-header">
   <div>
     <div class="page-title">Admin Dashboard</div>
-    <small class="text-muted">Enterprise Hospital Management — System Overview</small>
+    <div class="page-subtitle">Enterprise Hospital Management — @DateTime.Now.ToString("dddd, MMMM d, yyyy")</div>
   </div>
   <div class="page-actions">
-    <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn btn-outline btn-sm">
-      <i class="fas fa-users-cog"></i> Manage Users
-    </a>
-    <a asp-area="Admin" asp-controller="Hospitals" asp-action="Create" class="btn btn-primary btn-sm">
-      <i class="fas fa-plus"></i> Add Hospital
-    </a>
+    <a asp-area="Admin" asp-controller="Users"     asp-action="Index"  class="btn btn-outline btn-sm"><i class="fas fa-users-cog"></i> Users</a>
+    <a asp-area="Admin" asp-controller="Hospitals" asp-action="Create" class="btn btn-primary  btn-sm"><i class="fas fa-plus"></i> Add Hospital</a>
   </div>
 </div>
 
-<!-- KPI Row 1: Core Clinical -->
+<!-- ── KPI Row 1: Clinical ─────────────────────────────────────────────── -->
 <div class="stats-grid stats-grid-4">
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Users" asp-action="Index">
     <div class="stat-icon blue"><i class="fas fa-user-injured"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@patientCount</div>
-      <div class="stat-label">Total Patients</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@patientCount</div><div class="stat-label">Total Patients</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Users" asp-action="Index">
     <div class="stat-icon green"><i class="fas fa-user-md"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@doctorCount</div>
-      <div class="stat-label">Active Doctors</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@doctorCount</div><div class="stat-label">Active Doctors</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Appointments" asp-action="Index">
     <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@appointmentCount</div>
-      <div class="stat-label">Appointments</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@appointmentCount</div><div class="stat-label">Appointments</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Bills" asp-action="Index">
     <div class="stat-icon teal"><i class="fas fa-file-invoice-dollar"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@billCount</div>
-      <div class="stat-label">Total Bills</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@billCount</div><div class="stat-label">Total Bills</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
 </div>
 
-<!-- KPI Row 2: Facility & Resources -->
+<!-- ── KPI Row 2: Facility ────────────────────────────────────────────── -->
 <div class="stats-grid stats-grid-4" style="margin-top:0;">
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
     <div class="stat-icon" style="background:#f3e8ff;color:#7c3aed;"><i class="fas fa-hospital-alt"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@hospitalCount</div>
-      <div class="stat-label">Hospitals</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@hospitalCount</div><div class="stat-label">Hospitals</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Rooms" asp-action="Index">
     <div class="stat-icon" style="background:#fff7ed;color:#ea580c;"><i class="fas fa-bed"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@roomCount</div>
-      <div class="stat-label">Rooms</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@roomCount</div><div class="stat-label">Rooms</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Labs" asp-action="Index">
     <div class="stat-icon" style="background:#ecfdf5;color:#059669;"><i class="fas fa-flask"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@labCount</div>
-      <div class="stat-label">Lab Tests</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@labCount</div><div class="stat-label">Lab Tests</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Admin" asp-controller="Medicines" asp-action="Index">
     <div class="stat-icon" style="background:#fff1f2;color:#e11d48;"><i class="fas fa-pills"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@medicineCount</div>
-      <div class="stat-label">Medicines</div>
-    </div>
+    <div class="stat-body"><div class="stat-value">@medicineCount</div><div class="stat-label">Medicines</div></div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
 </div>
 
-<!-- Charts Row -->
-<div style="display:grid; grid-template-columns:2fr 1fr; gap:1.5rem; margin-top:1.5rem;">
-
-  <!-- Appointments Trend (Line Chart) -->
-  <div class="card">
-    <div class="chart-header">
-      <span class="chart-header-title"><i class="fas fa-chart-line" style="color:#667eea;"></i> Appointments Overview</span>
-      <div style="display:flex;gap:.4rem;">
-        <button class="chart-period-btn active" onclick="switchPeriod(this,'monthly')">Monthly</button>
-        <button class="chart-period-btn" onclick="switchPeriod(this,'weekly')">Weekly</button>
-      </div>
-    </div>
-    <div class="chart-container">
-      <canvas id="appointmentsChart"></canvas>
-    </div>
+<!-- ── Revenue Insight Cards ──────────────────────────────────────────── -->
+<div class="insight-grid" style="margin-top:1.5rem;">
+  <div class="insight-card">
+    <div class="ins-label">Revenue Collected</div>
+    <div class="ins-value" style="color:var(--success);">$@totalRevenue.ToString("N0")</div>
+    <div class="ins-sub">From @paidBills paid bills</div>
+    <div class="ins-trend up"><i class="fas fa-arrow-up"></i> Paid</div>
   </div>
-
-  <!-- Bills by Status (Doughnut Chart) -->
-  <div class="card">
-    <div class="chart-header">
-      <span class="chart-header-title"><i class="fas fa-chart-pie" style="color:#f5576c;"></i> Bills by Status</span>
-    </div>
-    <div class="chart-container" style="display:flex;align-items:center;justify-content:center;">
-      <canvas id="billsChart" style="max-height:220px;max-width:220px;"></canvas>
-    </div>
-    <div style="padding:.75rem 1.25rem;display:flex;gap:1.5rem;justify-content:center;font-size:.8rem;color:var(--text-muted);border-top:1px solid var(--border);">
-      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1a9e5f;margin-right:.35rem;"></span>Paid</span>
-      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;margin-right:.35rem;"></span>Pending</span>
-      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e53e3e;margin-right:.35rem;"></span>Overdue</span>
-    </div>
+  <div class="insight-card">
+    <div class="ins-label">Pending Revenue</div>
+    <div class="ins-value" style="color:var(--warning);">$@pendingAmount.ToString("N0")</div>
+    <div class="ins-sub">@pendingBills pending bills</div>
+    <div class="ins-trend down"><i class="fas fa-clock"></i> Awaiting</div>
   </div>
-
+  <div class="insight-card">
+    <div class="ins-label">Overdue Bills</div>
+    <div class="ins-value" style="color:var(--danger);">@overdueBills</div>
+    <div class="ins-sub">Require immediate action</div>
+    <div class="ins-trend down"><i class="fas fa-exclamation-triangle"></i> Urgent</div>
+  </div>
+  <div class="insight-card">
+    <div class="ins-label">Total Staff</div>
+    <div class="ins-value" style="color:var(--primary);">@staffCount</div>
+    <div class="ins-sub">All roles combined</div>
+    <div class="ins-trend up"><i class="fas fa-users"></i> Active</div>
+  </div>
 </div>
 
-<!-- Quick Actions + System Stats -->
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.5rem;" class="dashboard-two-col">
+<!-- ── Charts Row ─────────────────────────────────────────────────────── -->
+<div class="dashboard-chart-row">
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <span class="chart-card-title"><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:.4rem;"></i>Appointments Per Month</span>
+      <span class="badge badge-info">Last 6 Months</span>
+    </div>
+    <div class="chart-card-body">
+      <canvas id="apptTrendChart" height="90"></canvas>
+    </div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <span class="chart-card-title"><i class="fas fa-chart-pie" style="color:var(--accent);margin-right:.4rem;"></i>Bill Status</span>
+    </div>
+    <div class="chart-card-body">
+      <canvas id="billStatusChart" height="160"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── Second Chart Row ───────────────────────────────────────────────── -->
+<div class="dashboard-two-col">
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <span class="chart-card-title"><i class="fas fa-chart-donut" style="color:var(--warning);margin-right:.4rem;"></i>Appointment Status Breakdown</span>
+    </div>
+    <div class="chart-card-body">
+      <canvas id="apptStatusChart" height="110"></canvas>
+    </div>
+  </div>
 
   <!-- Quick Actions -->
   <div class="card">
@@ -179,66 +192,64 @@
       </div>
     </div>
   </div>
-
-  <!-- System Overview -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-header-title"><i class="fas fa-chart-pie" style="color:var(--primary);margin-right:.5rem;"></i>System Overview</span>
-    </div>
-    <div class="card-body" style="padding:1rem;">
-      <div class="overview-list">
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-users" style="color:var(--primary);"></i> Total Staff</div>
-          <div class="ov-value"><span class="badge badge-info">@staffCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-hospital" style="color:#7c3aed;"></i> Hospitals</div>
-          <div class="ov-value"><span class="badge badge-secondary">@hospitalCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-bed" style="color:#ea580c;"></i> Rooms</div>
-          <div class="ov-value"><span class="badge badge-warning">@roomCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-pills" style="color:#e11d48;"></i> Medicines in Stock</div>
-          <div class="ov-value"><span class="badge badge-danger">@medicineCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-money-check-alt" style="color:#059669;"></i> Payroll Records</div>
-          <div class="ov-value"><span class="badge badge-success">@payrollCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-flask" style="color:#0e7490;"></i> Lab Orders</div>
-          <div class="ov-value"><span class="badge badge-info">@labCount</span></div>
-        </div>
-      </div>
-
-      <div style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border);">
-        <div style="font-size:.8rem; color:var(--text-muted); margin-bottom:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em;">Export Reports</div>
-        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-          <a asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadPdf" class="btn btn-secondary btn-sm">
-            <i class="fas fa-file-pdf" style="color:#e53e3e;"></i> Hospitals PDF
-          </a>
-          <a asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadExcel" class="btn btn-secondary btn-sm">
-            <i class="fas fa-file-excel" style="color:#1a9e5f;"></i> Hospitals Excel
-          </a>
-          <a asp-area="Admin" asp-controller="Rooms" asp-action="DownloadPdf" class="btn btn-secondary btn-sm">
-            <i class="fas fa-file-pdf" style="color:#e53e3e;"></i> Rooms PDF
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<!-- Management Sections -->
-<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; margin-top:1.5rem;" class="dashboard-three-col">
+<!-- ── Recent Appointments Table ──────────────────────────────────────── -->
+<div class="card" style="margin-top:1.5rem;">
+  <div class="card-header">
+    <span class="card-header-title"><i class="fas fa-calendar-check" style="color:var(--primary);margin-right:.4rem;"></i>Recent Appointments</span>
+    <a asp-area="Admin" asp-controller="Appointments" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+  </div>
+  @if (!recentAppts.Any())
+  {
+    <div class="empty-state"><i class="fas fa-calendar-check"></i><h3>No appointments yet</h3></div>
+  }
+  else
+  {
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Number</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Type</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          @{ int i = 1; }
+          @foreach (var a in recentAppts)
+          {
+            var sc = a.Status == AppointmentStatus.Completed ? "badge-success"
+                   : a.Status == AppointmentStatus.Cancelled ? "badge-danger"
+                   : a.Status == AppointmentStatus.InProgress ? "badge-warning"
+                   : a.Status == AppointmentStatus.Confirmed ? "badge-success"
+                   : "badge-info";
+            <tr>
+              <td>@(i++)</td>
+              <td><strong>@a.Number</strong></td>
+              <td>@a.PatientName</td>
+              <td>@a.DoctorName</td>
+              <td>@a.AppointmentDate.ToString("MMM dd, yyyy")</td>
+              <td>@a.Type</td>
+              <td><span class="badge @sc">@a.Status</span></td>
+              <td>
+                <div class="td-actions">
+                  <a asp-area="Admin" asp-controller="Appointments" asp-action="Edit"
+                     asp-route-id="@a.Id" class="btn btn-warning btn-sm btn-icon" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
 
+<!-- ── Module Overview (3-col) ────────────────────────────────────────── -->
+<div class="dashboard-three-col">
   <div class="card">
     <div class="card-header">
       <span class="card-header-title"><i class="fas fa-stethoscope" style="color:var(--success);margin-right:.5rem;"></i>Clinical</span>
-      <a asp-area="Admin" asp-controller="PatientReports" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+      <a asp-area="Admin" asp-controller="Appointments" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
     </div>
     <div class="card-body nav-list">
       <a class="nav-list-item" asp-area="Admin" asp-controller="Appointments" asp-action="Index">
@@ -304,82 +315,85 @@
       </a>
     </div>
   </div>
-
 </div>
 
 @section Scripts {
 <script>
-// ── Appointments Line Chart ──────────────────────────────────────────────────
-const monthlyData = {
-  labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-  data:   [12,19,15,22,30,28,35,40,33,27,38,@appointmentCount]
-};
-const weeklyData = {
-  labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-  data:   [8,12,10,15,9,5,3]
-};
-const apptCtx = document.getElementById('appointmentsChart').getContext('2d');
-const apptChart = new Chart(apptCtx, {
-  type: 'line',
-  data: {
-    labels: monthlyData.labels,
-    datasets: [{
-      label: 'Appointments',
-      data: monthlyData.data,
-      borderColor: '#667eea',
-      backgroundColor: 'rgba(102,126,234,.1)',
-      borderWidth: 2.5,
-      tension: 0.4,
-      fill: true,
-      pointBackgroundColor: '#667eea',
-      pointRadius: 4,
-      pointHoverRadius: 6
-    }]
-  },
-  options: {
-    responsive: true,
-    plugins: { legend: { display: false } },
-    scales: {
-      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 } } },
-      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
-    }
-  }
-});
+(function(){
+  const monthLabels      = @Html.Raw(monthLabels);
+  const apptByMonth      = @Html.Raw(apptByMonth);
+  const apptStatusLabels = @Html.Raw(apptStatusLabels);
+  const apptStatusData   = @Html.Raw(apptStatusData);
+  const billStatusLabels = @Html.Raw(billStatusLabels);
+  const billStatusData   = @Html.Raw(billStatusData);
 
-function switchPeriod(btn, period) {
-  document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const d = period === 'weekly' ? weeklyData : monthlyData;
-  apptChart.data.labels = d.labels;
-  apptChart.data.datasets[0].data = d.data;
-  apptChart.update();
-}
-
-// ── Bills Doughnut Chart ─────────────────────────────────────────────────────
-const billsCtx = document.getElementById('billsChart').getContext('2d');
-const totalBills = @billCount;
-const paid = Math.round(totalBills * 0.6);
-const pending = Math.round(totalBills * 0.3);
-const overdue = totalBills - paid - pending;
-new Chart(billsCtx, {
-  type: 'doughnut',
-  data: {
-    labels: ['Paid','Pending','Overdue'],
-    datasets: [{
-      data: [paid || 1, pending || 1, overdue || 0],
-      backgroundColor: ['#1a9e5f','#f59e0b','#e53e3e'],
-      borderWidth: 0,
-      hoverOffset: 4
-    }]
-  },
-  options: {
-    responsive: true,
-    cutout: '72%',
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } }
+  // ── Appointment Trend Bar Chart ──────────────────────────────────────
+  new Chart(document.getElementById('apptTrendChart'), {
+    type: 'bar',
+    data: {
+      labels: monthLabels,
+      datasets: [{
+        label: 'Appointments',
+        data: apptByMonth,
+        backgroundColor: 'rgba(15,76,129,.75)',
+        borderColor: '#0f4c81',
+        borderWidth: 1,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+        x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
     }
-  }
-});
+  });
+
+  // ── Bill Status Doughnut ─────────────────────────────────────────────
+  new Chart(document.getElementById('billStatusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: billStatusLabels,
+      datasets: [{
+        data: billStatusData,
+        backgroundColor: ['#fef3c7','#d1fae5','#fee2e2','#dbeafe','#f1f5f9'],
+        borderColor:      ['#f59e0b','#10b981','#ef4444','#3b82f6','#94a3b8'],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+      cutout: '62%'
+    }
+  });
+
+  // ── Appointment Status Bar Chart ─────────────────────────────────────
+  new Chart(document.getElementById('apptStatusChart'), {
+    type: 'bar',
+    data: {
+      labels: apptStatusLabels,
+      datasets: [{
+        label: 'Count',
+        data: apptStatusData,
+        backgroundColor: ['#dbeafe','#d1fae5','#dcfce7','#fee2e2','#fef3c7','#f3e8ff'],
+        borderColor:      ['#3b82f6','#10b981','#22c55e','#ef4444','#f59e0b','#8b5cf6'],
+        borderWidth: 1.5,
+        borderRadius: 5
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
+        y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+})();
 </script>
 }

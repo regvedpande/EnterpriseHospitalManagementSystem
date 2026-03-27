@@ -1,568 +1,779 @@
 # MedCore HMS — Enterprise Hospital Management System
 
-<div align="center">
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
+[![ASP.NET Core MVC](https://img.shields.io/badge/ASP.NET%20Core%20MVC-8.0-512BD4)](https://learn.microsoft.com/aspnet/core)
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-LocalDB-CC2927?logo=microsoftsqlserver)](https://www.microsoft.com/sql-server)
+[![Entity Framework Core](https://img.shields.io/badge/EF%20Core-8.0-512BD4)](https://learn.microsoft.com/ef/core)
+[![Chart.js](https://img.shields.io/badge/Chart.js-4.4-FF6384?logo=chartdotjs)](https://www.chartjs.org)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap)](https://getbootstrap.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![.NET](https://img.shields.io/badge/.NET-8.0-512BD4?style=for-the-badge&logo=dotnet)
-![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-MVC-blue?style=for-the-badge&logo=dotnet)
-![EF Core](https://img.shields.io/badge/EF_Core-8.0-orange?style=for-the-badge)
-![SQL Server](https://img.shields.io/badge/SQL_Server-LocalDB-CC2927?style=for-the-badge&logo=microsoftsqlserver)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?style=for-the-badge&logo=bootstrap)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+> A **production-ready**, full-stack hospital management platform with 8 role-based portals, real-time analytics dashboards, Chart.js visualisations, document management, and complete CRUD across every clinical and administrative workflow.
 
-**A production-ready, role-based hospital management platform built for enterprise healthcare.**
+---
 
-[Features](#-features) · [Architecture](#-architecture) · [Roles](#-role-based-access-control) · [Quick Start](#-quick-start) · [API](#-rest-api)
+## Table of Contents
 
-</div>
+1. [Overview](#overview)
+2. [Live Demo & Credentials](#live-demo--credentials)
+3. [System Architecture](#system-architecture)
+4. [Layer Breakdown](#layer-breakdown)
+5. [Database Entity Relationship Diagram](#database-entity-relationship-diagram)
+6. [Authentication & Authorization Flow](#authentication--authorization-flow)
+7. [Role Portals & Feature Matrix](#role-portals--feature-matrix)
+8. [Dashboard Analytics](#dashboard-analytics)
+9. [Project Structure](#project-structure)
+10. [Technology Stack](#technology-stack)
+11. [Prerequisites](#prerequisites)
+12. [Quick Start](#quick-start)
+13. [Configuration Reference](#configuration-reference)
+14. [Security Practices](#security-practices)
+15. [Contributing](#contributing)
+16. [License & Contact](#license--contact)
 
 ---
 
 ## Overview
 
-MedCore HMS is a full-stack enterprise web application that unifies hospital operations — from patient intake and clinical workflows to pharmacy, lab management, billing, and HR payroll — into a single, secure, role-aware platform.
+**MedCore HMS** digitises every department of a hospital into a single, cohesive web application. A surgeon, receptionist, pharmacist, lab technician, accountant, nurse, and patient each see a completely different portal — but all data flows through one shared database, ensuring real-time consistency.
 
-Built on **ASP.NET Core 8 MVC** with **Entity Framework Core** and **ASP.NET Identity**, it supports **8 distinct roles**, a **JWT-secured REST API**, PDF/Excel reporting, and a modern responsive UI inspired by SaaS dashboards.
-
----
-
-## ✨ Features
-
-| Domain | Capabilities |
-|---|---|
-| **Clinical** | Appointment scheduling, patient reports, diagnoses, prescription writing |
-| **Laboratory** | Lab test ordering, technician assignment, result entry, status tracking |
-| **Pharmacy** | Medicine inventory, prescription fulfilment, expiry management |
-| **Billing & Finance** | Patient billing with insurance integration, payroll processing |
-| **Facility** | Multi-hospital branches, room management, department structure |
-| **HR** | Staff management, role assignment, payroll (Draft → Approved → Paid) |
-| **Security** | 8-role RBAC, JWT API auth, cookie session auth, CSRF protection |
-| **Reporting** | PDF & Excel exports (hospitals, rooms, doctor schedules) |
+**What makes it enterprise-grade:**
+- **8 isolated role portals** each with their own sidebar navigation, dashboard, and workflows
+- **Real-time Chart.js analytics** — line charts, doughnut charts, bar charts, horizontal bar charts — all driven by live database data
+- **Full CRUD** for 15+ entities (Appointments, Bills, Labs, Medicines, Rooms, Payrolls, Suppliers, Insurance, Departments, Contacts, Patient Reports, Prescriptions, Documents, Hospitals, Users)
+- **Document management** — patients upload PDFs, images, Word/Excel files; categorised with analytics
+- **PDF + Excel exports** for every major data set
+- **Twilio SMS** and email notification hooks
+- **JWT API layer** alongside cookie-based MVC authentication
+- **Serilog** structured logging with rolling file sinks
+- **Responsive UI** — custom CSS design system (no Bootstrap utility classes), DM Sans / DM Serif Display typography
 
 ---
 
-## 🏗️ Architecture
+## Live Demo & Credentials
 
-### System Overview
+After running locally the database is seeded with the following accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@hospital.com` | `Admin@123` |
+| Doctor | `doctor@hospital.com` | `Doctor@123` |
+| Patient | `patient@hospital.com` | `Patient@123` |
+| Nurse | `nurse@hospital.com` | `Nurse@123` |
+| Lab Technician | `labtech@hospital.com` | `LabTech@123` |
+| Pharmacist | `pharmacist@hospital.com` | `Pharma@123` |
+| Receptionist | `receptionist@hospital.com` | `Recept@123` |
+| Accountant | `accountant@hospital.com` | `Account@123` |
+
+> **Change all passwords before any production deployment.**
+
+---
+
+## System Architecture
 
 ```mermaid
 graph TB
-    subgraph Client["Client Layer"]
-        B[Browser / MVC Views]
-        API[REST API Client]
+    subgraph Browser["🌐 Client Browser"]
+        UI[MedCore HMS UI\nResponsive HTML/CSS/JS]
     end
 
-    subgraph Web["ASP.NET Core 8 Web App"]
+    subgraph WebLayer["Hospital.Web — ASP.NET Core MVC"]
         direction TB
-        MVC["MVC Controllers\n8 Role Areas"]
-        APIC["API Controllers\nJWT Auth"]
-        MW["Middleware\nSerilog · Cookie Auth · JWT Bearer"]
+        Auth[AuthController\nLogin · Register · Logout]
+        Profile[ProfileController\nEdit · ChangePassword]
+        Home[HomeController\nLanding · StatusCode]
+
+        subgraph Areas["Role-Based Areas"]
+            direction LR
+            Admin["🔴 Admin\n15 controllers"]
+            Doctor["🟢 Doctor\n3 controllers"]
+            Patient["🔵 Patient\n5 controllers"]
+            Nurse["🟣 Nurse\n2 controllers"]
+            LabTech["🟡 LabTech\n2 controllers"]
+            Pharma["🟠 Pharmacist\n3 controllers"]
+            Recept["⚪ Receptionist\n2 controllers"]
+            Account["🟤 Accountant\n3 controllers"]
+        end
+
+        Layout[_Layout.cshtml\nShared sidebar · topbar · alerts · modals]
+        Middleware[Middleware Pipeline\nIdentity · RBAC · StatusCodePages · Serilog]
     end
 
-    subgraph Services["Service Layer"]
-        AS[AppointmentService]
-        BS[BillService]
-        LS[LabService]
-        PS[PatientReportService]
-        MS[MedicineService]
-        RS["ReportService\nPDF · Excel"]
-        US[UserService]
-        PAY[PayrollService]
+    subgraph Services["Hospital.Services — Business Logic"]
+        direction TB
+        IS[IApplicationUserService]
+        IAS[IAppointmentService]
+        IBS[IBillService]
+        ILS[ILabService]
+        IMS[IMedicineService]
+        IPS[IPayrollService]
+        IRS[IPatientReportService]
+        IDS[IDocumentService]
+        IOther[IHospitalInfoService\nIRoomService · IInsuranceService\nIContactService · IDepartmentService\nISupplierService · IDoctorService]
     end
 
-    subgraph Data["Data Layer"]
-        UOW[Unit of Work]
-        REPO["Generic Repository&lt;T&gt;"]
-        DB[("SQL Server\nLocalDB")]
+    subgraph Repos["Hospital.Repositories — Data Access"]
+        UoW[Unit of Work]
+        GR[Generic Repository&lt;T&gt;]
+        DB[(SQL Server\nHospitalDB)]
     end
 
-    subgraph Identity["ASP.NET Identity"]
-        UM[UserManager]
-        RM[RoleManager]
-        SM[SignInManager]
+    subgraph Models["Hospital.Models + Hospital.ViewModels"]
+        Entities[Domain Entities\n16 models]
+        Enums[Enums\nAppointmentStatus · BillStatus\nLabTestStatus · PayrollStatus\nDocumentType · Gender]
+        VMs[ViewModels\nDTO layer between\nControllers ↔ Services]
     end
 
-    B --> MVC
-    API --> APIC
-    MVC --> MW
-    APIC --> MW
-    MW --> Services
-    Services --> UOW
-    UOW --> REPO
-    REPO --> DB
-    MVC --> Identity
-    APIC --> Identity
+    Browser -->|HTTP/HTTPS| Middleware
+    Middleware --> Auth
+    Middleware --> Areas
+    Areas --> Services
+    Services --> Repos
+    Repos --> GR
+    GR --> DB
+    Models -.->|referenced by| Services
+    Models -.->|referenced by| Areas
 ```
 
-### Database Schema
+---
+
+## Layer Breakdown
+
+```mermaid
+flowchart LR
+    A["🌐 Presentation\nHospital.Web\nMVC Controllers\nRazor Views\nCSS Design System"] -->|ViewModels| B["⚙️ Application\nHospital.Services\nBusiness Logic\nService Interfaces\nImplementations"]
+    B -->|Domain Models| C["🗄️ Data Access\nHospital.Repositories\nUnit of Work\nGeneric Repository\nEF Core DbContext"]
+    C --> D[("💾 SQL Server\nHospitalDB")]
+    E["📦 Domain\nHospital.Models\nEntities · Enums"] -.->|used by| B
+    E -.->|used by| C
+    F["🔧 Utilities\nHospital.Utilities\nWebSiteRoles\nImageOperations\nJwtService\nEmailSender\nTwilioSmsService"] -.->|used by| A
+    F -.->|used by| B
+```
+
+| Layer | Project | Responsibility |
+|---|---|---|
+| Presentation | `Hospital.Web` | MVC controllers, Razor views, CSS/JS, Areas |
+| ViewModels | `Hospital.ViewModels` | DTO layer — shapes data between controllers and services |
+| Services | `Hospital.Services` | All business logic, service interfaces, implementations |
+| Repositories | `Hospital.Repositories` | EF Core Unit of Work, Generic Repository, DbContext |
+| Models | `Hospital.Models` | Domain entities, enums, navigation properties |
+| Utilities | `Hospital.Utilities` | Cross-cutting concerns — roles, JWT, image ops, SMS, email |
+
+---
+
+## Database Entity Relationship Diagram
 
 ```mermaid
 erDiagram
     ApplicationUser {
         string Id PK
         string Name
-        string Gender
-        string Specialist
-        bool IsDoctor
-        int DepartmentId FK
-    }
-    Appointment {
-        int Id PK
-        string DoctorId FK
-        string PatientId FK
-        datetime AppointmentDate
-        string Status
-        string Type
-    }
-    PatientReport {
-        int Id PK
-        string DoctorId FK
-        string PatientId FK
-        string Diagnose
-        datetime CreatedDate
-    }
-    PrescribedMedicine {
-        int Id PK
-        int PatientReportId FK
-        int MedicineId FK
-        string Dosage
-        string Duration
-    }
-    Bill {
-        int Id PK
-        string PatientId FK
-        int InsuranceId FK
-        string Status
-        decimal TotalBill
-        datetime CreatedDate
-    }
-    Lab {
-        int Id PK
-        string PatientId FK
-        string DoctorId FK
-        string TechnicianId FK
-        string TestType
-        string Status
-        string TestResult
-    }
-    Payroll {
-        int Id PK
-        string EmployeeId FK
-        string Status
-        decimal NetSalary
-        datetime PayPeriodStart
-        datetime PayPeriodEnd
-    }
-    Medicine {
-        int Id PK
-        string Name
-        string Type
-        decimal Cost
-    }
-    HospitalInfo {
-        int Id PK
-        string Name
-        string City
-        string Country
-        string PhoneNumber
         string Email
+        string Gender
+        string Address
+        DateTime DOB
+        bool IsDoctor
+        string Specialist
+        string PictureUri
+        int DepartmentId FK
+        string Role
     }
-    Room {
-        int Id PK
-        int HospitalId FK
-        string RoomNumber
-        string Type
-        int Status
-    }
-    Insurance {
-        int Id PK
-        string PatientId FK
-        string PolicyNumber
-        decimal CoverageAmount
-    }
+
     Department {
         int Id PK
         string Name
         string Description
     }
-    Supplier {
+
+    HospitalInfo {
         int Id PK
-        string Company
-        string Email
+        string Name
+        string Address
         string Phone
+        string Email
+        string Website
     }
 
-    ApplicationUser ||--o{ Appointment : "as doctor"
-    ApplicationUser ||--o{ Appointment : "as patient"
-    ApplicationUser ||--o{ PatientReport : "writes"
-    ApplicationUser ||--o{ PatientReport : "receives"
-    ApplicationUser ||--o{ Bill : "billed"
-    ApplicationUser ||--o{ Lab : "tested"
-    ApplicationUser ||--o{ Lab : "processes"
-    ApplicationUser ||--o{ Payroll : "paid"
-    PatientReport ||--o{ PrescribedMedicine : "contains"
-    Medicine ||--o{ PrescribedMedicine : "prescribed in"
-    Bill ||--o| Insurance : "covered by"
-    HospitalInfo ||--o{ Room : "has"
+    Appointment {
+        int Id PK
+        string Number
+        string Type
+        DateTime AppointmentDate
+        AppointmentStatus Status
+        string Description
+        string Notes
+        string DoctorId FK
+        string PatientId FK
+    }
+
+    PatientReport {
+        int Id PK
+        string Diagnose
+        string Notes
+        DateTime CreatedDate
+        string DoctorId FK
+        string PatientId FK
+    }
+
+    PrescribedMedicine {
+        int Id PK
+        int MedicineId FK
+        int PatientReportId FK
+        string Dosage
+        int Duration
+    }
+
+    Bill {
+        int Id PK
+        int BillNumber
+        BillStatus Status
+        decimal DoctorCharge
+        decimal MedicineCharge
+        decimal RoomCharge
+        decimal LabCharge
+        decimal NursingCharge
+        decimal TotalBill
+        int NoOfDays
+        string PatientId FK
+        int InsuranceId FK
+    }
+
+    Insurance {
+        int Id PK
+        string Provider
+        string PolicyNumber
+        string PatientId FK
+    }
+
+    Lab {
+        int Id PK
+        string LabNumber
+        LabTestStatus Status
+        string TestType
+        string TestCode
+        string TestResult
+        string PatientId FK
+        string DoctorId FK
+        string TechnicianId FK
+    }
+
+    Medicine {
+        int Id PK
+        string Name
+        string Type
+        decimal Cost
+        int Stock
+        DateTime ExpiryDate
+        int SupplierId FK
+    }
+
+    Supplier {
+        int Id PK
+        string Name
+        string ContactPerson
+        string Phone
+        string Email
+    }
+
+    Room {
+        int Id PK
+        string RoomNumber
+        string Type
+        Status Status
+        decimal PricePerDay
+        int HospitalInfoId FK
+    }
+
+    Payroll {
+        int Id PK
+        string EmployeeId FK
+        decimal BasicSalary
+        decimal Allowances
+        decimal Deductions
+        decimal NetSalary
+        PayrollStatus Status
+        DateTime PayDate
+    }
+
+    PatientDocument {
+        int Id PK
+        string FileName
+        string OriginalFileName
+        string ContentType
+        long FileSizeBytes
+        DocumentType DocumentType
+        string Description
+        DateTime UploadedDate
+        string PatientId FK
+        string UploadedById FK
+    }
+
+    Contact {
+        int Id PK
+        string Name
+        string Phone
+        string Email
+        string Role
+        int HospitalInfoId FK
+    }
+
+    ApplicationUser ||--o{ Appointment : "Doctor has"
+    ApplicationUser ||--o{ Appointment : "Patient has"
+    ApplicationUser ||--o{ PatientReport : "Doctor writes"
+    ApplicationUser ||--o{ PatientReport : "Patient receives"
+    ApplicationUser ||--o{ Bill : "Patient billed"
+    ApplicationUser ||--o{ Lab : "ordered for Patient"
+    ApplicationUser ||--o{ PatientDocument : "uploads"
+    ApplicationUser ||--o{ Payroll : "Employee payroll"
     ApplicationUser }o--|| Department : "belongs to"
+    PatientReport ||--o{ PrescribedMedicine : "includes"
+    PrescribedMedicine }o--|| Medicine : "references"
+    Bill }o--o| Insurance : "covered by"
+    Room }o--|| HospitalInfo : "located in"
+    Contact }o--|| HospitalInfo : "works at"
+    Medicine }o--|| Supplier : "supplied by"
 ```
 
-### Request Lifecycle
+---
+
+## Authentication & Authorization Flow
 
 ```mermaid
 sequenceDiagram
-    participant U as User (Browser)
-    participant MW as Middleware
-    participant C as Controller
-    participant S as Service
-    participant R as Repository
+    actor User as 👤 User
+    participant Browser
+    participant Auth as AuthController
+    participant Identity as ASP.NET Identity
     participant DB as SQL Server
+    participant Area as Role Area
 
-    U->>MW: HTTP Request
-    MW->>MW: Authenticate (Cookie / JWT)
-    MW->>MW: Authorize (Role check)
-    MW->>C: Route to Area Controller
-    C->>S: Call Service Method
-    S->>R: Query via Repository
-    R->>DB: EF Core SQL Query
-    DB-->>R: Result Set
-    R-->>S: Domain Models
-    S-->>C: ViewModels (PagedResult)
-    C-->>U: Razor View / JSON Response
+    User->>Browser: Navigate to /Auth/Login
+    Browser->>Auth: GET /Auth/Login
+    Auth-->>Browser: Login form
+
+    User->>Browser: Submit email + password
+    Browser->>Auth: POST /Auth/Login
+    Auth->>Identity: SignInManager.PasswordSignInAsync()
+    Identity->>DB: Validate credentials
+    DB-->>Identity: User record + roles
+    Identity-->>Auth: SignInResult.Succeeded
+
+    Auth->>Auth: Determine role → redirect URL
+    Note over Auth: Admin → /Admin/Home<br/>Doctor → /Doctor/Home<br/>Patient → /Patient/Home<br/>... etc.
+
+    Auth-->>Browser: 302 Redirect + Auth Cookie
+
+    Browser->>Area: GET /{Role}/Home/Index
+    Area->>Area: [Authorize(Roles = "Website_{Role}")]
+    Note over Area: Unauthorised roles get<br/>redirected to /Auth/AccessDenied
+
+    Area->>DB: Load dashboard data
+    DB-->>Area: KPIs, chart data, recent records
+    Area-->>Browser: Rendered dashboard HTML + Chart.js
 ```
 
 ---
 
-## 🔐 Role-Based Access Control
-
-Eight roles, each with a dedicated area, sidebar navigation, and tailored dashboard:
+## Role Portals & Feature Matrix
 
 ```mermaid
-graph LR
-    subgraph Roles["8 Distinct Roles"]
-        ADM["🛡️ Admin"]
-        DOC["🩺 Doctor"]
-        NUR["💉 Nurse"]
-        PAT["🏥 Patient"]
-        LAB["🔬 Lab Tech"]
-        PHA["💊 Pharmacist"]
-        REC["📋 Receptionist"]
-        ACC["💰 Accountant"]
-    end
-
-    subgraph AdminScope["Admin — Full Control"]
-        A1["Hospitals · Rooms · Departments"]
-        A2["Appointments · Labs · Reports"]
-        A3["Medicines · Suppliers · Bills"]
-        A4["Payrolls · Insurance · Users"]
-    end
-
-    subgraph ClinicalScope["Clinical Staff"]
-        D1["Doctor: Appointments · Patient Reports · Timings"]
-        N1["Nurse: Appointment Monitoring"]
-        L1["Lab Tech: Test Orders · Results"]
-        P1["Pharmacist: Inventory · Prescriptions"]
-    end
-
-    subgraph PatientScope["Patient Portal"]
-        PA1["Book Appointments"]
-        PA2["View Bills · Lab Results"]
-        PA3["Medical Reports"]
-    end
-
-    subgraph FinanceScope["Operations"]
-        AC1["Accountant: Bills · Payrolls"]
-        RE1["Receptionist: Scheduling"]
-    end
-
-    ADM --> AdminScope
-    DOC --> D1
-    NUR --> N1
-    LAB --> L1
-    PHA --> P1
-    PAT --> PatientScope
-    ACC --> AC1
-    REC --> RE1
+mindmap
+  root((MedCore HMS))
+    Admin
+      User Management
+      All Appointments
+      All Bills
+      All Lab Tests
+      All Patient Reports
+      Hospitals & Rooms
+      Departments
+      Medicines & Suppliers
+      Insurance
+      Payroll
+      Documents
+      Contacts
+      PDF/Excel Exports
+      3 Chart.js Dashboards
+    Doctor
+      My Appointments
+      Create/Edit Appointments
+      Patient Reports
+      Write Medical Reports
+      Prescriptions
+      My Schedule & Timings
+      PDF/Excel Schedule Export
+      Trend + Status Charts
+    Patient
+      My Appointments
+      Book Appointment
+      My Bills
+      My Lab Results
+      My Medical Reports
+      My Documents
+      Upload Documents
+      Document Analytics
+    Nurse
+      View Appointments
+      Update Appointment Status
+      Appointment Status Charts
+    LabTech
+      Lab Orders List
+      Create Lab Order
+      Edit Lab Results
+      Status Charts
+    Pharmacist
+      Medicines Stock
+      Add/Edit Medicines
+      Prescriptions
+      Medicine Type Charts
+    Receptionist
+      Schedule Appointments
+      All Appointments
+      Status Overview
+    Accountant
+      Create/Edit Bills
+      Payroll Management
+      Revenue Charts
+      Financial Summary
 ```
 
-### Permissions Matrix
-
-| Feature | Admin | Doctor | Nurse | Patient | Lab Tech | Pharmacist | Receptionist | Accountant |
+| Feature | Admin | Doctor | Patient | Nurse | LabTech | Pharmacist | Receptionist | Accountant |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| Hospitals CRUD | ✅ | | | | | | | |
-| Rooms CRUD | ✅ | | | | | | | |
-| Departments CRUD | ✅ | | | | | | | |
-| Appointments | ✅ All | View/Edit | Edit Status | Create/View | | | Create/Edit | |
-| Patient Reports | ✅ View | ✅ Full CRUD | | View own | | | | |
-| Prescriptions | ✅ | ✅ Write | | | | ✅ View | | |
-| Lab Tests | ✅ | Order | | View own | ✅ Process | | | |
-| Medicines | ✅ | | | | | ✅ Full | | |
-| Bills | ✅ | | | View own | | | | ✅ Full |
-| Payrolls | ✅ | | | | | | | ✅ Full |
-| Insurance | ✅ | | | | | | | |
-| User Management | ✅ | | | | | | | |
-| PDF/Excel Export | ✅ | ✅ | | | | | | |
-| REST API | ✅ | ✅ | | | | | | |
+| Dashboard with Charts | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Appointments (View) | ✅ | ✅ | ✅ | ✅ | — | — | ✅ | — |
+| Appointments (Create) | ✅ | ✅ | ✅ | — | — | — | ✅ | — |
+| Appointments (Edit Status) | ✅ | ✅ | — | ✅ | — | — | ✅ | — |
+| Patient Reports | ✅ | ✅ | ✅ (read) | — | — | — | — | — |
+| Lab Tests | ✅ | — | ✅ (read) | — | ✅ | — | — | — |
+| Bills | ✅ | — | ✅ (read) | — | — | — | — | ✅ |
+| Payroll | ✅ | — | — | — | — | — | — | ✅ |
+| Medicines | ✅ | — | — | — | — | ✅ | — | — |
+| Prescriptions | — | ✅ | — | — | — | ✅ | — | — |
+| Documents | ✅ | — | ✅ | — | — | — | — | — |
+| Hospitals/Rooms | ✅ | — | — | — | — | — | — | — |
+| User Management | ✅ | — | — | — | — | — | — | — |
+| PDF/Excel Export | ✅ | ✅ | — | — | — | — | — | — |
+| Profile & Password | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
-## 📊 Clinical Workflows
+## Dashboard Analytics
 
-### Appointment Lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> Scheduled : Receptionist or Patient books
-    Scheduled --> Completed : Doctor or Nurse marks done
-    Scheduled --> Cancelled : Any authorised user
-    Scheduled --> Rescheduled : Receptionist reschedules
-    Rescheduled --> Scheduled : New slot confirmed
-    Completed --> [*]
-    Cancelled --> [*]
-```
-
-### Bill Lifecycle
+Every role gets a purpose-built analytics dashboard. Here is the data flow:
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Pending : Accountant creates bill
-    Pending --> Paid : Payment received
-    Pending --> Overdue : Deadline passed
-    Pending --> Cancelled : Bill voided
-    Overdue --> Paid : Late payment received
-    Paid --> [*]
-    Cancelled --> [*]
-```
+flowchart TD
+    DB[(SQL Server)] -->|GetAll / GetByPatient\nGetByDoctor / GetByRole| Services
 
-### Payroll Workflow
-
-```mermaid
-stateDiagram-v2
-    [*] --> Draft : Accountant creates
-    Draft --> Pending : Submitted for review
-    Pending --> Approved : Admin approves
-    Pending --> Rejected : Admin rejects
-    Approved --> Paid : Payment processed
-    Rejected --> Draft : Revised and resubmitted
-    Paid --> [*]
-```
-
-### Lab Test Flow
-
-```mermaid
-sequenceDiagram
-    participant D as Doctor
-    participant L as Lab Tech
-    participant P as Patient
-
-    D->>Lab System: Order test (type, patient)
-    Lab System-->>L: Test appears as Ordered
-    L->>Lab System: Start processing → In Progress
-    L->>Lab System: Enter results → Completed
-    Lab System-->>P: Results visible in Patient Portal
-    Lab System-->>D: Results linked to Patient Report
-```
-
----
-
-## 🛠️ Tech Stack
-
-```mermaid
-graph TD
-    subgraph Frontend["Frontend"]
-        R["Razor Views MVC"]
-        B5["Bootstrap 5"]
-        FA["Font Awesome 6"]
-        CSS["Custom CSS Design System\nDM Sans · DM Serif Display"]
+    subgraph Services["Service Layer — real-time queries"]
+        IAppt[IAppointmentService]
+        IBill[IBillService]
+        ILab[ILabService]
+        IMed[IMedicineService]
+        IPay[IPayrollService]
+        IReport[IPatientReportService]
     end
 
-    subgraph Backend["Backend"]
-        ASPNET["ASP.NET Core 8"]
-        EF["Entity Framework Core 8"]
-        ID["ASP.NET Identity"]
-        JWT["JWT Bearer Auth"]
-        SL["Serilog Logging\nConsole + Rolling File"]
+    Services -->|LINQ aggregation\nin-memory| Controllers
+
+    subgraph Controllers["HomeControllers — per role"]
+        CA[Admin HomeController\nKPIs · Appointment trend\nBill status · Revenue]
+        CD[Doctor HomeController\nToday count · 6-month trend\nStatus doughnut · Upcoming]
+        CN[Nurse HomeController\nAppointment status bar chart]
+        CL[LabTech HomeController\nTest status doughnut]
+        CP[Pharmacist HomeController\nMedicine-type bar chart]
+        CR[Receptionist HomeController\nAppointment status doughnut]
+        CAc[Accountant HomeController\nRevenue trend · Bill status]
+        CPat[Patient HomeController\nPersonal KPIs · Recent activity]
     end
 
-    subgraph Libraries["Libraries"]
-        QP["QuestPDF — PDF Reports"]
-        CX["ClosedXML — Excel Reports"]
-        MK["MailKit — SMTP Email"]
-        SSH["SSH.NET — SFTP"]
-        CSV["CsvHelper — CSV Export"]
+    Controllers -->|JsonSerializer.Serialize\nViewBag JSON arrays| Views
+
+    subgraph Views["Razor Views — Chart.js"]
+        direction LR
+        LineChart[Line Chart\nTrend over 6 months]
+        BarChart[Bar Chart\nStatus or type counts]
+        DoughnutChart[Doughnut Chart\nStatus breakdown]
+        HBarChart[Horizontal Bar\nComparison]
+        KPI[KPI Stat Cards\nStat + Icon + Link]
+        Feed[Activity Feed\nRecent records]
+        QuickAct[Quick Actions Grid\n8 shortcuts per role]
     end
 
-    subgraph Storage["Storage"]
-        MSSQL["SQL Server / LocalDB"]
-        FS["File System Logs"]
-    end
-
-    Frontend --> Backend
-    Backend --> Libraries
-    Backend --> Storage
+    Views --> Browser[🌐 Chart.js 4.4 renders\nin the browser]
 ```
 
 ---
 
-## 🚀 Quick Start
-
-### Prerequisites
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8)
-- SQL Server or SQL Server LocalDB _(included with Visual Studio)_
-
-### 1. Clone
-```bash
-git clone https://github.com/YOUR_USERNAME/EnterpriseHospitalManagementSystem.git
-cd EnterpriseHospitalManagementSystem
-```
-
-### 2. Configure
-```bash
-cd EnterpriseHospitalManagement
-cp appsettings.example.json appsettings.json
-# Open appsettings.json and set your connection string and JWT secret
-```
-
-### 3. Run
-```bash
-dotnet run
-# App starts at https://localhost:5001
-```
-
-> The database is **created and seeded automatically** on first run — no manual migrations needed.
-
-### 4. Login with Demo Accounts
-
-The login page has a **click-to-fill credentials panel** — just click any role to auto-fill.
-
-| Role | Email | Password |
-|---|---|---|
-| 🛡️ Admin | admin@hospital.com | Admin@123 |
-| 🩺 Doctor | doctor@hospital.com | Doctor@123 |
-| 💉 Nurse | nurse@hospital.com | Nurse@123 |
-| 🏥 Patient | patient@hospital.com | Patient@123 |
-| 🔬 Lab Tech | labtech@hospital.com | LabTech@123 |
-| 💊 Pharmacist | pharmacist@hospital.com | Pharmacist@123 |
-| 📋 Receptionist | receptionist@hospital.com | Receptionist@123 |
-| 💰 Accountant | accountant@hospital.com | Accountant@123 |
-
----
-
-## 🌐 REST API
-
-JWT-authenticated endpoints for system integrations and mobile clients.
-
-### Get a Token
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "admin@hospital.com",
-  "password": "Admin@123"
-}
-```
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "expiration": "2024-01-01T13:00:00Z"
-}
-```
-
-### Authenticated Request
-```http
-GET /api/...
-Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
-```
-
-Token validity: **60 minutes**
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 EnterpriseHospitalManagementSystem/
-├── EnterpriseHospitalManagement/          # Single deployable ASP.NET Core project
-│   ├── Hospital.Models/                   # EF Core domain models + enums
-│   ├── Hospital.ViewModels/               # DTOs and form view models
-│   ├── Hospital.Repositories/             # Generic repository + Unit of Work
-│   ├── Hospital.Services/                 # Business logic layer + interfaces
-│   ├── Hospital.Utilities/                # DbInitializer, WebSiteRoles, JWT helper
-│   ├── Hospital.Web/
-│   │   ├── Areas/
-│   │   │   ├── Admin/                     # Full system admin
-│   │   │   ├── Doctor/                    # Clinical workflows
-│   │   │   ├── Patient/                   # Patient self-service portal
-│   │   │   ├── Nurse/                     # Appointment monitoring
-│   │   │   ├── LabTech/                   # Lab test processing
-│   │   │   ├── Pharmacist/                # Pharmacy management
-│   │   │   ├── Receptionist/              # Front-desk scheduling
-│   │   │   └── Accountant/                # Finance and payroll
-│   │   └── Views/
-│   │       ├── Auth/                      # Login + Register
-│   │       ├── Home/                      # Public landing page
-│   │       └── Shared/_Layout.cshtml      # Master layout (8 role sidebars)
-│   ├── Migrations/                        # EF Core migration history
-│   ├── wwwroot/css/site.css               # Design system (variables, components)
-│   ├── Program.cs                         # DI, middleware, routing config
-│   └── appsettings.example.json           # Config template (safe to commit)
-└── README.md
+│
+├── EnterpriseHospitalManagement.sln
+│
+└── EnterpriseHospitalManagement/
+    │
+    ├── Hospital.Models/                 # Domain layer
+    │   ├── ApplicationUser.cs           # Extended Identity user
+    │   ├── Appointment.cs
+    │   ├── Bill.cs
+    │   ├── Lab.cs
+    │   ├── Medicine.cs
+    │   ├── PatientDocument.cs
+    │   ├── PatientReport.cs
+    │   ├── Payroll.cs
+    │   ├── Room.cs
+    │   ├── Supplier.cs
+    │   └── Enums/
+    │       ├── AppointmentStatus.cs     # Scheduled|Confirmed|InProgress|Completed|Cancelled|NoShow
+    │       ├── BillStatus.cs            # Pending|PartiallyPaid|Paid|Overdue|Cancelled
+    │       ├── DocumentType.cs          # LabReport|Prescription|Insurance|XRay|...
+    │       ├── LabTestStatus.cs
+    │       ├── PayrollStatus.cs
+    │       └── Gender.cs
+    │
+    ├── Hospital.ViewModels/             # DTO layer
+    │   ├── AppointmentViewModel.cs
+    │   ├── BillViewModel.cs
+    │   ├── DocumentViewModel.cs
+    │   └── ...
+    │
+    ├── Hospital.Repositories/           # Data access layer
+    │   ├── ApplicationDbContext.cs      # EF Core DbContext + Identity
+    │   ├── IGenericRepository.cs
+    │   ├── GenericRepository.cs
+    │   ├── IUnitOfWork.cs
+    │   └── UnitOfWork.cs
+    │
+    ├── Hospital.Services/               # Business logic layer
+    │   ├── Interfaces/
+    │   │   ├── IAppointmentService.cs
+    │   │   ├── IBillService.cs
+    │   │   └── ...                      # Interface per entity
+    │   ├── AppointmentService.cs
+    │   ├── BillService.cs
+    │   └── ...                          # Implementation per entity
+    │
+    ├── Hospital.Utilities/              # Cross-cutting concerns
+    │   ├── WebSiteRoles.cs              # Role string constants
+    │   ├── JwtService.cs
+    │   ├── ImageOperations.cs
+    │   ├── EmailSender.cs
+    │   └── TwilioSmsService.cs
+    │
+    └── Hospital.Web/                    # Presentation layer
+        ├── Program.cs                   # DI wiring, middleware, seeding
+        ├── appsettings.json             # Dev config (safe placeholders only)
+        │
+        ├── Areas/
+        │   ├── Admin/
+        │   │   ├── Controllers/         # 15 controllers
+        │   │   └── Views/               # Create/Edit/Index per entity
+        │   ├── Doctor/
+        │   │   ├── Controllers/         # HomeController + Appointments + Patients + Doctors
+        │   │   └── Views/
+        │   ├── Patient/
+        │   ├── Nurse/
+        │   ├── LabTech/
+        │   ├── Pharmacist/
+        │   ├── Receptionist/
+        │   └── Accountant/
+        │
+        ├── Controllers/
+        │   ├── AuthController.cs        # Login/Register/Logout
+        │   ├── HomeController.cs        # Landing + error pages
+        │   └── ProfileController.cs     # Edit profile + change password
+        │
+        └── Views/
+            ├── Shared/
+            │   ├── _Layout.cshtml       # Main layout — topbar, sidebar, alerts, modals
+            │   └── _Pagination.cshtml   # Reusable pagination partial
+            ├── Auth/                    # Login, Register, AccessDenied
+            ├── Home/                    # Landing, Error, StatusCode
+            └── Profile/                 # Index, Edit, ChangePassword
 ```
 
 ---
 
-## 🔒 Security
+## Technology Stack
 
-| Concern | Implementation |
-|---|---|
-| Authentication | Cookie (browser) + JWT Bearer (API) |
-| Session length | 8-hour sliding cookie |
-| API tokens | 60-minute JWT, HS256 |
-| Authorisation | `[Authorize(Roles = "...")]` on every controller |
-| CSRF | Anti-forgery tokens on all POST forms |
-| Input validation | Model-level `[Required]`, `[EmailAddress]`, `[Range]` |
-| Secrets | `appsettings.json` gitignored — use `appsettings.example.json` |
-
----
-
-## 📤 Reporting
-
-| Report | Formats | Who |
+| Category | Technology | Version |
 |---|---|---|
-| Hospitals list | PDF · Excel | Admin |
-| Rooms list | PDF · Excel | Admin |
-| Doctor schedules | PDF · Excel | Doctor |
-
-Generated server-side via **QuestPDF** (PDF) and **ClosedXML** (Excel), streamed as file downloads — no client-side dependencies.
+| Runtime | .NET | 8.0 |
+| Web Framework | ASP.NET Core MVC | 8.0 |
+| ORM | Entity Framework Core | 8.0 |
+| Database | Microsoft SQL Server / LocalDB | 2019+ |
+| Authentication | ASP.NET Identity | 8.0 |
+| API Auth | JWT Bearer | — |
+| CSS Framework | Custom CSS Design System | — |
+| JS Charts | Chart.js | 4.4.0 |
+| Icons | Font Awesome | 6.4.0 |
+| Typography | DM Sans + DM Serif Display | Google Fonts |
+| Bootstrap | Bootstrap | 5.x (utilities only) |
+| Logging | Serilog | — |
+| SMS | Twilio | — |
+| File Transfers | SFTP | — |
+| Export | iTextSharp (PDF) + EPPlus (Excel) | — |
 
 ---
 
-## ⚙️ Configuration Reference
+## Prerequisites
 
-```jsonc
-// Copy appsettings.example.json → appsettings.json
+| Requirement | Minimum Version |
+|---|---|
+| .NET SDK | 8.0 |
+| SQL Server | 2019 LocalDB (bundled with VS) **or** SQL Server Developer / Express |
+| Visual Studio | 2022 (17.8+) **or** VS Code + C# DevKit |
+| Git | Any recent version |
+
+---
+
+## Quick Start
+
+### 1. Clone
+
+```bash
+git clone https://github.com/your-org/EnterpriseHospitalManagementSystem.git
+cd EnterpriseHospitalManagementSystem
+```
+
+### 2. Configure connection string
+
+Edit `EnterpriseHospitalManagement/appsettings.json`:
+
+```json
 {
   "ConnectionStrings": {
-    // LocalDB (default) or full SQL Server
-    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=HospitalDB;Trusted_Connection=True"
+    "DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=HospitalDB;Trusted_Connection=True;MultipleActiveResultSets=true"
   },
   "Jwt": {
-    // Minimum 32 characters — use a random secret in production
-    "Key": "YOUR_SECRET_KEY_MIN_32_CHARS",
+    "Key": "REPLACE_WITH_MIN_32_CHAR_SECRET_KEY_IN_PROD",
     "Issuer": "EnterpriseHospitalManagement",
     "Audience": "EnterpriseHospitalManagement"
   }
 }
 ```
 
+> For SQL Server Express: `Server=.\\SQLEXPRESS;Database=HospitalDB;Trusted_Connection=True;`
+
+### 3. Restore and run
+
+```bash
+cd EnterpriseHospitalManagement
+dotnet restore
+dotnet run --project Hospital.Web
+```
+
+The app auto-creates the database and seeds all roles + demo users on first run. Navigate to `https://localhost:7xxx` (port shown in terminal).
+
+### 4. Login
+
+Use any of the seeded credentials from the [table above](#live-demo--credentials).
+
 ---
 
-## License
+## Configuration Reference
 
-MIT — free to use, modify, and distribute.
+```mermaid
+graph LR
+    subgraph appsettings.json["appsettings.json (safe defaults — committed)"]
+        CS[ConnectionStrings\nDefaultConnection]
+        JWT[Jwt\nKey · Issuer · Audience]
+        LOG[Logging\nLogLevel defaults]
+    end
+
+    subgraph appsettings.Production.json["appsettings.Production.json (🔒 NOT committed)"]
+        PCS[Production connection string]
+        PJWT[Real JWT secret key]
+        TWILIO[Twilio AccountSid\nAuthToken · FromPhone]
+        EMAIL[SMTP Host\nUsername · Password]
+    end
+
+    subgraph EnvVars["Environment Variables (recommended for prod)"]
+        E1["ConnectionStrings__DefaultConnection"]
+        E2["Jwt__Key"]
+        E3["Twilio__AccountSid"]
+        E4["Twilio__AuthToken"]
+        E5["Email__SmtpPassword"]
+    end
+```
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `ConnectionStrings__DefaultConnection` | Database connection | `Server=prod-sql;Database=HospitalDB;...` |
+| `Jwt__Key` | JWT signing secret (min 32 chars) | Use a strong random string |
+| `Jwt__Issuer` | JWT issuer claim | `EnterpriseHospitalManagement` |
+| `Jwt__Audience` | JWT audience claim | `EnterpriseHospitalManagement` |
+| `Twilio__AccountSid` | Twilio Account SID | `ACxxxxxxxxxxxxxxx` |
+| `Twilio__AuthToken` | Twilio Auth Token | Never commit |
+| `Twilio__FromPhone` | SMS sender number | `+1XXXXXXXXXX` |
+| `Email__SmtpHost` | SMTP server | `smtp.gmail.com` |
+| `Email__SmtpPort` | SMTP port | `587` |
+| `Email__Username` | SMTP username | `your@email.com` |
+| `Email__Password` | SMTP password | Never commit |
+| `ASPNETCORE_ENVIRONMENT` | Runtime environment | `Development` / `Production` |
 
 ---
 
-<div align="center">
-Built with ❤️ using ASP.NET Core 8 · Entity Framework Core · Bootstrap 5
-</div>
+## Security Practices
+
+```mermaid
+flowchart TD
+    A[User Request] --> B{Authenticated?}
+    B -- No --> C[Redirect to /Auth/Login]
+    B -- Yes --> D{Correct Role?}
+    D -- No --> E[Redirect to /Auth/AccessDenied\n403 page]
+    D -- Yes --> F[Execute Action]
+
+    F --> G{Sensitive Operation?}
+    G -- Delete --> H[Delete Confirm Modal\nCSRF Token validated]
+    G -- Password Change --> I[Current password required\nSignIn refreshed after change]
+    G -- File Upload --> J[Content-type checked\n20MB limit enforced]
+    G -- Other --> K[AntiForgery token on\nall POST forms]
+```
+
+**Key security measures implemented:**
+
+- **RBAC**: Every controller action decorated with `[Authorize(Roles = "Website_{Role}")]`
+- **CSRF protection**: `@Html.AntiForgeryToken()` on every POST form
+- **Input validation**: `[Required]`, `[MaxLength]`, `ModelState.IsValid` checks
+- **Scoped data access**: Doctors only see their own appointments; patients only see their own records
+- **No secrets in source**: `appsettings.Production.json` gitignored; placeholder values committed
+- **Status code pages**: Custom 404/403/500 error pages via `UseStatusCodePagesWithReExecute`
+- **Password policy**: ASP.NET Identity with minimum length + digit requirement
+
+---
+
+## Contributing
+
+```mermaid
+gitGraph
+    commit id: "main"
+    branch feature/your-feature
+    checkout feature/your-feature
+    commit id: "Add feature"
+    commit id: "Add tests"
+    checkout main
+    merge feature/your-feature id: "PR merged"
+```
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Make changes, ensure `dotnet build` succeeds with 0 errors
+4. Commit: `git commit -m "feat: add my feature"`
+5. Push: `git push origin feature/my-feature`
+6. Open a Pull Request against `main`
+
+**Commit conventions:** `feat:` · `fix:` · `chore:` · `docs:` · `refactor:`
+
+---
+
+## License & Contact
+
+**License:** MIT — see [LICENSE](LICENSE)
+
+**Maintainer:** Regved Patil
+- 📍 Kondhali, Nagpur, Maharashtra, India
+- ✉️ [regregd@outlook.com](mailto:regregd@outlook.com)
+- 🏥 *Built for enterprise hospital deployments across India and beyond*

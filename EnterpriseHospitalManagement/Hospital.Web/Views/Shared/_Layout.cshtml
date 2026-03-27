@@ -489,13 +489,43 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Sidebar toggle (mobile)
+  // ── Sidebar: smooth collapse on desktop, slide-in on mobile ──────────────
+  (function initSidebar() {
+    const sidebar   = document.getElementById('sidebar');
+    const wrapper   = document.getElementById('pageWrapper');
+    if (!sidebar) return;
+    // Restore collapsed state without animation on first paint
+    if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') {
+      sidebar.classList.add('collapsed');
+      wrapper && wrapper.classList.add('sidebar-collapsed');
+    }
+  })();
+
   function toggleSidebar() {
-    document.getElementById('sidebar')?.classList.toggle('sidebar-open');
-    document.getElementById('pageWrapper')?.classList.toggle('sidebar-mobile-open');
+    const sidebar = document.getElementById('sidebar');
+    const wrapper = document.getElementById('pageWrapper');
+    if (!sidebar) return;
+    if (window.innerWidth <= 768) {
+      sidebar.classList.toggle('sidebar-open');
+    } else {
+      const collapsed = sidebar.classList.toggle('collapsed');
+      wrapper && wrapper.classList.toggle('sidebar-collapsed', collapsed);
+      localStorage.setItem('sidebarCollapsed', collapsed);
+    }
   }
 
-  // Dropdown toggle
+  // Close mobile sidebar on outside click
+  document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const toggle  = document.getElementById('sidebarToggle');
+    if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('sidebar-open')) {
+      if (!sidebar.contains(e.target) && e.target !== toggle && !toggle.contains(e.target)) {
+        sidebar.classList.remove('sidebar-open');
+      }
+    }
+  });
+
+  // ── Dropdown toggle ───────────────────────────────────────────────────────
   function toggleDropdown() {
     document.getElementById('dropdownMenu').classList.toggle('show');
   }
@@ -504,7 +534,7 @@
     if (d && !d.contains(e.target)) document.getElementById('dropdownMenu')?.classList.remove('show');
   });
 
-  // Delete modal
+  // ── Delete modal ──────────────────────────────────────────────────────────
   let _deleteForm = null;
   function confirmDelete(formId) {
     _deleteForm = document.getElementById(formId);
@@ -521,7 +551,7 @@
     if (e.target === this) closeDeleteModal();
   });
 
-  // Auto-dismiss alerts after 5s
+  // ── Auto-dismiss alerts after 5s ──────────────────────────────────────────
   setTimeout(() => {
     document.querySelectorAll('.alert').forEach(a => {
       a.style.transition = 'opacity .4s'; a.style.opacity = '0';
@@ -529,7 +559,7 @@
     });
   }, 5000);
 
-  // Table search
+  // ── Table search ──────────────────────────────────────────────────────────
   function filterTable(inputId, tableId) {
     const q = document.getElementById(inputId).value.toLowerCase();
     document.querySelectorAll('#' + tableId + ' tbody tr').forEach(row => {
