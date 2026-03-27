@@ -9,6 +9,17 @@
   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   @await RenderSectionAsync("Styles", required: false)
+  <!-- Sidebar pre-init: prevents expand/collapse flash on page load -->
+  <script>
+  (function(){
+    var s=document.createElement('style');s.id='sb-pre';
+    var col=localStorage.getItem('sidebarCollapsed')==='true'&&window.innerWidth>768;
+    if(col){s.textContent='#sidebar{width:60px!important;min-width:60px!important;overflow:hidden!important;transition:none!important}#sidebar .sidebar-label,#sidebar .sl-text,#sidebar .badge-count{display:none!important}#sidebar .sidebar-link{justify-content:center!important;padding:.6rem 0!important}#sidebar .sidebar-link i{margin:0!important}';}
+    else{s.textContent='#sidebar{transition:none!important}';}
+    document.head.appendChild(s);
+    window.addEventListener('DOMContentLoaded',function(){setTimeout(function(){var e=document.getElementById('sb-pre');if(e)e.remove();},60);});
+  })();
+  </script>
 </head>
 <body>
 
@@ -489,12 +500,11 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // ── Sidebar: smooth collapse on desktop, slide-in on mobile ──────────────
+  // ── Sidebar: restore state after pre-init removes no-transition style ─────
   (function initSidebar() {
-    const sidebar   = document.getElementById('sidebar');
-    const wrapper   = document.getElementById('pageWrapper');
+    const sidebar = document.getElementById('sidebar');
+    const wrapper = document.getElementById('pageWrapper');
     if (!sidebar) return;
-    // Restore collapsed state without animation on first paint
     if (window.innerWidth > 768 && localStorage.getItem('sidebarCollapsed') === 'true') {
       sidebar.classList.add('collapsed');
       wrapper && wrapper.classList.add('sidebar-collapsed');

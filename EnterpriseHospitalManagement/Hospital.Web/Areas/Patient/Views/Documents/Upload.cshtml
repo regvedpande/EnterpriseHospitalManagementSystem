@@ -1,36 +1,157 @@
 @{ ViewData["Title"] = "Upload Document"; ViewData["ShowSidebar"] = true; }
+
 <div class="page-header">
-  <div><div class="page-title">Upload Document</div></div>
-  <a asp-action="Index" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> Back to Documents</a>
+  <div>
+    <div class="page-title">Upload Document</div>
+    <div class="page-subtitle">Securely attach medical files to your health record</div>
+  </div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Documents</a>
 </div>
-<div class="form-card" style="max-width:640px;margin:0 auto;">
-  <form asp-action="Upload" method="post" enctype="multipart/form-data">
-    <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid?"none":"flex")"></div>
 
-    <div class="form-group">
-      <label class="form-label">Document Type</label>
-      <select name="documentType" class="form-control">
-        @foreach (var t in (string[])ViewBag.DocumentTypes)
-        {
-          <option value="@t">@t</option>
-        }
-      </select>
+<div style="max-width:640px;">
+  <div class="card">
+    <div class="card-header" style="background:var(--nav-bg);color:#fff;border-radius:calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;">
+      <span style="font-weight:600;font-size:.95rem;display:flex;align-items:center;gap:.5rem;">
+        <i class="fas fa-file-upload" style="color:var(--accent);"></i> New Document Upload
+      </span>
     </div>
+    <div class="card-body">
+      <form asp-action="Upload" method="post" enctype="multipart/form-data" id="uploadForm">
+        <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid?"none":"flex")"></div>
 
-    <div class="form-group">
-      <label class="form-label">File <span class="text-danger">*</span></label>
-      <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv" required/>
-      <small class="form-text text-muted">Accepted: PDF, Word, Images, Excel, CSV — Max 20 MB</small>
-    </div>
+        <div class="form-group">
+          <label class="form-label">Document Type</label>
+          <select name="documentType" class="form-control" id="docType">
+            @foreach (var t in (string[])ViewBag.DocumentTypes)
+            {
+              <option value="@t">@t</option>
+            }
+          </select>
+        </div>
 
-    <div class="form-group">
-      <label class="form-label">Description <span style="color:var(--text-muted)">(optional)</span></label>
-      <textarea name="description" class="form-control" rows="3" placeholder="e.g. Blood test results from Dr. Smith, January 2025"></textarea>
-    </div>
+        <!-- Drag & Drop Zone -->
+        <div class="form-group">
+          <label class="form-label">File <span class="text-danger">*</span></label>
+          <div class="drop-zone" id="dropZone">
+            <input type="file" name="file" id="fileInput" class="drop-zone-input"
+                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.csv" required />
+            <div class="drop-zone-content" id="dropContent">
+              <div class="drop-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+              <div class="drop-title">Drag & drop your file here</div>
+              <div class="drop-sub">or <label for="fileInput" class="drop-browse">browse files</label></div>
+              <div class="drop-types">PDF · Word · Images · Excel · CSV — Max 20 MB</div>
+            </div>
+            <div class="drop-zone-preview" id="filePreview" style="display:none;">
+              <div class="preview-icon" id="previewIcon"><i class="fas fa-file"></i></div>
+              <div class="preview-info">
+                <div class="preview-name" id="fileName"></div>
+                <div class="preview-size" id="fileSize"></div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="clearFile()">
+                <i class="fas fa-times"></i> Remove
+              </button>
+            </div>
+          </div>
+        </div>
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Document</button>
-      <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        <div class="form-group">
+          <label class="form-label">Description <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+          <textarea name="description" class="form-control" rows="3"
+                    placeholder="e.g. Blood test results from Dr. Smith, January 2025"></textarea>
+        </div>
+
+        <div class="form-actions" style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+          <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+            <i class="fas fa-upload"></i> Upload Document
+          </button>
+          <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 </div>
+
+@section Styles {
+<style>
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  background: var(--surface); transition: border-color .2s, background .2s;
+  position: relative; overflow: hidden; min-height: 140px;
+  display: flex; align-items: center; justify-content: center;
+}
+.drop-zone.drag-over { border-color: var(--primary); background: #eff6ff; }
+.drop-zone-input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; z-index: 2;
+}
+.drop-zone-content { text-align: center; padding: 1.75rem 1rem; pointer-events: none; }
+.drop-icon { font-size: 2.25rem; color: var(--primary); opacity: .6; margin-bottom: .5rem; }
+.drop-title { font-size: .95rem; font-weight: 600; color: var(--text); }
+.drop-sub { font-size: .85rem; color: var(--text-muted); margin-top: .25rem; }
+.drop-browse { color: var(--primary); font-weight: 600; cursor: pointer; pointer-events: all; }
+.drop-browse:hover { text-decoration: underline; }
+.drop-types { font-size: .75rem; color: var(--text-muted); margin-top: .5rem; }
+.drop-zone-preview {
+  display: flex; align-items: center; gap: 1rem; padding: 1rem 1.25rem;
+  width: 100%; z-index: 3; position: relative;
+}
+.preview-icon { font-size: 2.25rem; color: var(--primary); flex-shrink: 0; }
+.preview-info { flex: 1; min-width: 0; }
+.preview-name { font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preview-size { font-size: .78rem; color: var(--text-muted); margin-top: .15rem; }
+</style>
+}
+
+@section Scripts {
+<script>
+const dropZone  = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const dropContent = document.getElementById('dropContent');
+const filePreview = document.getElementById('filePreview');
+const submitBtn = document.getElementById('submitBtn');
+
+const iconMap = {
+  pdf:  'fa-file-pdf',   doc: 'fa-file-word',   docx: 'fa-file-word',
+  jpg:  'fa-file-image', jpeg:'fa-file-image',   png:  'fa-file-image',
+  xlsx: 'fa-file-excel', csv: 'fa-file-csv',     default: 'fa-file'
+};
+
+function formatBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+
+function showFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const icon = iconMap[ext] || iconMap.default;
+  document.getElementById('previewIcon').innerHTML = '<i class="fas ' + icon + '"></i>';
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = formatBytes(file.size);
+  dropContent.style.display = 'none';
+  filePreview.style.display  = 'flex';
+  submitBtn.disabled = false;
+}
+
+function clearFile() {
+  fileInput.value = '';
+  dropContent.style.display = '';
+  filePreview.style.display  = 'none';
+  submitBtn.disabled = true;
+}
+
+fileInput.addEventListener('change', function() {
+  if (this.files[0]) showFile(this.files[0]);
+});
+
+dropZone.addEventListener('dragover',  function(e){ e.preventDefault(); this.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', function()  { this.classList.remove('drag-over'); });
+dropZone.addEventListener('drop', function(e) {
+  e.preventDefault(); this.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (!f) return;
+  const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files;
+  showFile(f);
+});
+</script>
+}
