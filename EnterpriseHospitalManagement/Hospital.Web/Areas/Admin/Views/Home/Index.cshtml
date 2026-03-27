@@ -91,30 +91,38 @@
 </div>
 
 <!-- ── Revenue Insight Cards ──────────────────────────────────────────── -->
-<div class="insight-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-top:1.5rem;margin-bottom:1.5rem;">
-  <div class="insight-card">
-    <div class="ins-label">Revenue Collected</div>
-    <div class="ins-value" style="color:var(--success);">$@totalRevenue.ToString("N0")</div>
-    <div class="ins-sub">From @paidBills paid bills</div>
-    <div class="ins-trend up"><i class="fas fa-arrow-up"></i> Paid</div>
+<div class="row g-3 mt-2 mb-4">
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="insight-card h-100">
+      <div class="ins-label">Revenue Collected</div>
+      <div class="ins-value" style="color:var(--success);">$@totalRevenue.ToString("N0")</div>
+      <div class="ins-sub">From @paidBills paid bills</div>
+      <div class="ins-trend up"><i class="fas fa-arrow-up"></i> Paid</div>
+    </div>
   </div>
-  <div class="insight-card">
-    <div class="ins-label">Pending Revenue</div>
-    <div class="ins-value" style="color:var(--warning);">$@pendingAmount.ToString("N0")</div>
-    <div class="ins-sub">@pendingBills pending bills</div>
-    <div class="ins-trend down"><i class="fas fa-clock"></i> Awaiting</div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="insight-card h-100">
+      <div class="ins-label">Pending Revenue</div>
+      <div class="ins-value" style="color:var(--warning);">$@pendingAmount.ToString("N0")</div>
+      <div class="ins-sub">@pendingBills pending bills</div>
+      <div class="ins-trend down"><i class="fas fa-clock"></i> Awaiting</div>
+    </div>
   </div>
-  <div class="insight-card">
-    <div class="ins-label">Overdue Bills</div>
-    <div class="ins-value" style="color:var(--danger);">@overdueBills</div>
-    <div class="ins-sub">Require immediate action</div>
-    <div class="ins-trend down"><i class="fas fa-exclamation-triangle"></i> Urgent</div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="insight-card h-100">
+      <div class="ins-label">Overdue Bills</div>
+      <div class="ins-value" style="color:var(--danger);">@overdueBills</div>
+      <div class="ins-sub">Require immediate action</div>
+      <div class="ins-trend down"><i class="fas fa-exclamation-triangle"></i> Urgent</div>
+    </div>
   </div>
-  <div class="insight-card">
-    <div class="ins-label">Total Staff</div>
-    <div class="ins-value" style="color:var(--primary);">@staffCount</div>
-    <div class="ins-sub">All roles combined</div>
-    <div class="ins-trend up"><i class="fas fa-users"></i> Active</div>
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="insight-card h-100">
+      <div class="ins-label">Total Staff</div>
+      <div class="ins-value" style="color:var(--primary);">@staffCount</div>
+      <div class="ins-sub">All roles combined</div>
+      <div class="ins-trend up"><i class="fas fa-users"></i> Active</div>
+    </div>
   </div>
 </div>
 
@@ -126,7 +134,7 @@
       <span class="badge badge-info">Last 6 Months</span>
     </div>
     <div class="chart-card-body">
-      <canvas id="apptTrendChart" height="90"></canvas>
+      <div style="position:relative;height:220px;"><canvas id="apptTrendChart"></canvas></div>
     </div>
   </div>
   <div class="chart-card">
@@ -134,7 +142,7 @@
       <span class="chart-card-title"><i class="fas fa-chart-pie" style="color:var(--accent);margin-right:.4rem;"></i>Bill Status</span>
     </div>
     <div class="chart-card-body">
-      <canvas id="billStatusChart" height="160"></canvas>
+      <div style="position:relative;height:220px;"><canvas id="billStatusChart"></canvas></div>
     </div>
   </div>
 </div>
@@ -146,7 +154,7 @@
       <span class="chart-card-title"><i class="fas fa-chart-donut" style="color:var(--warning);margin-right:.4rem;"></i>Appointment Status Breakdown</span>
     </div>
     <div class="chart-card-body">
-      <canvas id="apptStatusChart" height="110"></canvas>
+      <div style="position:relative;height:200px;"><canvas id="apptStatusChart"></canvas></div>
     </div>
   </div>
 
@@ -335,14 +343,14 @@
       datasets: [{
         label: 'Appointments',
         data: apptByMonth,
-        backgroundColor: 'rgba(15,76,129,.75)',
-        borderColor: '#0f4c81',
+        backgroundColor: 'rgba(29,78,216,.75)',
+        borderColor: '#1d4ed8',
         borderWidth: 1,
         borderRadius: 6
       }]
     },
     options: {
-      responsive: true,
+      responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },
@@ -364,7 +372,7 @@
       }]
     },
     options: {
-      responsive: true,
+      responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
       cutout: '62%'
     }
@@ -386,7 +394,7 @@
     },
     options: {
       indexAxis: 'y',
-      responsive: true,
+      responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         x: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 11 } }, grid: { color: '#f1f5f9' } },

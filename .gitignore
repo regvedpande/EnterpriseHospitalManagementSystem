@@ -417,15 +417,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# App secrets — copy appsettings.example.json and fill in your values
-appsettings.json
+# App secrets — appsettings.json is committed with empty keys (safe)
+# appsettings.Development.json / Production.json hold real secrets — never commit
 appsettings.Development.json
-appsettings.Production.json
-
-# Claude worktree metadata
-.claude/
-
-# Production secrets — never commit real credentials
 appsettings.Production.json
 appsettings.Staging.json
 secrets.json
@@ -433,3 +427,6 @@ secrets.json
 *.p12
 .env
 .env.*
+
+# Claude worktree metadata
+.claude/

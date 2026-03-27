@@ -3,8 +3,8 @@
 :root {
   --primary:     #1d4ed8;
   --primary-lt:  #3b82f6;
-  --primary-dk:  #0f1f3d;
-  --nav-bg:      #0f1f3d;
+  --primary-dk:  #0d1b2e;
+  --nav-bg:      #0d1b2e;   /* single source of truth — used by both topbar & sidebar */
   --accent:      #06b6d4;
   --success:     #1a9e5f;
   --warning:     #f59e0b;
@@ -624,4 +624,30 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
   .page-actions { width: 100%; }
   .auth-card { border-radius: 12px; }
   .quick-actions-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── CHART FIX: always honour container height ───────────────────────────── */
+canvas { display: block; max-width: 100%; }
+.chart-card-body { position: relative; }
+
+/* ── TOPBAR / SIDEBAR EXACT COLOUR MATCH ─────────────────────────────────── */
+.topbar, .sidebar { background: var(--nav-bg) !important; }
+
+/* ── h-100 Bootstrap compat ─────────────────────────────────────────────── */
+.h-100 { height: 100% !important; }
+
+/* ── TABLE OVERFLOW PROTECTION ───────────────────────────────────────────── */
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── MOBILE NAV IMPROVEMENTS ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .topbar-brand span { display: inline; }
+  .page-wrapper.with-sidebar { display: block; }
+  .main-content { width: 100%; }
+  .welcome-banner { flex-direction: column; align-items: flex-start; }
+  .auth-split-page { flex-direction: column; }
+  .stats-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 400px) {
+  .stats-grid, .stats-grid-4 { grid-template-columns: 1fr !important; }
 }

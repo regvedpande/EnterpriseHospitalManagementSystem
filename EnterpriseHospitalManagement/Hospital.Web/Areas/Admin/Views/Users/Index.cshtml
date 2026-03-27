@@ -17,9 +17,9 @@
       <input type="text" class="search-input" placeholder="Search users…"
              oninput="filterTable('uSearch','uTable')" id="uSearch"/>
     </div>
-    <span class="text-muted" style="font-size:.8rem;">@Model.Count users</span>
+    <span class="text-muted" style="font-size:.8rem;">@(Model?.Count ?? 0) users</span>
   </div>
-  @if (!Model.Any())
+  @if (!(Model?.Any() ?? false))
   {
     <div class="empty-state"><i class="fas fa-users"></i><h3>No users found</h3></div>
   }

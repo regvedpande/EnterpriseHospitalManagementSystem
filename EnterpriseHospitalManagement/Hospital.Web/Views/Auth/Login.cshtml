@@ -5,94 +5,365 @@
     Layout = "_Layout";
 }
 
-<div class="auth-page">
-  <div style="display:flex; gap:2rem; align-items:flex-start; max-width:860px; width:100%;">
+@section Styles {
+<style>
+.auth-split-page {
+  min-height: calc(100vh - var(--nav-h));
+  display: flex;
+}
+/* Left branding panel */
+.auth-brand-panel {
+  width: 480px;
+  flex-shrink: 0;
+  background: linear-gradient(155deg, #0f172a 0%, #1e3a5f 50%, #0369a1 100%);
+  padding: 3.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.auth-brand-panel::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: rgba(6,182,212,.12);
+}
+.auth-brand-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -60px; left: -60px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: rgba(29,78,216,.15);
+}
+.auth-brand-logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.75rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+.auth-brand-logo i { color: #22d3ee; }
+.auth-brand-tagline {
+  font-size: 1.05rem;
+  color: rgba(255,255,255,.6);
+  margin-top: .35rem;
+  font-weight: 400;
+}
+.auth-brand-heading {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.25rem;
+  color: #fff;
+  line-height: 1.2;
+  margin-bottom: .75rem;
+  position: relative; z-index: 1;
+}
+.auth-brand-heading span { color: #22d3ee; }
+.auth-brand-desc {
+  color: rgba(255,255,255,.65);
+  font-size: .925rem;
+  line-height: 1.65;
+  margin-bottom: 2rem;
+  position: relative; z-index: 1;
+}
+.auth-feature-list {
+  list-style: none;
+  padding: 0; margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  position: relative; z-index: 1;
+}
+.auth-feature-list li {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  color: rgba(255,255,255,.8);
+  font-size: .85rem;
+}
+.auth-feature-list li i {
+  width: 20px; height: 20px;
+  background: rgba(34,211,238,.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #22d3ee;
+  font-size: .65rem;
+  flex-shrink: 0;
+}
+.auth-brand-footer {
+  color: rgba(255,255,255,.35);
+  font-size: .78rem;
+  position: relative; z-index: 1;
+}
+/* Right form panel */
+.auth-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  padding: 2.5rem 2rem;
+}
+.auth-form-inner {
+  width: 100%;
+  max-width: 420px;
+}
+.auth-form-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: .3rem;
+}
+.auth-form-subtitle {
+  color: #64748b;
+  font-size: .9rem;
+  margin-bottom: 2rem;
+}
+.af-label {
+  display: block;
+  font-size: .8rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: .4rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.af-input {
+  width: 100%;
+  padding: .7rem .95rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: .9rem;
+  font-family: inherit;
+  background: #fff;
+  color: #1a202c;
+  transition: border-color .2s, box-shadow .2s;
+}
+.af-input:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+}
+.af-input.is-invalid { border-color: #ef4444; }
+.af-group { margin-bottom: 1.1rem; }
+.af-group .invalid-feedback { color: #ef4444; font-size: .78rem; margin-top: .3rem; }
+.af-input-wrap { position: relative; }
+.af-pw-toggle {
+  position: absolute; right: .8rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: #94a3b8; padding: .25rem;
+  line-height: 1;
+}
+.af-pw-toggle:hover { color: #1d4ed8; }
+.af-submit {
+  width: 100%;
+  padding: .8rem;
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, transform .1s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: 1.25rem;
+}
+.af-submit:hover { background: #1e40af; }
+.af-submit:active { transform: scale(.99); }
+.af-remember {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .875rem;
+  color: #475569;
+  cursor: pointer;
+  margin-top: .75rem;
+}
+.af-remember input[type=checkbox] { accent-color: #1d4ed8; width: 15px; height: 15px; cursor: pointer; }
+.af-divider {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 1.5rem 0;
+  color: #94a3b8;
+  font-size: .78rem;
+}
+.af-divider::before, .af-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e2e8f0;
+}
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .4rem;
+}
+.demo-btn {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .45rem .65rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+  font-size: .75rem;
+  font-family: inherit;
+  transition: all .15s;
+  text-align: left;
+  color: #374151;
+}
+.demo-btn:hover {
+  border-color: #1d4ed8;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.demo-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.demo-role { font-weight: 600; font-size: .72rem; }
+.demo-email { font-size: .68rem; color: #94a3b8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+.af-register-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: .875rem;
+  color: #64748b;
+}
+.af-register-link a {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: none;
+}
+.af-register-link a:hover { text-decoration: underline; }
+@@media (max-width: 900px) {
+  .auth-brand-panel { display: none; }
+}
+@@media (max-width: 480px) {
+  .auth-form-panel { padding: 1.5rem 1rem; }
+  .demo-grid { grid-template-columns: 1fr; }
+}
+</style>
+}
 
-    <!-- Login Card -->
-    <div class="auth-card" style="flex:1; min-width:320px;">
-      <div class="auth-card-header">
-        <div class="logo"><i class="fas fa-hospital-alt"></i> MedCore HMS</div>
-        <p>Sign in to your workspace</p>
-      </div>
-      <div class="auth-card-body">
-        <form asp-action="Login" method="post">
-          <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]"/>
-          <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex")"></div>
+<div class="auth-split-page">
 
-          <div class="form-group">
-            <label class="form-label" asp-for="Email"><i class="fas fa-envelope" style="margin-right:.4rem;opacity:.6;"></i> Email Address</label>
-            <input asp-for="Email" class="form-control" placeholder="you@hospital.com" autocomplete="email"/>
-            <span asp-validation-for="Email" class="invalid-feedback"></span>
-          </div>
-          <div class="form-group">
-            <label class="form-label" asp-for="Password"><i class="fas fa-lock" style="margin-right:.4rem;opacity:.6;"></i> Password</label>
-            <div style="position:relative;">
-              <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="current-password" id="passwordInput"/>
-              <button type="button" onclick="togglePassword()" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);padding:0;">
-                <i class="fas fa-eye" id="eyeIcon"></i>
-              </button>
-            </div>
-            <span asp-validation-for="Password" class="invalid-feedback"></span>
-          </div>
-          <div class="form-group" style="display:flex; align-items:center; gap:.5rem;">
-            <input asp-for="RememberMe" type="checkbox" id="RememberMe" style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary);"/>
-            <label for="RememberMe" style="margin:0; font-size:.875rem; cursor:pointer;">Keep me signed in for 8 hours</label>
-          </div>
-          <button type="submit" class="btn btn-primary w-100 btn-lg" style="margin-top:.75rem;">
-            <i class="fas fa-sign-in-alt"></i> Sign In
-          </button>
-        </form>
-      </div>
-      <div class="auth-card-footer">
-        New patient? <a asp-action="Register">Create an account</a>
-      </div>
+  <!-- Left: Branding -->
+  <div class="auth-brand-panel">
+    <div>
+      <div class="auth-brand-logo"><i class="fas fa-hospital-alt"></i> MedCore HMS</div>
+      <div class="auth-brand-tagline">Enterprise Healthcare Platform</div>
     </div>
+    <div>
+      <h2 class="auth-brand-heading">Built for <span>every role</span> in your hospital</h2>
+      <p class="auth-brand-desc">One unified platform for Admin, Doctors, Nurses, Patients, Lab Technicians, Pharmacists, Receptionists, and Accountants.</p>
+      <ul class="auth-feature-list">
+        <li><i class="fas fa-check"></i> Role-based access control across 8 roles</li>
+        <li><i class="fas fa-check"></i> Real-time dashboards with live analytics</li>
+        <li><i class="fas fa-check"></i> Full billing, payroll &amp; lab management</li>
+        <li><i class="fas fa-check"></i> PDF &amp; Excel exports for all modules</li>
+        <li><i class="fas fa-check"></i> Responsive — works on any device</li>
+      </ul>
+    </div>
+    <div class="auth-brand-footer">&copy; @DateTime.Now.Year MedCore HMS. All rights reserved.</div>
+  </div>
 
-    <!-- Demo Credentials Panel -->
-    <div style="flex:1; min-width:280px; display:flex; flex-direction:column; gap:.75rem;">
-      <div style="background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:1.25rem; color:#fff;">
-        <div style="font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; opacity:.6; margin-bottom:.875rem;">
-          <i class="fas fa-key" style="margin-right:.4rem;"></i> Demo Credentials
+  <!-- Right: Form -->
+  <div class="auth-form-panel">
+    <div class="auth-form-inner">
+
+      <h1 class="auth-form-title">Welcome back</h1>
+      <p class="auth-form-subtitle">Sign in to your workspace to continue</p>
+
+      @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+      {
+        <div class="alert alert-danger" style="margin-bottom:1rem;">
+          <i class="fas fa-exclamation-circle"></i>
+          <div asp-validation-summary="All"></div>
         </div>
+      }
+
+      <form asp-action="Login" method="post" autocomplete="on">
+        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]"/>
+
+        <div class="af-group">
+          <label class="af-label" asp-for="Email">Email Address</label>
+          <input asp-for="Email" class="af-input" placeholder="you@hospital.com" autocomplete="email" id="Email"/>
+          <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
+        </div>
+
+        <div class="af-group">
+          <label class="af-label" asp-for="Password">Password</label>
+          <div class="af-input-wrap">
+            <input asp-for="Password" class="af-input" placeholder="••••••••" autocomplete="current-password" id="Password" style="padding-right:2.5rem;"/>
+            <button type="button" class="af-pw-toggle" onclick="togglePw()" tabindex="-1">
+              <i class="fas fa-eye" id="eyeIco"></i>
+            </button>
+          </div>
+          <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
+        </div>
+
+        <label class="af-remember">
+          <input asp-for="RememberMe" type="checkbox"/>
+          Keep me signed in for 8 hours
+        </label>
+
+        <button type="submit" class="af-submit">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+      </form>
+
+      <div class="af-divider">Quick Demo Access</div>
+
+      <div class="demo-grid">
         @foreach (var c in new[] {
-          new { Role = "Admin",       Email = "admin@hospital.com",       Pass = "Admin@123",        Color = "#60a5fa" },
-          new { Role = "Doctor",      Email = "doctor@hospital.com",      Pass = "Doctor@123",       Color = "#34d399" },
-          new { Role = "Nurse",       Email = "nurse@hospital.com",       Pass = "Nurse@123",        Color = "#c084fc" },
-          new { Role = "Patient",     Email = "patient@hospital.com",     Pass = "Patient@123",      Color = "#67e8f9" },
-          new { Role = "Lab Tech",    Email = "labtech@hospital.com",     Pass = "LabTech@123",      Color = "#fbbf24" },
-          new { Role = "Pharmacist",  Email = "pharmacist@hospital.com",  Pass = "Pharmacist@123",   Color = "#f87171" },
-          new { Role = "Reception",   Email = "receptionist@hospital.com",Pass = "Receptionist@123", Color = "#fb923c" },
-          new { Role = "Accountant",  Email = "accountant@hospital.com",  Pass = "Accountant@123",   Color = "#4ade80" },
+          new { Role="Admin",       Email="admin@hospital.com",       Pass="Admin@123",        Color="#1d4ed8" },
+          new { Role="Doctor",      Email="doctor@hospital.com",      Pass="Doctor@123",       Color="#059669" },
+          new { Role="Nurse",       Email="nurse@hospital.com",       Pass="Nurse@123",        Color="#7c3aed" },
+          new { Role="Patient",     Email="patient@hospital.com",     Pass="Patient@123",      Color="#0e7490" },
+          new { Role="Lab Tech",    Email="labtech@hospital.com",     Pass="LabTech@123",      Color="#d97706" },
+          new { Role="Pharmacist",  Email="pharmacist@hospital.com",  Pass="Pharmacist@123",   Color="#e11d48" },
+          new { Role="Reception",   Email="receptionist@hospital.com",Pass="Receptionist@123", Color="#ea580c" },
+          new { Role="Accountant",  Email="accountant@hospital.com",  Pass="Accountant@123",   Color="#16a34a" },
         })
         {
-          <div class="demo-cred" onclick="fillCredentials('@c.Email','@c.Pass')" title="Click to auto-fill">
-            <span class="demo-role-dot" style="background:@c.Color;"></span>
-            <div style="flex:1; min-width:0;">
-              <div style="font-weight:600; font-size:.8rem; color:@c.Color;">@c.Role</div>
-              <div style="font-size:.75rem; opacity:.65; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@c.Email</div>
+          <button type="button" class="demo-btn" onclick="fillDemo('@c.Email','@c.Pass')" title="Click to fill @c.Role credentials">
+            <span class="demo-dot" style="background:@c.Color;"></span>
+            <div>
+              <div class="demo-role" style="color:@c.Color;">@c.Role</div>
+              <div class="demo-email">@c.Email</div>
             </div>
-            <i class="fas fa-mouse-pointer" style="font-size:.7rem; opacity:.4;"></i>
-          </div>
+          </button>
         }
-        <div style="margin-top:.75rem; padding:.5rem .75rem; background:rgba(255,255,255,.06); border-radius:8px; font-size:.72rem; opacity:.65;">
-          <i class="fas fa-info-circle" style="margin-right:.3rem;"></i> Click any role to auto-fill credentials
-        </div>
       </div>
-    </div>
 
+      <div class="af-register-link">
+        New patient? <a asp-action="Register">Create an account &rarr;</a>
+      </div>
+
+    </div>
   </div>
+
 </div>
 
 @section Scripts {
   <partial name="_ValidationScriptsPartial"/>
   <script>
-    function fillCredentials(email, password) {
+    function fillDemo(email, pass) {
       document.getElementById('Email').value = email;
-      document.getElementById('Password').value = password;
+      document.getElementById('Password').value = pass;
+      document.getElementById('Email').dispatchEvent(new Event('input'));
     }
-    function togglePassword() {
-      const inp = document.getElementById('passwordInput');
-      const ico = document.getElementById('eyeIcon');
+    function togglePw() {
+      const inp = document.getElementById('Password');
+      const ico = document.getElementById('eyeIco');
       if (inp.type === 'password') {
         inp.type = 'text';
         ico.classList.replace('fa-eye', 'fa-eye-slash');
@@ -102,21 +373,4 @@
       }
     }
   </script>
-}
-
-@section Styles {
-<style>
-.demo-cred {
-  display: flex; align-items: center; gap: .75rem;
-  padding: .5rem .75rem; border-radius: 8px; cursor: pointer;
-  transition: background .15s; margin-bottom: .25rem;
-}
-.demo-cred:hover { background: rgba(255,255,255,.08); }
-.demo-role-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-}
-@@media (max-width: 640px) {
-  .auth-page > div { flex-direction: column !important; }
-}
-</style>
 }

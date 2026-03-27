@@ -1,75 +1,240 @@
 @model Hospital.Web.Controllers.RegisterVm
 @using Hospital.Models.Enums
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Create Account";
     ViewData["ShowSidebar"] = false;
     Layout = "_Layout";
 }
 
-<div class="auth-page">
-  <div class="auth-card" style="max-width:520px;">
-    <div class="auth-card-header">
-      <div class="logo"><i class="fas fa-hospital-alt"></i> HMS</div>
-      <p>Create your patient account</p>
-    </div>
-    <div class="auth-card-body">
-      <form asp-action="Register" method="post">
-        <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "flex")"></div>
+@section Styles {
+<style>
+.reg-page {
+  min-height: calc(100vh - var(--nav-h));
+  display: flex;
+  align-items: stretch;
+}
+.reg-left {
+  width: 360px;
+  flex-shrink: 0;
+  background: linear-gradient(155deg, #0f172a 0%, #1e3a5f 55%, #0369a1 100%);
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+.reg-left::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  background: rgba(6,182,212,.1);
+}
+.reg-brand { font-family: 'DM Serif Display',serif; font-size: 1.6rem; color: #fff; display:flex; align-items:center; gap:.5rem; }
+.reg-brand i { color: #22d3ee; }
+.reg-brand-sub { font-size:.85rem; color:rgba(255,255,255,.55); margin-top:.25rem; }
+.reg-left-body { position: relative; z-index: 1; }
+.reg-left-body h2 { font-family:'DM Serif Display',serif; font-size: 1.85rem; color:#fff; margin-bottom:.5rem; line-height:1.25; }
+.reg-left-body h2 em { color:#22d3ee; font-style:normal; }
+.reg-left-body p { color:rgba(255,255,255,.6); font-size:.875rem; line-height:1.6; }
+.reg-step-list { list-style:none; padding:0; margin:1.5rem 0 0; display:flex; flex-direction:column; gap:.6rem; }
+.reg-step-list li { display:flex; align-items:center; gap:.6rem; color:rgba(255,255,255,.75); font-size:.82rem; }
+.reg-step-list li .sn { width:22px; height:22px; background:rgba(34,211,238,.25); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#22d3ee; font-size:.7rem; font-weight:700; flex-shrink:0; }
+.reg-left-foot { color:rgba(255,255,255,.3); font-size:.75rem; position:relative; z-index:1; }
+.reg-right {
+  flex: 1;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 2rem;
+  overflow-y: auto;
+}
+.reg-box {
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 24px rgba(0,0,0,.07);
+  overflow: hidden;
+}
+.reg-box-head {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+}
+.reg-box-head h1 { font-size: 1.3rem; font-weight: 700; color: #0f172a; margin-bottom: .2rem; }
+.reg-box-head p { font-size: .85rem; color: #64748b; }
+.reg-form { padding: 1.75rem 2rem 2rem; }
+.rf-row { display: grid; grid-template-columns: 1fr 1fr; gap: .875rem; }
+.rf-group { margin-bottom: .875rem; }
+.rf-label { display: block; font-size: .78rem; font-weight: 600; color: #374151; margin-bottom: .35rem; text-transform: uppercase; letter-spacing: .04em; }
+.rf-label .opt { color: #94a3b8; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.rf-ctrl {
+  width: 100%;
+  padding: .65rem .9rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  font-size: .875rem;
+  font-family: inherit;
+  background: #fff;
+  color: #1a202c;
+  transition: border-color .18s, box-shadow .18s;
+}
+.rf-ctrl:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(29,78,216,.1);
+}
+.rf-ctrl.is-invalid { border-color: #ef4444; }
+.rf-ctrl + .invalid-feedback { color: #ef4444; font-size: .77rem; margin-top: .25rem; }
+select.rf-ctrl {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .75rem center;
+  padding-right: 2rem;
+}
+.rf-submit {
+  width: 100%;
+  padding: .8rem;
+  background: #059669;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: .5rem;
+}
+.rf-submit:hover { background: #047857; }
+.rf-footer { text-align:center; padding:.875rem 2rem 1.5rem; font-size:.875rem; color:#64748b; border-top:1px solid #f1f5f9; }
+.rf-footer a { color:#1d4ed8; font-weight:600; text-decoration:none; }
+.rf-footer a:hover { text-decoration:underline; }
+@@media (max-width: 860px) {
+  .reg-left { display: none; }
+}
+@@media (max-width: 600px) {
+  .reg-right { padding: 1.5rem 1rem; align-items: flex-start; }
+  .rf-row { grid-template-columns: 1fr; }
+  .reg-box-head, .reg-form, .rf-footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+}
+</style>
+}
 
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" asp-for="Name">Full Name</label>
-            <input asp-for="Name" class="form-control" placeholder="John Smith"/>
-            <span asp-validation-for="Name" class="invalid-feedback"></span>
-          </div>
-          <div class="form-group">
-            <label class="form-label" asp-for="Email">Email</label>
-            <input asp-for="Email" class="form-control" placeholder="you@email.com"/>
-            <span asp-validation-for="Email" class="invalid-feedback"></span>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" asp-for="Password">Password</label>
-            <input asp-for="Password" class="form-control" placeholder="Min 6 characters"/>
-            <span asp-validation-for="Password" class="invalid-feedback"></span>
-          </div>
-          <div class="form-group">
-            <label class="form-label" asp-for="ConfirmPassword">Confirm Password</label>
-            <input asp-for="ConfirmPassword" class="form-control" placeholder="Repeat password"/>
-            <span asp-validation-for="ConfirmPassword" class="invalid-feedback"></span>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" asp-for="Gender">Gender</label>
-            <select asp-for="Gender" class="form-control" asp-items="Html.GetEnumSelectList<Gender>()"></select>
-          </div>
-          <div class="form-group">
-            <label class="form-label" asp-for="DOB">Date of Birth</label>
-            <input asp-for="DOB" type="date" class="form-control"/>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" asp-for="Address">Address <span style="color:var(--text-muted)">(optional)</span></label>
-            <input asp-for="Address" class="form-control" placeholder="Your address"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label" asp-for="PhoneNumber">Phone Number <span style="color:var(--text-muted)">(optional)</span></label>
-            <input asp-for="PhoneNumber" class="form-control" placeholder="+1 555 000 0000"/>
-            <span asp-validation-for="PhoneNumber" class="invalid-feedback"></span>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-success w-100 btn-lg" style="margin-top:.5rem;">
-          <i class="fas fa-user-plus"></i> Create Account
-        </button>
-      </form>
+<div class="reg-page">
+
+  <!-- Left Panel -->
+  <div class="reg-left">
+    <div>
+      <div class="reg-brand"><i class="fas fa-hospital-alt"></i> MedCore HMS</div>
+      <div class="reg-brand-sub">Enterprise Healthcare Platform</div>
     </div>
-    <div class="auth-card-footer">
-      Already have an account? <a asp-action="Login">Sign in</a>
+    <div class="reg-left-body">
+      <h2>Join as a <em>Patient</em> today</h2>
+      <p>Create your account and get instant access to your health records, appointments, lab results, and bills — all in one secure place.</p>
+      <ul class="reg-step-list">
+        <li><span class="sn">1</span> Fill in your personal details</li>
+        <li><span class="sn">2</span> Set a secure password</li>
+        <li><span class="sn">3</span> Instantly access your patient portal</li>
+      </ul>
+    </div>
+    <div class="reg-left-foot">&copy; @DateTime.Now.Year MedCore HMS</div>
+  </div>
+
+  <!-- Right Form -->
+  <div class="reg-right">
+    <div class="reg-box">
+
+      <div class="reg-box-head">
+        <h1>Create Account</h1>
+        <p>Complete the form below to register as a patient</p>
+      </div>
+
+      <div class="reg-form">
+
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+          <div class="alert alert-danger" style="margin-bottom:1rem;">
+            <i class="fas fa-exclamation-circle"></i>
+            <div asp-validation-summary="All"></div>
+          </div>
+        }
+
+        <form asp-action="Register" method="post" autocomplete="on">
+
+          <div class="rf-row">
+            <div class="rf-group">
+              <label class="rf-label" asp-for="Name">Full Name</label>
+              <input asp-for="Name" class="rf-ctrl" placeholder="John Smith" autocomplete="name"/>
+              <span asp-validation-for="Name" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="rf-group">
+              <label class="rf-label" asp-for="Email">Email</label>
+              <input asp-for="Email" class="rf-ctrl" placeholder="you@email.com" autocomplete="email"/>
+              <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
+            </div>
+          </div>
+
+          <div class="rf-row">
+            <div class="rf-group">
+              <label class="rf-label" asp-for="Password">Password</label>
+              <input asp-for="Password" class="rf-ctrl" placeholder="Min. 6 characters" type="password" autocomplete="new-password"/>
+              <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="rf-group">
+              <label class="rf-label" asp-for="ConfirmPassword">Confirm Password</label>
+              <input asp-for="ConfirmPassword" class="rf-ctrl" placeholder="Repeat password" type="password" autocomplete="new-password"/>
+              <span asp-validation-for="ConfirmPassword" class="invalid-feedback d-block"></span>
+            </div>
+          </div>
+
+          <div class="rf-row">
+            <div class="rf-group">
+              <label class="rf-label" asp-for="Gender">Gender</label>
+              <select asp-for="Gender" class="rf-ctrl" asp-items="Html.GetEnumSelectList<Gender>()"></select>
+            </div>
+            <div class="rf-group">
+              <label class="rf-label" asp-for="DOB">Date of Birth</label>
+              <input asp-for="DOB" type="date" class="rf-ctrl"/>
+            </div>
+          </div>
+
+          <div class="rf-row">
+            <div class="rf-group">
+              <label class="rf-label" asp-for="PhoneNumber">Phone <span class="opt">(optional)</span></label>
+              <input asp-for="PhoneNumber" class="rf-ctrl" placeholder="+1 555 000 0000" autocomplete="tel"/>
+              <span asp-validation-for="PhoneNumber" class="invalid-feedback d-block"></span>
+            </div>
+            <div class="rf-group">
+              <label class="rf-label" asp-for="Address">Address <span class="opt">(optional)</span></label>
+              <input asp-for="Address" class="rf-ctrl" placeholder="Your address" autocomplete="street-address"/>
+            </div>
+          </div>
+
+          <button type="submit" class="rf-submit">
+            <i class="fas fa-user-plus"></i> Create My Account
+          </button>
+
+        </form>
+      </div>
+
+      <div class="rf-footer">
+        Already have an account? <a asp-action="Login">Sign in &rarr;</a>
+      </div>
+
     </div>
   </div>
+
 </div>
 
 @section Scripts {
