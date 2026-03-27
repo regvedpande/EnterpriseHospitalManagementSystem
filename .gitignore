@@ -424,3 +424,12 @@ appsettings.Production.json
 
 # Claude worktree metadata
 .claude/
+
+# Production secrets — never commit real credentials
+appsettings.Production.json
+appsettings.Staging.json
+secrets.json
+*.pfx
+*.p12
+.env
+.env.*
