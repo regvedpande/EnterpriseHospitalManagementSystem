@@ -1,0 +1,37 @@
+@{
+    int code = (int)(ViewBag.StatusCode ?? 0);
+    string title = code == 404 ? "Page Not Found"
+                 : code == 403 ? "Access Denied"
+                 : code == 500 ? "Server Error"
+                 : "Error " + code;
+    string msg = code == 404 ? "The page you're looking for doesn't exist or has been moved."
+               : code == 403 ? "You don't have permission to access this resource."
+               : code == 500 ? "Something went wrong on our end. Please try again later."
+               : "An unexpected error occurred.";
+    string icon = code == 404 ? "fas fa-map-signs"
+                : code == 403 ? "fas fa-lock"
+                : "fas fa-exclamation-triangle";
+    ViewData["Title"] = title;
+}
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:3rem 1rem;">
+  <div style="text-align:center;max-width:480px;">
+    <div style="font-size:5rem;font-weight:900;background:linear-gradient(135deg,#667eea,#764ba2);
+                -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:1rem;">
+      @code
+    </div>
+    <div style="width:80px;height:80px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;
+                display:inline-flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
+      <i class="@icon" style="font-size:2rem;color:#fff;"></i>
+    </div>
+    <h1 style="font-size:1.75rem;font-weight:700;margin-bottom:.75rem;color:var(--text);">@title</h1>
+    <p style="color:var(--text-muted);margin-bottom:2rem;line-height:1.6;">@msg</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+      <a asp-controller="Home" asp-action="Index" asp-area="" class="btn btn-primary">
+        <i class="fas fa-home"></i> Go Home
+      </a>
+      <button onclick="history.back()" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Go Back
+      </button>
+    </div>
+  </div>
+</div>

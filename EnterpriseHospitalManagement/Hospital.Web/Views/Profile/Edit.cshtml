@@ -1,0 +1,60 @@
+@model Hospital.Web.Controllers.EditProfileViewModel
+@using Hospital.Models.Enums
+@{
+    ViewData["Title"]       = "Edit Profile";
+    ViewData["ShowSidebar"] = true;
+}
+
+<div class="page-header">
+  <div><div class="page-title">Edit Profile</div></div>
+  <a asp-action="Index" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-card">
+  <div class="form-card-header"><h2><i class="fas fa-user-edit"></i> Update Your Information</h2></div>
+  <div class="form-card-body">
+    <form asp-action="Edit" method="post">
+      @Html.AntiForgeryToken()
+      <div asp-validation-summary="All" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid?"none":"flex")"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" asp-for="Name">Full Name *</label>
+          <input asp-for="Name" class="form-control" placeholder="Your full name"/>
+          <span asp-validation-for="Name" class="text-danger" style="font-size:.78rem;"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" asp-for="PhoneNumber">Phone Number</label>
+          <input asp-for="PhoneNumber" class="form-control" placeholder="+1 234 567 8900"/>
+          <span asp-validation-for="PhoneNumber" class="text-danger" style="font-size:.78rem;"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" asp-for="DOB">Date of Birth *</label>
+          <input asp-for="DOB" type="date" class="form-control"/>
+          <span asp-validation-for="DOB" class="text-danger" style="font-size:.78rem;"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" asp-for="Gender">Gender *</label>
+          <select asp-for="Gender" class="form-control"
+                  asp-items="Html.GetEnumSelectList<Hospital.Models.Enums.Gender>()"></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" asp-for="Address">Address *</label>
+          <input asp-for="Address" class="form-control" placeholder="Your address"/>
+          <span asp-validation-for="Address" class="text-danger" style="font-size:.78rem;"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" asp-for="Nationality">Nationality</label>
+          <input asp-for="Nationality" class="form-control" placeholder="e.g. American"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial"/> }

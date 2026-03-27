@@ -62,6 +62,10 @@ namespace Hospital.Services
             existing.City = vm.City;
             existing.PinCode = vm.PinCode;
             existing.Country = vm.Country;
+            existing.PhoneNumber = vm.PhoneNumber;
+            existing.Address = vm.Address;
+            existing.Email = vm.Email;
+            existing.Description = vm.Description;
             _repo.Update(existing);
             _repo.Save();
         }

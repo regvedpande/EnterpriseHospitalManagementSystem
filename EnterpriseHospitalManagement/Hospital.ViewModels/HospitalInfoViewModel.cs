@@ -49,6 +49,10 @@ namespace Hospital.ViewModels
             City = model.City;
             PinCode = model.PinCode;
             Country = model.Country;
+            PhoneNumber = model.PhoneNumber;
+            Address = model.Address;
+            Email = model.Email;
+            Description = model.Description;
         }
 
         public HospitalInfo ToModel() => new HospitalInfo
@@ -58,7 +62,11 @@ namespace Hospital.ViewModels
             Type = this.Type,
             City = this.City,
             PinCode = this.PinCode,
-            Country = this.Country
+            Country = this.Country,
+            PhoneNumber = this.PhoneNumber,
+            Address = this.Address,
+            Email = this.Email,
+            Description = this.Description
         };
     }
 }

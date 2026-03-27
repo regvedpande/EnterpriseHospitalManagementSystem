@@ -3,19 +3,52 @@
    ViewData["Page"] = Model.PageNumber; ViewData["TotalPages"] = Model.TotalPages;
    ViewData["Size"] = Model.PageSize; ViewData["TotalCount"] = Model.TotalCount;
    ViewData["PagCtrl"] = "Labs"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "LabTech"; }
-<div class="page-header"><div><div class="page-title">Lab Tests</div><small class="text-muted">Process and update lab results</small></div></div>
+<div class="page-header">
+  <div><div class="page-title">Lab Tests</div><small class="text-muted">Process and update lab results</small></div>
+  <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> New Lab Order</a>
+</div>
 <div class="table-wrapper">
-  @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-flask"></i><h3>No tests</h3></div> }
-  else {
+  @if (!Model.Items.Any())
+  {
+    <div class="empty-state"><i class="fas fa-flask"></i><h3>No tests</h3></div>
+  }
+  else
+  {
     <table id="t">
-      <thead><tr><th>#</th><th>Lab #</th><th>Patient</th><th>Test</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+      <thead>
+        <tr>
+          <th>#</th><th>Lab #</th><th>Patient</th><th>Test</th><th>Status</th><th>Date</th><th>Actions</th>
+        </tr>
+      </thead>
       <tbody>
         @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
-        @foreach (var l in Model.Items) {
-          <tr><td>@(i++)</td><td><strong>@l.LabNumber</strong></td><td>@l.PatientName</td><td>@l.TestType</td>
-            <td><span class="badge bg-@(l.Status==Hospital.Models.Enums.LabTestStatus.Completed?"success":"info")">@l.Status</span></td>
+        @foreach (var l in Model.Items)
+        {
+          <tr>
+            <td>@(i++)</td>
+            <td><strong>@l.LabNumber</strong></td>
+            <td>@l.PatientName</td>
+            <td>@l.TestType</td>
+            <td>
+              @{
+                var sc = l.Status == Hospital.Models.Enums.LabTestStatus.Completed       ? "badge-success"
+                       : l.Status == Hospital.Models.Enums.LabTestStatus.InProgress      ? "badge-warning"
+                       : l.Status == Hospital.Models.Enums.LabTestStatus.Cancelled       ? "badge-danger"
+                       : l.Status == Hospital.Models.Enums.LabTestStatus.SampleCollected ? "badge-info"
+                       : "badge-info";
+              }
+              <span class="badge @sc">@l.Status</span>
+            </td>
             <td>@l.CreatedDate.ToString("MMM dd, yyyy")</td>
-            <td><a asp-action="Edit" asp-route-id="@l.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a></td></tr>
+            <td>
+              <a asp-action="Edit" asp-route-id="@l.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+              <form asp-action="Delete" asp-route-id="@l.Id" method="post" style="display:inline"
+                    id="del-@l.Id" onsubmit="return confirm('Delete this lab order?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
+              </form>
+            </td>
+          </tr>
         }
       </tbody>
     </table>

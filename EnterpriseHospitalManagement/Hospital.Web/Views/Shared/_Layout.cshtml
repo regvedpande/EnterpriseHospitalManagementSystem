@@ -6,36 +6,70 @@
   <title>@ViewData["Title"] — HMS</title>
   <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-  <link rel="stylesheet" href="~/css/site.css"/>
+  <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
 
+@{
+  string roleBadge = "";
+  string roleColor = "#6b7280";
+  if (User.IsInRole("Website_Admin"))          { roleBadge = "Admin";        roleColor = "#0f4c81"; }
+  else if (User.IsInRole("Website_Doctor"))    { roleBadge = "Doctor";       roleColor = "#059669"; }
+  else if (User.IsInRole("Website_Patient"))   { roleBadge = "Patient";      roleColor = "#0e7490"; }
+  else if (User.IsInRole("Website_Nurse"))     { roleBadge = "Nurse";        roleColor = "#7c3aed"; }
+  else if (User.IsInRole("Website_LabTech"))   { roleBadge = "Lab Tech";     roleColor = "#d97706"; }
+  else if (User.IsInRole("Website_Pharmacist")){ roleBadge = "Pharmacist";   roleColor = "#e11d48"; }
+  else if (User.IsInRole("Website_Receptionist")){ roleBadge = "Receptionist"; roleColor = "#ea580c"; }
+  else if (User.IsInRole("Website_Accountant")){ roleBadge = "Accountant";   roleColor = "#16a34a"; }
+  string displayName = User.Identity?.Name ?? "User";
+  string initials = displayName.Length >= 2 ? displayName.Substring(0, 2).ToUpper() : displayName.ToUpper();
+}
+
 <!-- ── TOP NAV ─────────────────────────────────────────────────────────── -->
 <nav class="topbar">
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
   <a class="topbar-brand" asp-controller="Home" asp-action="Index" asp-area="">
-    <i class="fas fa-hospital-alt"></i> HMS
+    <i class="fas fa-hospital-alt"></i> <span>MedCore HMS</span>
   </a>
   <div class="topbar-spacer"></div>
   <div class="topbar-nav">
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
+      @if (!string.IsNullOrEmpty(roleBadge))
+      {
+        <span class="role-badge" style="background:@roleColor;">@roleBadge</span>
+      }
       <div class="user-dropdown" id="userDropdown">
         <button class="user-btn" onclick="toggleDropdown()">
-          <span class="avatar">@(User.Identity.Name?.Substring(0,1).ToUpper() ?? "U")</span>
-          <span>@User.Identity.Name</span>
-          <i class="fas fa-chevron-down" style="font-size:.7rem; opacity:.7;"></i>
+          <span class="avatar">@initials</span>
+          <span class="user-name">@displayName</span>
+          <i class="fas fa-chevron-down" style="font-size:.65rem; opacity:.7;"></i>
         </button>
         <div class="dropdown-menu-custom" id="dropdownMenu">
+          <div class="dropdown-user-info">
+            <div class="dropdown-avatar">@initials</div>
+            <div>
+              <div style="font-weight:600;font-size:.875rem;">@displayName</div>
+              @if (!string.IsNullOrEmpty(roleBadge))
+              {
+                <div style="font-size:.75rem;color:@roleColor;font-weight:500;">@roleBadge</div>
+              }
+            </div>
+          </div>
+          <div class="divider"></div>
           @if (User.IsInRole("Website_Admin"))
           {
-            <a asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
+            <a asp-area="Admin" asp-controller="Home" asp-action="Index">
               <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
           }
           @if (User.IsInRole("Website_Doctor"))
           {
-            <a asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
+            <a asp-area="Doctor" asp-controller="Home" asp-action="Index">
               <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
           }
@@ -45,10 +79,47 @@
               <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
           }
+          @if (User.IsInRole("Website_Nurse"))
+          {
+            <a asp-area="Nurse" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          @if (User.IsInRole("Website_LabTech"))
+          {
+            <a asp-area="LabTech" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          @if (User.IsInRole("Website_Pharmacist"))
+          {
+            <a asp-area="Pharmacist" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          @if (User.IsInRole("Website_Receptionist"))
+          {
+            <a asp-area="Receptionist" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          @if (User.IsInRole("Website_Accountant"))
+          {
+            <a asp-area="Accountant" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          }
+          <div class="divider"></div>
+          <a asp-controller="Profile" asp-action="Index" asp-area="">
+            <i class="fas fa-user-circle"></i> My Profile
+          </a>
+          <a asp-controller="Profile" asp-action="ChangePassword" asp-area="">
+            <i class="fas fa-key"></i> Change Password
+          </a>
           <div class="divider"></div>
           <form asp-controller="Auth" asp-action="Logout" asp-area="" method="post" id="logoutForm">
             @Html.AntiForgeryToken()
-            <button type="submit" class="danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button type="submit" class="danger"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
           </form>
         </div>
       </div>
@@ -69,72 +140,315 @@
 @{
   var hasSidebar = ViewData["ShowSidebar"] as bool? ?? false;
   var area       = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+  var ctrl       = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
 }
-<div class="page-wrapper @(hasSidebar ? "with-sidebar" : "")">
+<div class="page-wrapper @(hasSidebar ? "with-sidebar" : "")" id="pageWrapper">
   @if (hasSidebar)
   {
-    <aside class="sidebar">
-      @if (area == "Admin")
-      {
-        <div class="sidebar-section">
-          <div class="sidebar-label">Admin</div>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Hospitals" ? "active" : "")"
-             asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
-            <i class="fas fa-hospital"></i> Hospitals
-          </a>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Rooms" ? "active" : "")"
-             asp-area="Admin" asp-controller="Rooms" asp-action="Index">
-            <i class="fas fa-door-open"></i> Rooms
-          </a>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Contacts" ? "active" : "")"
-             asp-area="Admin" asp-controller="Contacts" asp-action="Index">
-            <i class="fas fa-address-book"></i> Contacts
-          </a>
-          <a class="sidebar-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
-             asp-area="Admin" asp-controller="Users" asp-action="Index">
-            <i class="fas fa-users"></i> Users
-          </a>
-        </div>
-        <div class="sidebar-section">
-          <div class="sidebar-label">Reports</div>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadPdf">
-            <i class="fas fa-file-pdf"></i> Hospitals PDF
-          </a>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadExcel">
-            <i class="fas fa-file-excel"></i> Hospitals Excel
-          </a>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadPdf">
-            <i class="fas fa-file-pdf"></i> Rooms PDF
-          </a>
-          <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadExcel">
-            <i class="fas fa-file-excel"></i> Rooms Excel
-          </a>
-        </div>
-      }
-      @if (area == "Doctor")
-      {
-        <div class="sidebar-section">
-          <div class="sidebar-label">Doctor</div>
-          <a class="sidebar-link active" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
-            <i class="fas fa-calendar-alt"></i> My Timings
-          </a>
-          <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadPdf">
-            <i class="fas fa-file-pdf"></i> Export PDF
-          </a>
-          <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadExcel">
-            <i class="fas fa-file-excel"></i> Export Excel
-          </a>
-        </div>
-      }
-      @if (area == "Patient")
-      {
-        <div class="sidebar-section">
-          <div class="sidebar-label">Patient</div>
-          <a class="sidebar-link active" asp-area="Patient" asp-controller="Home" asp-action="Index">
-            <i class="fas fa-th-large"></i> Dashboard
-          </a>
-        </div>
-      }
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+
+        @* ── ADMIN ── *@
+        @if (area == "Admin")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Overview</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Admin" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Clinical</div>
+            <a class="sidebar-link @(ctrl == "Appointments" ? "active" : "")"
+               asp-area="Admin" asp-controller="Appointments" asp-action="Index">
+              <i class="fas fa-calendar-check"></i> Appointments
+            </a>
+            <a class="sidebar-link @(ctrl == "PatientReports" ? "active" : "")"
+               asp-area="Admin" asp-controller="PatientReports" asp-action="Index">
+              <i class="fas fa-notes-medical"></i> Patient Reports
+            </a>
+            <a class="sidebar-link @(ctrl == "Labs" ? "active" : "")"
+               asp-area="Admin" asp-controller="Labs" asp-action="Index">
+              <i class="fas fa-flask"></i> Lab Tests
+            </a>
+            <a class="sidebar-link @(ctrl == "Insurance" ? "active" : "")"
+               asp-area="Admin" asp-controller="Insurance" asp-action="Index">
+              <i class="fas fa-shield-alt"></i> Insurance
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Facility</div>
+            <a class="sidebar-link @(ctrl == "Hospitals" ? "active" : "")"
+               asp-area="Admin" asp-controller="Hospitals" asp-action="Index">
+              <i class="fas fa-hospital-alt"></i> Hospitals
+            </a>
+            <a class="sidebar-link @(ctrl == "Rooms" ? "active" : "")"
+               asp-area="Admin" asp-controller="Rooms" asp-action="Index">
+              <i class="fas fa-bed"></i> Rooms
+            </a>
+            <a class="sidebar-link @(ctrl == "Departments" ? "active" : "")"
+               asp-area="Admin" asp-controller="Departments" asp-action="Index">
+              <i class="fas fa-sitemap"></i> Departments
+            </a>
+            <a class="sidebar-link @(ctrl == "Contacts" ? "active" : "")"
+               asp-area="Admin" asp-controller="Contacts" asp-action="Index">
+              <i class="fas fa-address-book"></i> Contacts
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Pharmacy & Supply</div>
+            <a class="sidebar-link @(ctrl == "Medicines" ? "active" : "")"
+               asp-area="Admin" asp-controller="Medicines" asp-action="Index">
+              <i class="fas fa-pills"></i> Medicines
+            </a>
+            <a class="sidebar-link @(ctrl == "Suppliers" ? "active" : "")"
+               asp-area="Admin" asp-controller="Suppliers" asp-action="Index">
+              <i class="fas fa-truck"></i> Suppliers
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Finance & HR</div>
+            <a class="sidebar-link @(ctrl == "Bills" ? "active" : "")"
+               asp-area="Admin" asp-controller="Bills" asp-action="Index">
+              <i class="fas fa-file-invoice-dollar"></i> Bills
+            </a>
+            <a class="sidebar-link @(ctrl == "Payrolls" ? "active" : "")"
+               asp-area="Admin" asp-controller="Payrolls" asp-action="Index">
+              <i class="fas fa-money-check-alt"></i> Payrolls
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Administration</div>
+            <a class="sidebar-link @(ctrl == "Users" ? "active" : "")"
+               asp-area="Admin" asp-controller="Users" asp-action="Index">
+              <i class="fas fa-users-cog"></i> User Management
+            </a>
+            <a class="sidebar-link @(ctrl == "Documents" ? "active" : "")"
+               asp-area="Admin" asp-controller="Documents" asp-action="Index">
+              <i class="fas fa-folder-open"></i> Documents
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Reports</div>
+            <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadPdf">
+              <i class="fas fa-file-pdf" style="color:#e53e3e;"></i> Hospitals PDF
+            </a>
+            <a class="sidebar-link" asp-area="Admin" asp-controller="Hospitals" asp-action="DownloadExcel">
+              <i class="fas fa-file-excel" style="color:#1a9e5f;"></i> Hospitals Excel
+            </a>
+            <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadPdf">
+              <i class="fas fa-file-pdf" style="color:#e53e3e;"></i> Rooms PDF
+            </a>
+            <a class="sidebar-link" asp-area="Admin" asp-controller="Rooms" asp-action="DownloadExcel">
+              <i class="fas fa-file-excel" style="color:#1a9e5f;"></i> Rooms Excel
+            </a>
+          </div>
+        }
+
+        @* ── DOCTOR ── *@
+        @if (area == "Doctor")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Overview</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Doctor" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">My Work</div>
+            <a class="sidebar-link @(ctrl == "Appointments" ? "active" : "")"
+               asp-area="Doctor" asp-controller="Appointments" asp-action="Index">
+              <i class="fas fa-calendar-check"></i> My Appointments
+            </a>
+            <a class="sidebar-link" asp-area="Doctor" asp-controller="Appointments" asp-action="Create">
+              <i class="fas fa-calendar-plus"></i> New Appointment
+            </a>
+            <a class="sidebar-link @(ctrl == "Patients" ? "active" : "")"
+               asp-area="Doctor" asp-controller="Patients" asp-action="Index">
+              <i class="fas fa-notes-medical"></i> Patient Reports
+            </a>
+            <a class="sidebar-link @(ctrl == "Patients" && ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "active" : "")"
+               asp-area="Doctor" asp-controller="Patients" asp-action="Create">
+              <i class="fas fa-file-medical"></i> Write Report
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Schedule</div>
+            <a class="sidebar-link @(ctrl == "Doctors" ? "active" : "")"
+               asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
+              <i class="fas fa-clock"></i> My Timings
+            </a>
+            <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="Create">
+              <i class="fas fa-plus-circle"></i> Add Timing
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Exports</div>
+            <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadPdf">
+              <i class="fas fa-file-pdf" style="color:#e53e3e;"></i> Schedule PDF
+            </a>
+            <a class="sidebar-link" asp-area="Doctor" asp-controller="Doctors" asp-action="DownloadExcel">
+              <i class="fas fa-file-excel" style="color:#1a9e5f;"></i> Schedule Excel
+            </a>
+          </div>
+        }
+
+        @* ── PATIENT ── *@
+        @if (area == "Patient")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">My Portal</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Patient" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="sidebar-link @(ctrl == "Appointments" ? "active" : "")"
+               asp-area="Patient" asp-controller="Appointments" asp-action="Index">
+              <i class="fas fa-calendar-check"></i> My Appointments
+            </a>
+            <a class="sidebar-link @(ctrl == "Bills" ? "active" : "")"
+               asp-area="Patient" asp-controller="Bills" asp-action="Index">
+              <i class="fas fa-file-invoice-dollar"></i> My Bills
+            </a>
+            <a class="sidebar-link @(ctrl == "Labs" ? "active" : "")"
+               asp-area="Patient" asp-controller="Labs" asp-action="Index">
+              <i class="fas fa-flask"></i> My Lab Tests
+            </a>
+            <a class="sidebar-link @(ctrl == "Reports" ? "active" : "")"
+               asp-area="Patient" asp-controller="Reports" asp-action="Index">
+              <i class="fas fa-notes-medical"></i> My Reports
+            </a>
+            <a class="sidebar-link @(ctrl == "Documents" ? "active" : "")"
+               asp-area="Patient" asp-controller="Documents" asp-action="Index">
+              <i class="fas fa-folder-open"></i> My Documents
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Actions</div>
+            <a class="sidebar-link" asp-area="Patient" asp-controller="Appointments" asp-action="Create">
+              <i class="fas fa-calendar-plus"></i> Book Appointment
+            </a>
+            <a class="sidebar-link" asp-area="Patient" asp-controller="Documents" asp-action="Upload">
+              <i class="fas fa-upload"></i> Upload Document
+            </a>
+          </div>
+        }
+
+        @* ── NURSE ── *@
+        @if (area == "Nurse")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Nurse Station</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Nurse" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="sidebar-link @(ctrl == "Appointments" ? "active" : "")"
+               asp-area="Nurse" asp-controller="Appointments" asp-action="Index">
+              <i class="fas fa-calendar-check"></i> Appointments
+            </a>
+          </div>
+        }
+
+        @* ── LABTECH ── *@
+        @if (area == "LabTech")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Laboratory</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="LabTech" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="sidebar-link @(ctrl == "Labs" ? "active" : "")"
+               asp-area="LabTech" asp-controller="Labs" asp-action="Index">
+              <i class="fas fa-flask"></i> Lab Tests
+            </a>
+            <a class="sidebar-link" asp-area="LabTech" asp-controller="Labs" asp-action="Create">
+              <i class="fas fa-plus-circle"></i> New Lab Order
+            </a>
+          </div>
+        }
+
+        @* ── PHARMACIST ── *@
+        @if (area == "Pharmacist")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Pharmacy</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Pharmacist" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="sidebar-link @(ctrl == "Medicines" ? "active" : "")"
+               asp-area="Pharmacist" asp-controller="Medicines" asp-action="Index">
+              <i class="fas fa-pills"></i> Medicines
+            </a>
+            <a class="sidebar-link @(ctrl == "Prescriptions" ? "active" : "")"
+               asp-area="Pharmacist" asp-controller="Prescriptions" asp-action="Index">
+              <i class="fas fa-prescription-bottle-alt"></i> Prescriptions
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Actions</div>
+            <a class="sidebar-link" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Create">
+              <i class="fas fa-plus-circle"></i> Add Medicine
+            </a>
+          </div>
+        }
+
+        @* ── RECEPTIONIST ── *@
+        @if (area == "Receptionist")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Reception</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Receptionist" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="sidebar-link @(ctrl == "Appointments" ? "active" : "")"
+               asp-area="Receptionist" asp-controller="Appointments" asp-action="Index">
+              <i class="fas fa-calendar-check"></i> Appointments
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Actions</div>
+            <a class="sidebar-link" asp-area="Receptionist" asp-controller="Appointments" asp-action="Create">
+              <i class="fas fa-calendar-plus"></i> Schedule Appointment
+            </a>
+          </div>
+        }
+
+        @* ── ACCOUNTANT ── *@
+        @if (area == "Accountant")
+        {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Finance</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Accountant" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a class="sidebar-link @(ctrl == "Bills" ? "active" : "")"
+               asp-area="Accountant" asp-controller="Bills" asp-action="Index">
+              <i class="fas fa-file-invoice-dollar"></i> Bills
+            </a>
+            <a class="sidebar-link @(ctrl == "Payrolls" ? "active" : "")"
+               asp-area="Accountant" asp-controller="Payrolls" asp-action="Index">
+              <i class="fas fa-money-check-alt"></i> Payrolls
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">Actions</div>
+            <a class="sidebar-link" asp-area="Accountant" asp-controller="Bills" asp-action="Create">
+              <i class="fas fa-file-medical-alt"></i> Create Bill
+            </a>
+            <a class="sidebar-link" asp-area="Accountant" asp-controller="Payrolls" asp-action="Create">
+              <i class="fas fa-plus-circle"></i> New Payroll
+            </a>
+          </div>
+        }
+
+      </div>
     </aside>
   }
 
@@ -162,12 +476,12 @@
 <!-- ── DELETE CONFIRM MODAL ─────────────────────────────────────────────── -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal-box">
-    <div class="modal-icon">🗑️</div>
+    <div class="modal-icon"><i class="fas fa-exclamation-triangle" style="color:#e53e3e;font-size:2.5rem;"></i></div>
     <div class="modal-title">Confirm Delete</div>
-    <div class="modal-text">Are you sure? This action cannot be undone.</div>
+    <div class="modal-text">Are you sure you want to delete this record? This action cannot be undone.</div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-      <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      <button class="btn btn-secondary" onclick="closeDeleteModal()"><i class="fas fa-times"></i> Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn"><i class="fas fa-trash"></i> Delete</button>
     </div>
   </div>
 </div>
@@ -175,6 +489,12 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+  // Sidebar toggle (mobile)
+  function toggleSidebar() {
+    document.getElementById('sidebar')?.classList.toggle('sidebar-open');
+    document.getElementById('pageWrapper')?.classList.toggle('sidebar-mobile-open');
+  }
+
   // Dropdown toggle
   function toggleDropdown() {
     document.getElementById('dropdownMenu').classList.toggle('show');
@@ -201,13 +521,13 @@
     if (e.target === this) closeDeleteModal();
   });
 
-  // Auto-dismiss alerts after 4s
+  // Auto-dismiss alerts after 5s
   setTimeout(() => {
     document.querySelectorAll('.alert').forEach(a => {
       a.style.transition = 'opacity .4s'; a.style.opacity = '0';
       setTimeout(() => a.remove(), 400);
     });
-  }, 4000);
+  }, 5000);
 
   // Table search
   function filterTable(inputId, tableId) {

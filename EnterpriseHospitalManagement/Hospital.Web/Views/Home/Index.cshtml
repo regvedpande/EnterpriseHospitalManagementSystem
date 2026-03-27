@@ -3,56 +3,157 @@
     ViewData["ShowSidebar"] = false;
 }
 
+<!-- HERO -->
 <div class="hero">
-  <h1>Enterprise Hospital<br/>Management System</h1>
-  <p>A unified platform connecting hospitals, doctors, and patients — streamlined for modern healthcare.</p>
+  <div style="display:inline-block; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:.3rem 1rem; font-size:.8rem; font-weight:600; letter-spacing:.05em; text-transform:uppercase; margin-bottom:1.25rem; color:rgba(255,255,255,.9);">
+    Enterprise-Grade Healthcare Platform
+  </div>
+  <h1>Modern Hospital<br/>Management System</h1>
+  <p>Unify your hospital operations, clinical workflows, and patient care into one powerful, secure platform built for enterprise healthcare.</p>
   <div class="hero-actions">
-    <a asp-controller="Auth" asp-action="Login"    asp-area="" class="hero-btn hero-btn-primary">
-      <i class="fas fa-sign-in-alt"></i> Login
+    <a asp-controller="Auth" asp-action="Login" asp-area="" class="hero-btn hero-btn-primary">
+      <i class="fas fa-sign-in-alt"></i> Sign In
     </a>
     <a asp-controller="Auth" asp-action="Register" asp-area="" class="hero-btn hero-btn-outline">
-      <i class="fas fa-user-plus"></i> Register
+      <i class="fas fa-user-plus"></i> Patient Portal
     </a>
+  </div>
+  <!-- Stats bar -->
+  <div style="display:flex; justify-content:center; gap:3rem; margin-top:3rem; flex-wrap:wrap;">
+    <div style="text-align:center;">
+      <div style="font-size:1.75rem; font-weight:800;">8</div>
+      <div style="font-size:.8rem; opacity:.75; text-transform:uppercase; letter-spacing:.05em;">Role Types</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.75rem; font-weight:800;">99.9%</div>
+      <div style="font-size:.8rem; opacity:.75; text-transform:uppercase; letter-spacing:.05em;">Uptime SLA</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.75rem; font-weight:800;">HIPAA</div>
+      <div style="font-size:.8rem; opacity:.75; text-transform:uppercase; letter-spacing:.05em;">Compliant</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:1.75rem; font-weight:800;">24/7</div>
+      <div style="font-size:.8rem; opacity:.75; text-transform:uppercase; letter-spacing:.05em;">Support</div>
+    </div>
   </div>
 </div>
 
+<!-- FEATURES -->
 <section class="features">
-  <h2 class="section-title">Everything in one place</h2>
-  <p class="section-sub">Manage your hospital operations with confidence</p>
+  <h2 class="section-title">Comprehensive Healthcare Management</h2>
+  <p class="section-sub">Everything your enterprise needs — clinical, financial, and operational</p>
   <div class="features-grid">
     <div class="feature-card">
-      <div class="feature-icon" style="color:#0f4c81">🏥</div>
-      <h3>Hospital Management</h3>
-      <p>Manage branches, staff, and operations across all locations from a single dashboard.</p>
+      <div class="feature-icon"><i class="fas fa-hospital-alt" style="color:#0f4c81;"></i></div>
+      <h3>Multi-Hospital Admin</h3>
+      <p>Manage multiple hospital branches, departments, rooms, and staff from a unified admin dashboard.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon" style="color:#1a9e5f">👨‍⚕️</div>
-      <h3>Doctor Scheduling</h3>
-      <p>Doctors manage their availability, timings, and patient appointments with ease.</p>
+      <div class="feature-icon"><i class="fas fa-user-md" style="color:#059669;"></i></div>
+      <h3>Doctor Workflows</h3>
+      <p>Doctors manage their schedules, write patient reports, prescribe medicines, and review appointments.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon" style="color:#f59e0b">🚪</div>
-      <h3>Room Tracking</h3>
-      <p>Real-time room availability across all branches — always know what's free.</p>
+      <div class="feature-icon"><i class="fas fa-flask" style="color:#d97706;"></i></div>
+      <h3>Lab Management</h3>
+      <p>Lab technicians receive, process, and complete test orders with full traceability and status tracking.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon" style="color:#0e7490">📊</div>
-      <h3>Reports & Exports</h3>
-      <p>Generate PDF and Excel reports instantly for hospitals, rooms, and doctors.</p>
+      <div class="feature-icon"><i class="fas fa-pills" style="color:#e11d48;"></i></div>
+      <h3>Pharmacy Module</h3>
+      <p>Pharmacists manage medicine inventory, view prescriptions, and ensure safe dispensing practices.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon" style="color:#7c3aed">🔐</div>
-      <h3>Role-Based Access</h3>
-      <p>Admin, Doctor, and Patient roles — each with precisely scoped permissions.</p>
+      <div class="feature-icon"><i class="fas fa-file-invoice-dollar" style="color:#16a34a;"></i></div>
+      <h3>Billing & Payroll</h3>
+      <p>Accountants create detailed bills, manage insurance, and run employee payroll with full audit trails.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon" style="color:#e53e3e">📧</div>
-      <h3>Email Notifications</h3>
-      <p>Automated SMTP notifications keep everyone informed in real time.</p>
+      <div class="feature-icon"><i class="fas fa-shield-alt" style="color:#7c3aed;"></i></div>
+      <h3>Role-Based Security</h3>
+      <p>8 distinct roles with scoped permissions — Admin, Doctor, Nurse, Patient, Lab Tech, Pharmacist, Receptionist, Accountant.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-file-export" style="color:#0e7490;"></i></div>
+      <h3>PDF & Excel Reports</h3>
+      <p>Generate professional PDF and Excel exports for hospitals, rooms, doctor schedules, and more.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-heartbeat" style="color:#dc2626;"></i></div>
+      <h3>Patient Portal</h3>
+      <p>Patients book appointments, view lab results, download reports, and track bills — all in one place.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fas fa-code" style="color:#2563eb;"></i></div>
+      <h3>REST API</h3>
+      <p>JWT-secured API endpoints for system integrations, mobile apps, and third-party healthcare tools.</p>
     </div>
   </div>
 </section>
 
-<footer style="background:#0a3358; color:rgba(255,255,255,.6); text-align:center; padding:1.5rem;">
-  <small>&copy; @DateTime.Now.Year — Enterprise Hospital Management System</small>
+<!-- ROLE SHOWCASE -->
+<section style="background:#fff; padding:4rem 2rem;">
+  <h2 class="section-title">Built for Every Healthcare Role</h2>
+  <p class="section-sub">Each team member gets a tailored dashboard with exactly what they need</p>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; max-width:1100px; margin:0 auto;">
+    @foreach (var role in new[] {
+      new { Icon = "fas fa-user-shield", Label = "Admin", Color = "#0f4c81", Desc = "Full system control" },
+      new { Icon = "fas fa-user-md",    Label = "Doctor", Color = "#059669", Desc = "Patient care workflows" },
+      new { Icon = "fas fa-user-nurse", Label = "Nurse",  Color = "#7c3aed", Desc = "Appointment monitoring" },
+      new { Icon = "fas fa-user",       Label = "Patient", Color = "#0e7490", Desc = "Personal health portal" },
+      new { Icon = "fas fa-flask",      Label = "Lab Tech", Color = "#d97706", Desc = "Lab test management" },
+      new { Icon = "fas fa-pills",      Label = "Pharmacist", Color = "#e11d48", Desc = "Medicine dispensing" },
+      new { Icon = "fas fa-concierge-bell", Label = "Receptionist", Color = "#ea580c", Desc = "Appointment scheduling" },
+      new { Icon = "fas fa-calculator", Label = "Accountant", Color = "#16a34a", Desc = "Finance & payroll" },
+    })
+    {
+      <div class="role-showcase-card">
+        <div class="role-showcase-icon" style="background:@(role.Color)15; color:@(role.Color);">
+          <i class="@role.Icon"></i>
+        </div>
+        <div class="role-showcase-label">@role.Label</div>
+        <div class="role-showcase-desc">@role.Desc</div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="background:var(--primary); color:#fff; padding:4rem 2rem; text-align:center;">
+  <h2 style="font-family:'DM Serif Display',serif; font-size:2rem; margin-bottom:.75rem;">Ready to modernize your hospital?</h2>
+  <p style="opacity:.85; margin-bottom:2rem; max-width:500px; margin-left:auto; margin-right:auto;">Deploy MedCore HMS and give every team member the tools they need to deliver outstanding patient care.</p>
+  <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+    <a asp-controller="Auth" asp-action="Login" asp-area="" class="hero-btn hero-btn-primary" style="font-size:.95rem;">
+      <i class="fas fa-rocket"></i> Get Started
+    </a>
+    <a asp-controller="Auth" asp-action="Register" asp-area="" class="hero-btn hero-btn-outline" style="font-size:.95rem;">
+      <i class="fas fa-user-plus"></i> Register as Patient
+    </a>
+  </div>
+</section>
+
+<footer style="background:#0a3358; color:rgba(255,255,255,.5); padding:2rem;">
+  <div style="max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+    <div style="font-family:'DM Serif Display',serif; font-size:1.1rem; color:rgba(255,255,255,.8);">
+      <i class="fas fa-hospital-alt" style="color:#00b4d8;"></i> MedCore HMS
+    </div>
+    <div style="font-size:.8rem;">&copy; @DateTime.Now.Year Enterprise Hospital Management System. All rights reserved.</div>
+  </div>
 </footer>
+
+@section Styles {
+<style>
+.role-showcase-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  padding: 1.5rem 1rem; text-align: center; transition: all .2s ease;
+}
+.role-showcase-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.1); transform: translateY(-3px); }
+.role-showcase-icon {
+  width: 56px; height: 56px; border-radius: 14px; margin: 0 auto .75rem;
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+}
+.role-showcase-label { font-weight: 700; font-size: .95rem; margin-bottom: .25rem; }
+.role-showcase-desc  { font-size: .8rem; color: var(--text-muted); }
+</style>
+}

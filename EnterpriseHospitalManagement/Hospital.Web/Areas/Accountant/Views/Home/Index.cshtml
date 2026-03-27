@@ -1,6 +1,272 @@
-@{ ViewData["Title"] = "Accountant Dashboard"; ViewData["ShowSidebar"] = true; }
-<div class="page-header"><div><div class="page-title">Welcome, @User.Identity?.Name</div><small class="text-muted">Accountant Dashboard</small></div></div>
-<div class="stats-grid">
-  <div class="stat-card"><div class="stat-icon" style="background:#e8f5e9;"><i class="fas fa-file-invoice-dollar" style="color:#388e3c;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.BillCount</div><div class="stat-label">Bills</div></div></div>
-  <div class="stat-card"><div class="stat-icon" style="background:#e3f2fd;"><i class="fas fa-money-check-alt" style="color:#1976d2;"></i></div><div class="stat-info"><div class="stat-number">@ViewBag.PayrollCount</div><div class="stat-label">Payrolls</div></div></div>
+@using Hospital.ViewModels
+@{
+    ViewData["Title"]       = "Accountant Dashboard";
+    ViewData["ShowSidebar"] = true;
+    int billCount     = (int)(ViewBag.BillCount     ?? 0);
+    int payrollCount  = (int)(ViewBag.PayrollCount  ?? 0);
+    int pendingBills  = (int)(ViewBag.PendingBills  ?? 0);
+    int paidBills     = (int)(ViewBag.PaidBills     ?? 0);
+    int overdueBills  = (int)(ViewBag.OverdueBills  ?? 0);
+    int partialBills  = (int)(ViewBag.PartialBills  ?? 0);
+    int cancelledBills= (int)(ViewBag.CancelledBills?? 0);
+    decimal totalRev  = (decimal)(ViewBag.TotalRevenue   ?? 0m);
+    decimal pendRev   = (decimal)(ViewBag.PendingRevenue ?? 0m);
+    decimal totalPay  = (decimal)(ViewBag.TotalPayroll   ?? 0m);
+    string monthLabels    = ViewBag.MonthLabels    ?? "[]";
+    string monthlyRevenue = ViewBag.MonthlyRevenue ?? "[]";
+    var recentBills    = ViewBag.RecentBills    as IEnumerable<BillViewModel>    ?? Enumerable.Empty<BillViewModel>();
+    var recentPayrolls = ViewBag.RecentPayrolls as IEnumerable<PayrollViewModel> ?? Enumerable.Empty<PayrollViewModel>();
+    string name = User.Identity?.Name?.Split('@')[0] ?? "Accountant";
+}
+
+<div class="welcome-banner">
+  <div>
+    <h2>Welcome, @name</h2>
+    <p>Finance &amp; Accounting — Full visibility into billing, payroll, and revenue.</p>
+  </div>
+  <div class="welcome-actions">
+    <a asp-area="Accountant" asp-controller="Bills" asp-action="Create" class="btn btn-white-solid">
+      <i class="fas fa-file-medical-alt"></i> Create Bill
+    </a>
+    <a asp-area="Accountant" asp-controller="Payrolls" asp-action="Create" class="btn btn-white">
+      <i class="fas fa-money-check-alt"></i> New Payroll
+    </a>
+  </div>
 </div>
+
+<!-- KPI Cards -->
+<div class="stats-grid stats-grid-4">
+  <a class="stat-card stat-link" asp-area="Accountant" asp-controller="Bills" asp-action="Index">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+      <i class="fas fa-file-invoice-dollar"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">@billCount</div>
+      <div class="stat-label">Total Bills</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;">
+      <i class="fas fa-dollar-sign"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">$@totalRev.ToString("N0")</div>
+      <div class="stat-label">Revenue Collected</div>
+    </div>
+  </div>
+  <a class="stat-card stat-link" asp-area="Accountant" asp-controller="Payrolls" asp-action="Index">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;">
+      <i class="fas fa-money-check-alt"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">@payrollCount</div>
+      <div class="stat-label">Payroll Records</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#fff;">
+      <i class="fas fa-clock"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">@pendingBills</div>
+      <div class="stat-label">Pending Bills</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.25rem;margin-bottom:1.75rem;">
+  <!-- Revenue Trend -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-chart-line" style="color:#667eea;margin-right:.5rem;"></i>Revenue Trend (6 Months)</span>
+    </div>
+    <div class="card-body" style="padding:1rem;">
+      <div class="chart-container" style="height:240px;position:relative;">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- Bill Status Doughnut -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-chart-pie" style="color:#f5576c;margin-right:.5rem;"></i>Bill Status</span>
+    </div>
+    <div class="card-body" style="padding:1rem;">
+      <div class="chart-container" style="height:180px;position:relative;">
+        <canvas id="billStatusChart"></canvas>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;justify-content:center;font-size:.72rem;">
+        <span><i class="fas fa-circle" style="color:#f59e0b;"></i> Pending (@pendingBills)</span>
+        <span><i class="fas fa-circle" style="color:#10b981;"></i> Paid (@paidBills)</span>
+        <span><i class="fas fa-circle" style="color:#ef4444;"></i> Overdue (@overdueBills)</span>
+        <span><i class="fas fa-circle" style="color:#3b82f6;"></i> Partial (@partialBills)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Bills + Payroll Summary -->
+<div class="dashboard-two-col">
+  <!-- Recent Bills -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-file-invoice-dollar" style="color:#667eea;margin-right:.5rem;"></i>Recent Bills</span>
+      <a asp-area="Accountant" asp-controller="Bills" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    @if (recentBills.Any())
+    {
+      <div class="card-body" style="padding:0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:var(--surface);">
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Bill #</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Patient</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Total</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Status</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var b in recentBills)
+            {
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:.65rem 1rem;font-size:.8rem;font-weight:600;">#@b.BillNumber</td>
+                <td style="padding:.65rem 1rem;font-size:.8rem;">@b.PatientName</td>
+                <td style="padding:.65rem 1rem;font-size:.8rem;font-weight:600;">$@b.TotalBill.ToString("N2")</td>
+                <td style="padding:.65rem 1rem;">
+                  @{
+                    var sc = b.Status == Hospital.Models.Enums.BillStatus.Paid       ? "badge-success"
+                           : b.Status == Hospital.Models.Enums.BillStatus.Overdue    ? "badge-danger"
+                           : b.Status == Hospital.Models.Enums.BillStatus.Cancelled  ? "badge-danger"
+                           : b.Status == Hospital.Models.Enums.BillStatus.PartiallyPaid ? "badge-info"
+                           : "badge-warning";
+                  }
+                  <span class="badge @sc">@b.Status</span>
+                </td>
+                <td style="padding:.65rem 1rem;">
+                  <a asp-area="Accountant" asp-controller="Bills" asp-action="Edit" asp-route-id="@b.Id"
+                     class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    else
+    {
+      <div class="empty-state" style="padding:2rem;">
+        <i class="fas fa-file-invoice-dollar"></i>
+        <h3>No bills yet</h3>
+        <p>Bills will appear here once created.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Payroll Summary + Quick Actions -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:.5rem;"></i>Financial Summary</span>
+      </div>
+      <div class="card-body">
+        <div class="overview-list">
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-check-circle" style="color:#10b981;"></i> Collected Revenue</div>
+            <div class="ov-value" style="font-weight:700;color:#10b981;">$@totalRev.ToString("N0")</div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-clock" style="color:#f59e0b;"></i> Pending Revenue</div>
+            <div class="ov-value" style="font-weight:700;color:#f59e0b;">$@pendRev.ToString("N0")</div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-money-check-alt" style="color:#6366f1;"></i> Total Payroll</div>
+            <div class="ov-value" style="font-weight:700;color:#6366f1;">$@totalPay.ToString("N0")</div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> Overdue Bills</div>
+            <div class="ov-value"><span class="badge badge-danger">@overdueBills</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
+      </div>
+      <div class="card-body nav-list" style="padding:.5rem 0;">
+        <a class="nav-list-item" asp-area="Accountant" asp-controller="Bills" asp-action="Create">
+          <i class="fas fa-file-medical-alt"></i> Create New Bill
+        </a>
+        <a class="nav-list-item" asp-area="Accountant" asp-controller="Bills" asp-action="Index">
+          <i class="fas fa-list-alt"></i> All Bills
+          <span class="badge badge-success ms-auto">@billCount</span>
+        </a>
+        <a class="nav-list-item" asp-area="Accountant" asp-controller="Payrolls" asp-action="Create">
+          <i class="fas fa-plus-circle"></i> New Payroll Entry
+        </a>
+        <a class="nav-list-item" asp-area="Accountant" asp-controller="Payrolls" asp-action="Index">
+          <i class="fas fa-money-check-alt"></i> All Payrolls
+          <span class="badge badge-info ms-auto">@payrollCount</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+(function(){
+  const months  = @Html.Raw(monthLabels);
+  const revenue = @Html.Raw(monthlyRevenue);
+
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'line',
+    data: {
+      labels: months,
+      datasets: [{
+        label: 'Revenue ($)',
+        data: revenue,
+        borderColor: '#667eea',
+        backgroundColor: 'rgba(102,126,234,.12)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#667eea',
+        pointRadius: 4,
+        fill: true,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' },
+          ticks: { callback: v => '$' + v.toLocaleString(), font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  new Chart(document.getElementById('billStatusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'Paid', 'Overdue', 'Partial', 'Cancelled'],
+      datasets: [{
+        data: [@pendingBills, @paidBills, @overdueBills, @partialBills, @cancelledBills],
+        backgroundColor: ['#f59e0b','#10b981','#ef4444','#3b82f6','#6b7280'],
+        borderWidth: 2, borderColor: '#fff'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      cutout: '65%'
+    }
+  });
+})();
+</script>
+}

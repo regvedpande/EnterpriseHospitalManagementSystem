@@ -27,14 +27,15 @@ namespace Hospital.Utilities
 
         public void Initialize()
         {
-            // Apply pending migrations automatically
+            // Apply any pending EF Core migrations (creates the DB if it doesn't exist).
+            // Falls back to EnsureCreated if the migration history table is unavailable.
             try
             {
                 _db.Database.Migrate();
             }
             catch (Exception)
             {
-                // Migration might already be up-to-date
+                try { _db.Database.EnsureCreated(); } catch { }
             }
 
             // Seed all roles

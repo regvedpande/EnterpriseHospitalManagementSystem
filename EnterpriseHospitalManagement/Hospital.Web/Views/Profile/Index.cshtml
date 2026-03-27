@@ -1,0 +1,110 @@
+@model Hospital.Web.Controllers.ProfileViewModel
+@using Hospital.Models.Enums
+@{
+    ViewData["Title"]       = "My Profile";
+    ViewData["ShowSidebar"] = true;
+}
+
+<div class="page-header">
+  <div><div class="page-title">My Profile</div><small class="text-muted">View and manage your account details</small></div>
+  <div style="display:flex;gap:.75rem;">
+    <a asp-action="Edit" class="btn btn-primary"><i class="fas fa-edit"></i> Edit Profile</a>
+    <a asp-action="ChangePassword" class="btn btn-secondary"><i class="fas fa-key"></i> Change Password</a>
+  </div>
+</div>
+
+<div class="dashboard-two-col">
+  <!-- Profile Card -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-user" style="color:var(--primary);margin-right:.5rem;"></i>Personal Information</span>
+    </div>
+    <div class="card-body">
+      <div style="text-align:center;padding:1.5rem 0 1rem;">
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);
+                    display:inline-flex;align-items:center;justify-content:center;
+                    font-size:2rem;font-weight:700;color:#fff;margin-bottom:1rem;">
+          @(Model.Name.Length >= 2 ? Model.Name.Substring(0,2).ToUpper() : Model.Name.ToUpper())
+        </div>
+        <div style="font-size:1.25rem;font-weight:700;color:var(--text);">@Model.Name</div>
+        @if (!string.IsNullOrEmpty(Model.Role))
+        {
+          <div style="font-size:.8rem;color:var(--text-muted);margin-top:.25rem;">
+            <span class="badge badge-info">@Model.Role</span>
+          </div>
+        }
+      </div>
+      <div class="overview-list" style="margin-top:1rem;">
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-envelope" style="color:var(--primary);margin-right:.4rem;"></i>Email</div>
+          <div class="ov-value" style="font-size:.85rem;">@Model.Email</div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Phone))
+        {
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-phone" style="color:var(--success);margin-right:.4rem;"></i>Phone</div>
+            <div class="ov-value" style="font-size:.85rem;">@Model.Phone</div>
+          </div>
+        }
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-map-marker-alt" style="color:var(--danger);margin-right:.4rem;"></i>Address</div>
+          <div class="ov-value" style="font-size:.85rem;">@Model.Address</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-birthday-cake" style="color:var(--warning);margin-right:.4rem;"></i>Date of Birth</div>
+          <div class="ov-value" style="font-size:.85rem;">@Model.DOB.ToString("MMMM dd, yyyy")</div>
+        </div>
+        <div class="overview-item">
+          <div class="ov-label"><i class="fas fa-venus-mars" style="color:#8b5cf6;margin-right:.4rem;"></i>Gender</div>
+          <div class="ov-value" style="font-size:.85rem;">@Model.Gender</div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Nationality))
+        {
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-flag" style="color:#0891b2;margin-right:.4rem;"></i>Nationality</div>
+            <div class="ov-value" style="font-size:.85rem;">@Model.Nationality</div>
+          </div>
+        }
+        @if (!string.IsNullOrEmpty(Model.Specialist))
+        {
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-stethoscope" style="color:#059669;margin-right:.4rem;"></i>Specialty</div>
+            <div class="ov-value" style="font-size:.85rem;">@Model.Specialist</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Settings -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-shield-alt" style="color:var(--success);margin-right:.5rem;"></i>Account Security</span>
+      </div>
+      <div class="card-body">
+        <div style="padding:1rem;background:#f0fdf4;border-radius:8px;border:1px solid #a7f3d0;margin-bottom:1rem;">
+          <i class="fas fa-check-circle" style="color:#10b981;margin-right:.5rem;"></i>
+          <span style="font-size:.875rem;color:#065f46;">Your account is active and secure.</span>
+        </div>
+        <a asp-action="ChangePassword" class="btn btn-secondary" style="width:100%;">
+          <i class="fas fa-key"></i> Change Password
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-edit" style="color:var(--primary);margin-right:.5rem;"></i>Quick Edit</span>
+      </div>
+      <div class="card-body">
+        <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:1rem;">
+          Update your personal information, contact details, and preferences.
+        </p>
+        <a asp-action="Edit" class="btn btn-primary" style="width:100%;">
+          <i class="fas fa-edit"></i> Edit Profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

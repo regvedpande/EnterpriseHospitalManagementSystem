@@ -1,4 +1,3 @@
-using EnterpriseHospitalManagement.Hospital.Repositories;
 using Hospital.Models;
 using Hospital.Repositories;
 using Hospital.Services;
@@ -20,7 +19,16 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 builder.Host.UseSerilog();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorOptions(options =>
+    {
+        // Hospital.Web is a subdirectory that holds all controllers/views.
+        // Register its paths so ASP.NET MVC can discover views there.
+        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/{1}/{0}.cshtml");
+        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/Shared/{0}.cshtml");
+        options.ViewLocationFormats.Add("/Hospital.Web/Views/{1}/{0}.cshtml");
+        options.ViewLocationFormats.Add("/Hospital.Web/Views/Shared/{0}.cshtml");
+    });
 builder.Services.AddRazorPages();
 
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -94,10 +102,12 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<ImageOperations>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SftpService>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
+builder.Services.AddScoped<Hospital.Utilities.ISmsService, Hospital.Utilities.TwilioSmsService>();
 builder.Services.AddHttpContextAccessor();
 
 // ── Cookie ────────────────────────────────────────────────────────────────────
@@ -123,6 +133,11 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+else
+{
+    app.UseDeveloperExceptionPage();
+}
+app.UseStatusCodePagesWithReExecute("/Home/StatusCode", "?code={0}");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
