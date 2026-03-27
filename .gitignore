@@ -416,3 +416,20 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# App secrets — copy appsettings.example.json and fill in your values
+appsettings.json
+appsettings.Development.json
+appsettings.Production.json
+
+# Claude worktree metadata
+.claude/
+
+# Production secrets — never commit real credentials
+appsettings.Production.json
+appsettings.Staging.json
+secrets.json
+*.pfx
+*.p12
+.env
+.env.*
