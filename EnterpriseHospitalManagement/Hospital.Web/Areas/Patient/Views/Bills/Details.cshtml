@@ -16,6 +16,6 @@
       <tr><td><strong>Advance Paid</strong></td><td>@Model.Advance.ToString("C")</td></tr>
       <tr style="font-size:1.2em;"><td><strong>Total</strong></td><td><strong>@Model.TotalBill.ToString("C")</strong></td></tr>
     </table>
-    <p class="mt-3"><span class="badge bg-@(Model.Status==Hospital.Models.Enums.BillStatus.Paid?"success":"warning")" style="font-size:1rem;">@Model.Status</span></p>
+    <p class="mt-3">@{ var bd = Model.Status==Hospital.Models.Enums.BillStatus.Paid?"badge-success":Model.Status==Hospital.Models.Enums.BillStatus.Overdue?"badge-danger":Model.Status==Hospital.Models.Enums.BillStatus.Cancelled?"badge-danger":Model.Status==Hospital.Models.Enums.BillStatus.PartiallyPaid?"badge-warning":"badge-info"; }<span class="badge @bd" style="font-size:1rem;">@Model.Status</span></p>
   </div>
 </div>

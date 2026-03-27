@@ -14,7 +14,7 @@
         @foreach (var a in Model.Items) {
           <tr><td>@(i++)</td><td><strong>@a.Number</strong></td><td>@a.PatientName</td><td>@a.DoctorName</td>
             <td>@a.AppointmentDate.ToString("MMM dd, hh:mm tt")</td>
-            <td><span class="badge bg-@(a.Status==Hospital.Models.Enums.AppointmentStatus.Completed?"success":"primary")">@a.Status</span></td>
+            <td>@{ var nc = a.Status==Hospital.Models.Enums.AppointmentStatus.Completed?"badge-success":a.Status==Hospital.Models.Enums.AppointmentStatus.Cancelled?"badge-danger":a.Status==Hospital.Models.Enums.AppointmentStatus.InProgress?"badge-warning":"badge-info"; }<span class="badge @nc">@a.Status</span></td>
             <td><a asp-action="Edit" asp-route-id="@a.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a></td></tr>
         }
       </tbody>

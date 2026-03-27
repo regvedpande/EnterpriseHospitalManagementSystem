@@ -18,14 +18,8 @@
           <tr><td>@(i++)</td><td><strong>@p.EmployeeName</strong></td>
             <td>@p.PayPeriodStart.ToString("MMM dd") - @p.PayPeriodEnd.ToString("MMM dd, yyyy")</td>
             <td>@p.NetSalary.ToString("C")</td>
-            <td><span class="badge bg-@(p.Status==Hospital.Models.Enums.PayrollStatus.Paid?"success":"secondary")">@p.Status</span></td>
-            <td>
-              <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
-              <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline" onsubmit="return confirm('Delete this payroll record?')">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-danger btn-sm btn-icon"><i class="fas fa-trash"></i></button>
-              </form>
-            </td></tr>
+            <td>@{ var ps = p.Status==Hospital.Models.Enums.PayrollStatus.Paid?"badge-success":p.Status==Hospital.Models.Enums.PayrollStatus.Approved?"badge-info":"badge-warning"; }<span class="badge @ps">@p.Status</span></td>
+            <td><a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a></td></tr>
         }
       </tbody>
     </table>
