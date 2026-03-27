@@ -517,7 +517,7 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 .nav-list-item .ms-auto { margin-left: auto; }
 
 /* ── INSIGHT / ANALYTICS CARDS ───────────────────────────────────────────── */
-.insight-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.insight-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 1rem; margin-bottom: 1.5rem; }
 .insight-card {
   background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
   padding: 1.25rem 1.25rem 1rem; box-shadow: var(--shadow-sm);
