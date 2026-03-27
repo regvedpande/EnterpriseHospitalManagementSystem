@@ -13,7 +13,7 @@
         @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
         @foreach (var l in Model.Items) {
           <tr><td>@(i++)</td><td><strong>@l.LabNumber</strong></td><td>@l.TestType</td>
-            <td><span class="badge bg-@(l.Status==Hospital.Models.Enums.LabTestStatus.Completed?"success":"info")">@l.Status</span></td>
+            <td>@{ var lc = l.Status==Hospital.Models.Enums.LabTestStatus.Completed?"badge-success":l.Status==Hospital.Models.Enums.LabTestStatus.Cancelled?"badge-danger":l.Status==Hospital.Models.Enums.LabTestStatus.InProgress?"badge-warning":"badge-info"; }<span class="badge @lc">@l.Status</span></td>
             <td>@(l.TestResult ?? "Pending")</td><td>@l.CreatedDate.ToString("MMM dd, yyyy")</td></tr>
         }
       </tbody>

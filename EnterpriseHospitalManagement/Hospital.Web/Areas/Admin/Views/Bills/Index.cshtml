@@ -27,7 +27,7 @@
           <tr>
             <td>@(i++)</td><td><strong>@b.BillNumber</strong></td>
             <td>@b.PatientName</td><td>@b.TotalBill.ToString("C")</td>
-            <td><span class="badge bg-@(b.Status == Hospital.Models.Enums.BillStatus.Paid ? "success" : b.Status == Hospital.Models.Enums.BillStatus.Overdue ? "danger" : "warning")">@b.Status</span></td>
+            <td>@{ var ab = b.Status==Hospital.Models.Enums.BillStatus.Paid?"badge-success":b.Status==Hospital.Models.Enums.BillStatus.Overdue?"badge-danger":b.Status==Hospital.Models.Enums.BillStatus.Cancelled?"badge-danger":b.Status==Hospital.Models.Enums.BillStatus.PartiallyPaid?"badge-warning":"badge-info"; }<span class="badge @ab">@b.Status</span></td>
             <td>@b.CreatedDate.ToString("MMM dd, yyyy")</td>
             <td><div class="td-actions">
               <a asp-action="Edit" asp-route-id="@b.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>

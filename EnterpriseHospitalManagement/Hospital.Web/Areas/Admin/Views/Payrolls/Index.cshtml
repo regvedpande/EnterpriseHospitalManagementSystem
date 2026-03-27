@@ -22,7 +22,7 @@
           <tr><td>@(i++)</td><td><strong>@p.EmployeeName</strong></td>
             <td>@p.PayPeriodStart.ToString("MMM dd") - @p.PayPeriodEnd.ToString("MMM dd, yyyy")</td>
             <td>@p.NetSalary.ToString("C")</td>
-            <td><span class="badge bg-@(p.Status == Hospital.Models.Enums.PayrollStatus.Paid ? "success" : p.Status == Hospital.Models.Enums.PayrollStatus.Approved ? "info" : "secondary")">@p.Status</span></td>
+            <td>@{ var ap = p.Status==Hospital.Models.Enums.PayrollStatus.Paid?"badge-success":p.Status==Hospital.Models.Enums.PayrollStatus.Approved?"badge-info":"badge-warning"; }<span class="badge @ap">@p.Status</span></td>
             <td><div class="td-actions">
               <a asp-action="Edit" asp-route-id="@p.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
               <form id="del-@p.Id" asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()</form>

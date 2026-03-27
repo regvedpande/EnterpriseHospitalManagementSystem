@@ -30,7 +30,7 @@
             <td>@a.PatientName</td><td>@a.DoctorName</td>
             <td>@a.AppointmentDate.ToString("MMM dd, yyyy hh:mm tt")</td>
             <td>@a.Type</td>
-            <td><span class="badge bg-@(a.Status == Hospital.Models.Enums.AppointmentStatus.Completed ? "success" : a.Status == Hospital.Models.Enums.AppointmentStatus.Cancelled ? "danger" : "primary")">@a.Status</span></td>
+            <td>@{ var aa = a.Status==Hospital.Models.Enums.AppointmentStatus.Completed?"badge-success":a.Status==Hospital.Models.Enums.AppointmentStatus.Cancelled?"badge-danger":a.Status==Hospital.Models.Enums.AppointmentStatus.InProgress?"badge-warning":"badge-info"; }<span class="badge @aa">@a.Status</span></td>
             <td><div class="td-actions">
               <a asp-action="Edit" asp-route-id="@a.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
               <form id="del-@a.Id" asp-action="Delete" asp-route-id="@a.Id" method="post" style="display:inline;">@Html.AntiForgeryToken()</form>

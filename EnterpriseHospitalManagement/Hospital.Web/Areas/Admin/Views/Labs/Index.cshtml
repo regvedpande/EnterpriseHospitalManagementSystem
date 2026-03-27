@@ -24,7 +24,7 @@
         {
           <tr><td>@(i++)</td><td><strong>@l.LabNumber</strong></td><td>@l.PatientName</td>
             <td>@l.TestType</td><td>@l.TestCode</td>
-            <td><span class="badge bg-@(l.Status == Hospital.Models.Enums.LabTestStatus.Completed ? "success" : "info")">@l.Status</span></td>
+            <td>@{ var al = l.Status==Hospital.Models.Enums.LabTestStatus.Completed?"badge-success":l.Status==Hospital.Models.Enums.LabTestStatus.Cancelled?"badge-danger":l.Status==Hospital.Models.Enums.LabTestStatus.InProgress?"badge-warning":"badge-info"; }<span class="badge @al">@l.Status</span></td>
             <td>@l.CreatedDate.ToString("MMM dd, yyyy")</td>
             <td><div class="td-actions">
               <a asp-action="Edit" asp-route-id="@l.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>

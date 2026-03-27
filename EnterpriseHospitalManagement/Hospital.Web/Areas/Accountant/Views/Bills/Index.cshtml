@@ -16,7 +16,7 @@
         @{ int i = (Model.PageNumber-1)*Model.PageSize+1; }
         @foreach (var b in Model.Items) {
           <tr><td>@(i++)</td><td><strong>@b.BillNumber</strong></td><td>@b.PatientName</td><td>@b.TotalBill.ToString("C")</td>
-            <td><span class="badge bg-@(b.Status==Hospital.Models.Enums.BillStatus.Paid?"success":"warning")">@b.Status</span></td>
+            <td>@{ var bs = b.Status==Hospital.Models.Enums.BillStatus.Paid?"badge-success":b.Status==Hospital.Models.Enums.BillStatus.Overdue?"badge-danger":b.Status==Hospital.Models.Enums.BillStatus.Cancelled?"badge-danger":b.Status==Hospital.Models.Enums.BillStatus.PartiallyPaid?"badge-warning":"badge-info"; }<span class="badge @bs">@b.Status</span></td>
             <td>@b.CreatedDate.ToString("MMM dd, yyyy")</td>
             <td><a asp-action="Edit" asp-route-id="@b.Id" class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a></td></tr>
         }
