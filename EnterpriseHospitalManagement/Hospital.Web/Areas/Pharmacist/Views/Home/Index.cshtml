@@ -1,19 +1,25 @@
+@using Hospital.ViewModels
 @{
     ViewData["Title"]       = "Pharmacist Dashboard";
     ViewData["ShowSidebar"] = true;
     int medicineCount     = (int)(ViewBag.MedicineCount     ?? 0);
     int prescriptionCount = (int)(ViewBag.PrescriptionCount ?? 0);
-    string name = User.Identity?.Name ?? "Pharmacist";
+    int lowStockCount     = (int)(ViewBag.LowStockCount     ?? 0);
+    string typeLabels     = ViewBag.TypeLabels ?? "[]";
+    string typeCounts     = ViewBag.TypeCounts ?? "[]";
+    var recentReports   = ViewBag.RecentReports   as IEnumerable<PatientReportViewModel> ?? Enumerable.Empty<PatientReportViewModel>();
+    var recentMedicines = ViewBag.RecentMedicines as IEnumerable<MedicineViewModel>      ?? Enumerable.Empty<MedicineViewModel>();
+    string name = User.Identity?.Name?.Split('@')[0] ?? "Pharmacist";
 }
 
 <div class="welcome-banner">
   <div>
     <h2>Welcome, @name</h2>
-    <p>Pharmacy Management — Manage medicines and fulfil prescriptions accurately.</p>
+    <p>Pharmacy Management — Manage medicines and fulfill prescriptions accurately.</p>
   </div>
   <div class="welcome-actions">
     <a asp-area="Pharmacist" asp-controller="Prescriptions" asp-action="Index" class="btn btn-white">
-      <i class="fas fa-prescription-bottle-alt"></i> View Prescriptions
+      <i class="fas fa-prescription-bottle-alt"></i> Prescriptions
     </a>
     <a asp-area="Pharmacist" asp-controller="Medicines" asp-action="Create" class="btn btn-white-solid">
       <i class="fas fa-plus"></i> Add Medicine
@@ -21,9 +27,12 @@
   </div>
 </div>
 
-<div class="stats-grid">
+<!-- KPI Cards -->
+<div class="stats-grid stats-grid-4">
   <a class="stat-card stat-link" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Index">
-    <div class="stat-icon" style="background:#fff1f2;color:#e11d48;"><i class="fas fa-pills"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;">
+      <i class="fas fa-pills"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">@medicineCount</div>
       <div class="stat-label">Medicines in Stock</div>
@@ -31,7 +40,9 @@
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Pharmacist" asp-controller="Prescriptions" asp-action="Index">
-    <div class="stat-icon" style="background:#f0fdf4;color:#16a34a;"><i class="fas fa-prescription-bottle-alt"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;">
+      <i class="fas fa-prescription-bottle-alt"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">@prescriptionCount</div>
       <div class="stat-label">Total Prescriptions</div>
@@ -39,63 +50,155 @@
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <div class="stat-card">
-    <div class="stat-icon orange"><i class="fas fa-capsules"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+      <i class="fas fa-capsules"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">Active</div>
       <div class="stat-label">Dispensing</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon teal"><i class="fas fa-shield-alt"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#fff;">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-value">Safe</div>
-      <div class="stat-label">Quality Control</div>
+      <div class="stat-value">@lowStockCount</div>
+      <div class="stat-label">Low Cost Items</div>
     </div>
   </div>
 </div>
 
-<div class="dashboard-two-col">
+<!-- Charts Row -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.25rem;margin-bottom:1.75rem;">
+  <!-- Medicine by Type Bar Chart -->
   <div class="card">
     <div class="card-header">
-      <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
+      <span class="card-header-title"><i class="fas fa-chart-bar" style="color:#f5576c;margin-right:.5rem;"></i>Medicines by Type</span>
     </div>
-    <div class="card-body nav-list">
-      <a class="nav-list-item" asp-area="Pharmacist" asp-controller="Prescriptions" asp-action="Index">
-        <i class="fas fa-prescription-bottle"></i> All Prescriptions
-        <span class="badge badge-info ms-auto">@prescriptionCount</span>
-      </a>
-      <a class="nav-list-item" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Index">
-        <i class="fas fa-pills"></i> Medicine Inventory
-        <span class="badge badge-danger ms-auto">@medicineCount</span>
-      </a>
-      <a class="nav-list-item" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Create">
-        <i class="fas fa-plus-circle"></i> Add New Medicine
-      </a>
+    <div class="card-body" style="padding:1rem;">
+      <div class="chart-container" style="height:220px;position:relative;">
+        <canvas id="medicineTypeChart"></canvas>
+      </div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header">
-      <span class="card-header-title"><i class="fas fa-info-circle" style="color:var(--accent);margin-right:.5rem;"></i>Pharmacy Overview</span>
-    </div>
-    <div class="card-body">
-      <div class="overview-list">
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-pills" style="color:#e11d48;"></i> Total Medicines</div>
-          <div class="ov-value"><span class="badge badge-danger">@medicineCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-prescription" style="color:#16a34a;"></i> Prescriptions Filed</div>
-          <div class="ov-value"><span class="badge badge-success">@prescriptionCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-clock" style="color:var(--warning);"></i> Processing Time</div>
-          <div class="ov-value"><span class="badge badge-warning">&lt; 30 min</span></div>
-        </div>
+
+  <!-- Quick Actions + Overview -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
       </div>
-      <div style="margin-top:1rem;padding:.875rem;background:var(--surface);border-radius:8px;font-size:.8rem;color:var(--text-muted);">
-        <i class="fas fa-exclamation-triangle" style="color:var(--warning);margin-right:.4rem;"></i>
-        Check expiry dates regularly and remove expired stock from the inventory.
+      <div class="card-body nav-list" style="padding:.5rem 0;">
+        <a class="nav-list-item" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Index">
+          <i class="fas fa-pills"></i> Medicine Inventory
+          <span class="badge badge-danger ms-auto">@medicineCount</span>
+        </a>
+        <a class="nav-list-item" asp-area="Pharmacist" asp-controller="Prescriptions" asp-action="Index">
+          <i class="fas fa-prescription-bottle"></i> All Prescriptions
+          <span class="badge badge-info ms-auto">@prescriptionCount</span>
+        </a>
+        <a class="nav-list-item" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Create">
+          <i class="fas fa-plus-circle"></i> Add New Medicine
+        </a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-info-circle" style="color:var(--accent);margin-right:.5rem;"></i>Pharmacy Overview</span>
+      </div>
+      <div class="card-body">
+        <div class="overview-list">
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-pills" style="color:#e11d48;"></i> Total Medicines</div>
+            <div class="ov-value"><span class="badge badge-danger">@medicineCount</span></div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-prescription" style="color:#16a34a;"></i> Prescriptions</div>
+            <div class="ov-value"><span class="badge badge-success">@prescriptionCount</span></div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-clock" style="color:var(--warning);"></i> Avg Dispense Time</div>
+            <div class="ov-value"><span class="badge badge-warning">&lt; 30 min</span></div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;padding:.75rem;background:#fff7ed;border-radius:8px;font-size:.78rem;color:#92400e;border:1px solid #fde68a;">
+          <i class="fas fa-exclamation-triangle" style="margin-right:.4rem;"></i>
+          Check expiry dates regularly and remove expired stock.
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Recent Medicines -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-header-title"><i class="fas fa-pills" style="color:#f5576c;margin-right:.5rem;"></i>Recent Medicines</span>
+    <a asp-area="Pharmacist" asp-controller="Medicines" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+  </div>
+  @if (recentMedicines.Any())
+  {
+    <div class="card-body" style="padding:0;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--surface);">
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Name</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Type</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Cost</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (var m in recentMedicines)
+          {
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:.65rem 1rem;font-size:.875rem;font-weight:600;">@m.Name</td>
+              <td style="padding:.65rem 1rem;font-size:.8rem;"><span class="badge badge-info">@m.Type</span></td>
+              <td style="padding:.65rem 1rem;font-size:.8rem;">$@m.Cost.ToString("N2")</td>
+              <td style="padding:.65rem 1rem;">
+                <a asp-area="Pharmacist" asp-controller="Medicines" asp-action="Edit" asp-route-id="@m.Id"
+                   class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  else
+  {
+    <div class="empty-state" style="padding:2rem;">
+      <i class="fas fa-pills"></i>
+      <h3>No medicines in inventory</h3>
+    </div>
+  }
+</div>
+
+@section Scripts {
+<script>
+new Chart(document.getElementById('medicineTypeChart'), {
+  type: 'bar',
+  data: {
+    labels: @Html.Raw(typeLabels),
+    datasets: [{
+      label: 'Count',
+      data: @Html.Raw(typeCounts),
+      backgroundColor: [
+        '#f5576c','#667eea','#11998e','#f7971e','#4facfe',
+        '#f093fb','#43e97b','#fa709a'
+      ],
+      borderRadius: 6, borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { stepSize: 1, font: { size: 11 } } },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+</script>
+}

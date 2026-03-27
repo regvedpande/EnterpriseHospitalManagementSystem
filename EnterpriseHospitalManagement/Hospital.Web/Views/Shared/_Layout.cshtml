@@ -110,6 +110,13 @@
             </a>
           }
           <div class="divider"></div>
+          <a asp-controller="Profile" asp-action="Index" asp-area="">
+            <i class="fas fa-user-circle"></i> My Profile
+          </a>
+          <a asp-controller="Profile" asp-action="ChangePassword" asp-area="">
+            <i class="fas fa-key"></i> Change Password
+          </a>
+          <div class="divider"></div>
           <form asp-controller="Auth" asp-action="Logout" asp-area="" method="post" id="logoutForm">
             @Html.AntiForgeryToken()
             <button type="submit" class="danger"><i class="fas fa-sign-out-alt"></i> Sign Out</button>
@@ -255,6 +262,9 @@
                asp-area="Doctor" asp-controller="Appointments" asp-action="Index">
               <i class="fas fa-calendar-check"></i> My Appointments
             </a>
+            <a class="sidebar-link" asp-area="Doctor" asp-controller="Appointments" asp-action="Create">
+              <i class="fas fa-calendar-plus"></i> New Appointment
+            </a>
             <a class="sidebar-link @(ctrl == "Patients" ? "active" : "")"
                asp-area="Doctor" asp-controller="Patients" asp-action="Index">
               <i class="fas fa-notes-medical"></i> Patient Reports
@@ -354,6 +364,9 @@
             <a class="sidebar-link @(ctrl == "Labs" ? "active" : "")"
                asp-area="LabTech" asp-controller="Labs" asp-action="Index">
               <i class="fas fa-flask"></i> Lab Tests
+            </a>
+            <a class="sidebar-link" asp-area="LabTech" asp-controller="Labs" asp-action="Create">
+              <i class="fas fa-plus-circle"></i> New Lab Order
             </a>
           </div>
         }

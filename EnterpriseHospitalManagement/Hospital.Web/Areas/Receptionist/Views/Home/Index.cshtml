@@ -1,16 +1,24 @@
+@using Hospital.ViewModels
 @{
     ViewData["Title"]       = "Receptionist Dashboard";
     ViewData["ShowSidebar"] = true;
-    int apptCount    = (int)(ViewBag.AppointmentCount ?? 0);
-    int patientCount = (int)(ViewBag.PatientCount     ?? 0);
-    int doctorCount  = (int)(ViewBag.DoctorCount      ?? 0);
-    string name = User.Identity?.Name ?? "Receptionist";
+    int apptCount      = (int)(ViewBag.AppointmentCount ?? 0);
+    int patientCount   = (int)(ViewBag.PatientCount     ?? 0);
+    int doctorCount    = (int)(ViewBag.DoctorCount      ?? 0);
+    int scheduledCount = (int)(ViewBag.ScheduledCount   ?? 0);
+    int confirmedCount = (int)(ViewBag.ConfirmedCount   ?? 0);
+    int completedCount = (int)(ViewBag.CompletedCount   ?? 0);
+    int cancelledCount = (int)(ViewBag.CancelledCount   ?? 0);
+    string statusLabels = ViewBag.StatusLabels ?? "[]";
+    string statusData   = ViewBag.StatusData   ?? "[]";
+    var recentAppts = ViewBag.RecentAppointments as IEnumerable<AppointmentViewModel> ?? Enumerable.Empty<AppointmentViewModel>();
+    string name = User.Identity?.Name?.Split('@')[0] ?? "Receptionist";
 }
 
 <div class="welcome-banner">
   <div>
     <h2>Welcome, @name</h2>
-    <p>Reception Desk — Schedule appointments and coordinate patient flow.</p>
+    <p>Reception Desk — Schedule appointments and coordinate patient flow efficiently.</p>
   </div>
   <div class="welcome-actions">
     <a asp-area="Receptionist" asp-controller="Appointments" asp-action="Create" class="btn btn-white-solid">
@@ -22,9 +30,12 @@
   </div>
 </div>
 
-<div class="stats-grid">
+<!-- KPI Cards -->
+<div class="stats-grid stats-grid-4">
   <a class="stat-card stat-link" asp-area="Receptionist" asp-controller="Appointments" asp-action="Index">
-    <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+      <i class="fas fa-calendar-check"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">@apptCount</div>
       <div class="stat-label">Total Appointments</div>
@@ -32,62 +43,146 @@
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <div class="stat-card">
-    <div class="stat-icon green"><i class="fas fa-user-injured"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;">
+      <i class="fas fa-user-injured"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">@patientCount</div>
       <div class="stat-label">Registered Patients</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon orange"><i class="fas fa-user-md"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#fff;">
+      <i class="fas fa-user-md"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">@doctorCount</div>
       <div class="stat-label">Available Doctors</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon teal"><i class="fas fa-concierge-bell"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);color:#fff;">
+      <i class="fas fa-calendar-alt"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-value">Active</div>
-      <div class="stat-label">Reception Status</div>
+      <div class="stat-value">@scheduledCount</div>
+      <div class="stat-label">Scheduled</div>
     </div>
   </div>
 </div>
 
-<div class="dashboard-two-col">
+<!-- Charts Row -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.25rem;margin-bottom:1.75rem;">
+  <!-- Recent Appointments -->
   <div class="card">
     <div class="card-header">
-      <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
+      <span class="card-header-title"><i class="fas fa-calendar-alt" style="color:#667eea;margin-right:.5rem;"></i>Recent Appointments</span>
+      <a asp-area="Receptionist" asp-controller="Appointments" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
     </div>
-    <div class="card-body nav-list">
-      <a class="nav-list-item" asp-area="Receptionist" asp-controller="Appointments" asp-action="Create">
-        <i class="fas fa-calendar-plus"></i> Schedule New Appointment
-      </a>
-      <a class="nav-list-item" asp-area="Receptionist" asp-controller="Appointments" asp-action="Index">
-        <i class="fas fa-list-alt"></i> Manage Appointments
-        <span class="badge badge-info ms-auto">@apptCount</span>
-      </a>
-    </div>
+    @if (recentAppts.Any())
+    {
+      <div class="card-body" style="padding:0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:var(--surface);">
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Appt #</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Patient</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Doctor</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Date</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Status</th>
+              <th style="padding:.65rem 1rem;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var a in recentAppts)
+            {
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:.65rem 1rem;font-size:.8rem;font-weight:600;">@a.Number</td>
+                <td style="padding:.65rem 1rem;font-size:.8rem;">@a.PatientName</td>
+                <td style="padding:.65rem 1rem;font-size:.8rem;">@a.DoctorName</td>
+                <td style="padding:.65rem 1rem;font-size:.78rem;color:var(--text-muted);">@a.AppointmentDate.ToString("MMM dd, yyyy")</td>
+                <td style="padding:.65rem 1rem;">
+                  @{
+                    var sc = a.Status == Hospital.Models.Enums.AppointmentStatus.Completed ? "badge-success"
+                           : a.Status == Hospital.Models.Enums.AppointmentStatus.Cancelled  ? "badge-danger"
+                           : a.Status == Hospital.Models.Enums.AppointmentStatus.InProgress ? "badge-warning"
+                           : "badge-info";
+                  }
+                  <span class="badge @sc">@a.Status</span>
+                </td>
+                <td style="padding:.65rem 1rem;">
+                  <a asp-area="Receptionist" asp-controller="Appointments" asp-action="Edit" asp-route-id="@a.Id"
+                     class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    else
+    {
+      <div class="empty-state" style="padding:2rem;">
+        <i class="fas fa-calendar-times"></i>
+        <h3>No appointments yet</h3>
+        <p>Schedule the first appointment using the button above.</p>
+      </div>
+    }
   </div>
-  <div class="card">
-    <div class="card-header">
-      <span class="card-header-title"><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:.5rem;"></i>Today's Overview</span>
+
+  <!-- Status Doughnut + Quick Actions -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-chart-pie" style="color:#667eea;margin-right:.5rem;"></i>Appointment Status</span>
+      </div>
+      <div class="card-body" style="padding:1rem;">
+        <div class="chart-container" style="height:160px;position:relative;">
+          <canvas id="statusChart"></canvas>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.75rem;justify-content:center;font-size:.7rem;">
+          <span><i class="fas fa-circle" style="color:#6366f1;"></i> Scheduled (@scheduledCount)</span>
+          <span><i class="fas fa-circle" style="color:#3b82f6;"></i> Confirmed (@confirmedCount)</span>
+          <span><i class="fas fa-circle" style="color:#10b981;"></i> Done (@completedCount)</span>
+          <span><i class="fas fa-circle" style="color:#ef4444;"></i> Cancelled (@cancelledCount)</span>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="overview-list">
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-calendar-check" style="color:var(--primary);"></i> All Appointments</div>
-          <div class="ov-value"><span class="badge badge-info">@apptCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-user-md" style="color:var(--success);"></i> Active Doctors</div>
-          <div class="ov-value"><span class="badge badge-success">@doctorCount</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-users" style="color:var(--accent);"></i> Total Patients</div>
-          <div class="ov-value"><span class="badge badge-secondary">@patientCount</span></div>
-        </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
+      </div>
+      <div class="card-body nav-list" style="padding:.5rem 0;">
+        <a class="nav-list-item" asp-area="Receptionist" asp-controller="Appointments" asp-action="Create">
+          <i class="fas fa-calendar-plus"></i> Schedule New Appointment
+        </a>
+        <a class="nav-list-item" asp-area="Receptionist" asp-controller="Appointments" asp-action="Index">
+          <i class="fas fa-list-alt"></i> Manage Appointments
+          <span class="badge badge-info ms-auto">@apptCount</span>
+        </a>
       </div>
     </div>
   </div>
 </div>
+
+@section Scripts {
+<script>
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: @Html.Raw(statusLabels),
+    datasets: [{
+      data: @Html.Raw(statusData),
+      backgroundColor: ['#6366f1','#3b82f6','#10b981','#ef4444'],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    cutout: '60%'
+  }
+});
+</script>
+}

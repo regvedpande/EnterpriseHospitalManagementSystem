@@ -1,95 +1,216 @@
+@using Hospital.ViewModels
 @{
     ViewData["Title"]       = "Lab Tech Dashboard";
     ViewData["ShowSidebar"] = true;
-    int totalTests = (int)(ViewBag.TotalTests ?? 0);
-    int myTests    = (int)(ViewBag.MyTests    ?? 0);
-    string name = User.Identity?.Name ?? "Lab Technician";
+    int totalTests    = (int)(ViewBag.TotalTests      ?? 0);
+    int myTests       = (int)(ViewBag.MyTests         ?? 0);
+    int orderedCount  = (int)(ViewBag.OrderedCount    ?? 0);
+    int sampleCount   = (int)(ViewBag.SampleCount     ?? 0);
+    int inProgCount   = (int)(ViewBag.InProgressCount ?? 0);
+    int completedCount= (int)(ViewBag.CompletedCount  ?? 0);
+    int cancelledCount= (int)(ViewBag.CancelledCount  ?? 0);
+    string statusLabels = ViewBag.StatusLabels ?? "[]";
+    string statusData   = ViewBag.StatusData   ?? "[]";
+    var recentLabs = ViewBag.RecentLabs as IEnumerable<LabViewModel> ?? Enumerable.Empty<LabViewModel>();
+    string name = User.Identity?.Name?.Split('@')[0] ?? "Lab Technician";
 }
 
 <div class="welcome-banner">
   <div>
     <h2>Welcome, @name</h2>
-    <p>Laboratory Management — Process and update lab test results efficiently.</p>
+    <p>Laboratory Management — Process tests and deliver accurate, timely results.</p>
   </div>
   <div class="welcome-actions">
+    <a asp-area="LabTech" asp-controller="Labs" asp-action="Create" class="btn btn-white-solid">
+      <i class="fas fa-plus"></i> New Lab Order
+    </a>
     <a asp-area="LabTech" asp-controller="Labs" asp-action="Index" class="btn btn-white">
-      <i class="fas fa-flask"></i> View Lab Tests
+      <i class="fas fa-flask"></i> View All Tests
     </a>
   </div>
 </div>
 
-<div class="stats-grid">
+<!-- KPI Cards -->
+<div class="stats-grid stats-grid-4">
   <a class="stat-card stat-link" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
-    <div class="stat-icon blue"><i class="fas fa-vials"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);color:#fff;">
+      <i class="fas fa-vials"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">@totalTests</div>
       <div class="stat-label">Total Lab Orders</div>
     </div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
-  <a class="stat-card stat-link" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
-    <div class="stat-icon green"><i class="fas fa-flask"></i></div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;">
+      <i class="fas fa-flask"></i>
+    </div>
     <div class="stat-body">
       <div class="stat-value">@myTests</div>
       <div class="stat-label">Assigned to Me</div>
     </div>
-    <i class="fas fa-chevron-right stat-arrow"></i>
-  </a>
+  </div>
   <div class="stat-card">
-    <div class="stat-icon orange"><i class="fas fa-microscope"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;">
+      <i class="fas fa-spinner"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-value">Lab</div>
-      <div class="stat-label">Processing Active</div>
+      <div class="stat-value">@inProgCount</div>
+      <div class="stat-label">In Progress</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon teal"><i class="fas fa-clock"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+      <i class="fas fa-check-circle"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-value">24h</div>
-      <div class="stat-label">Avg Turnaround</div>
+      <div class="stat-value">@completedCount</div>
+      <div class="stat-label">Completed</div>
     </div>
   </div>
 </div>
 
-<div class="dashboard-two-col">
+<!-- Charts + Status + Recent -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.75rem;">
+  <!-- Status Doughnut -->
   <div class="card">
     <div class="card-header">
-      <span class="card-header-title"><i class="fas fa-tasks" style="color:var(--primary);margin-right:.5rem;"></i>Actions</span>
+      <span class="card-header-title"><i class="fas fa-chart-pie" style="color:#4facfe;margin-right:.5rem;"></i>Tests by Status</span>
     </div>
-    <div class="card-body nav-list">
-      <a class="nav-list-item" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
-        <i class="fas fa-list-alt"></i> All Lab Orders
-        <span class="badge badge-info ms-auto">@totalTests</span>
-      </a>
-      <a class="nav-list-item" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
-        <i class="fas fa-user-cog"></i> My Assigned Tests
-        <span class="badge badge-success ms-auto">@myTests</span>
-      </a>
+    <div class="card-body" style="padding:1.25rem;">
+      <div class="chart-container" style="height:200px;position:relative;">
+        <canvas id="statusChart"></canvas>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;justify-content:center;font-size:.72rem;">
+        <span><i class="fas fa-circle" style="color:#6366f1;"></i> Ordered (@orderedCount)</span>
+        <span><i class="fas fa-circle" style="color:#3b82f6;"></i> Sample (@sampleCount)</span>
+        <span><i class="fas fa-circle" style="color:#f59e0b;"></i> In Progress (@inProgCount)</span>
+        <span><i class="fas fa-circle" style="color:#10b981;"></i> Completed (@completedCount)</span>
+        <span><i class="fas fa-circle" style="color:#6b7280;"></i> Cancelled (@cancelledCount)</span>
+      </div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header">
-      <span class="card-header-title"><i class="fas fa-info-circle" style="color:var(--accent);margin-right:.5rem;"></i>Test Status Guide</span>
+
+  <!-- Status Guide + Actions -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
+      </div>
+      <div class="card-body nav-list" style="padding:.5rem 0;">
+        <a class="nav-list-item" asp-area="LabTech" asp-controller="Labs" asp-action="Create">
+          <i class="fas fa-plus-circle"></i> New Lab Order
+        </a>
+        <a class="nav-list-item" asp-area="LabTech" asp-controller="Labs" asp-action="Index">
+          <i class="fas fa-list-alt"></i> All Lab Orders
+          <span class="badge badge-info ms-auto">@totalTests</span>
+        </a>
+      </div>
     </div>
-    <div class="card-body">
-      <div class="overview-list">
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-clipboard-list" style="color:var(--primary);"></i> Ordered</div>
-          <div class="ov-value"><span class="badge badge-info">Pending</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-spinner" style="color:var(--warning);"></i> In Progress</div>
-          <div class="ov-value"><span class="badge badge-warning">Processing</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-check-circle" style="color:var(--success);"></i> Completed</div>
-          <div class="ov-value"><span class="badge badge-success">Done</span></div>
-        </div>
-        <div class="overview-item">
-          <div class="ov-label"><i class="fas fa-ban" style="color:var(--danger);"></i> Cancelled</div>
-          <div class="ov-value"><span class="badge badge-danger">N/A</span></div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-info-circle" style="color:var(--accent);margin-right:.5rem;"></i>Breakdown</span>
+      </div>
+      <div class="card-body">
+        <div class="overview-list">
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-clipboard-list" style="color:#6366f1;"></i> Ordered</div>
+            <div class="ov-value"><span class="badge badge-info">@orderedCount</span></div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-microscope" style="color:#3b82f6;"></i> Sample Collected</div>
+            <div class="ov-value"><span class="badge badge-info">@sampleCount</span></div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-spinner" style="color:#f59e0b;"></i> In Progress</div>
+            <div class="ov-value"><span class="badge badge-warning">@inProgCount</span></div>
+          </div>
+          <div class="overview-item">
+            <div class="ov-label"><i class="fas fa-check-circle" style="color:#10b981;"></i> Completed</div>
+            <div class="ov-value"><span class="badge badge-success">@completedCount</span></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Recent Lab Orders -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-header-title"><i class="fas fa-flask" style="color:#4facfe;margin-right:.5rem;"></i>Recent Lab Orders</span>
+    <a asp-area="LabTech" asp-controller="Labs" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+  </div>
+  @if (recentLabs.Any())
+  {
+    <div class="card-body" style="padding:0;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:var(--surface);">
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Lab #</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Patient</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Test</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Status</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Date</th>
+            <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (var l in recentLabs)
+          {
+            <tr style="border-bottom:1px solid var(--border);">
+              <td style="padding:.65rem 1rem;font-size:.8rem;font-weight:600;">@l.LabNumber</td>
+              <td style="padding:.65rem 1rem;font-size:.8rem;">@l.PatientName</td>
+              <td style="padding:.65rem 1rem;font-size:.8rem;">@l.TestType</td>
+              <td style="padding:.65rem 1rem;">
+                @{
+                  var sc = l.Status == Hospital.Models.Enums.LabTestStatus.Completed       ? "badge-success"
+                         : l.Status == Hospital.Models.Enums.LabTestStatus.InProgress      ? "badge-warning"
+                         : l.Status == Hospital.Models.Enums.LabTestStatus.Cancelled       ? "badge-danger"
+                         : l.Status == Hospital.Models.Enums.LabTestStatus.SampleCollected ? "badge-info"
+                         : "badge-info";
+                }
+                <span class="badge @sc">@l.Status</span>
+              </td>
+              <td style="padding:.65rem 1rem;font-size:.78rem;color:var(--text-muted);">@l.CreatedDate.ToString("MMM dd")</td>
+              <td style="padding:.65rem 1rem;">
+                <a asp-area="LabTech" asp-controller="Labs" asp-action="Edit" asp-route-id="@l.Id"
+                   class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  else
+  {
+    <div class="empty-state" style="padding:2rem;">
+      <i class="fas fa-flask"></i>
+      <h3>No lab orders yet</h3>
+      <p>Lab orders will appear here once created.</p>
+    </div>
+  }
+</div>
+
+@section Scripts {
+<script>
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: @Html.Raw(statusLabels),
+    datasets: [{
+      data: @Html.Raw(statusData),
+      backgroundColor: ['#6366f1','#3b82f6','#f59e0b','#10b981','#6b7280'],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    cutout: '60%'
+  }
+});
+</script>
+}

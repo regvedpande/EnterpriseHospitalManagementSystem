@@ -1,18 +1,24 @@
+@using Hospital.ViewModels
 @{
     ViewData["Title"]       = "Patient Dashboard";
     ViewData["ShowSidebar"] = true;
-    int hospitalCount = (int)(ViewBag.HospitalCount ?? 0);
-    int doctorCount   = (int)(ViewBag.DoctorCount   ?? 0);
-    int roomCount     = (int)(ViewBag.RoomCount     ?? 0);
-    var doctors       = ViewBag.Doctors   as IEnumerable<Hospital.ViewModels.DoctorViewModel>       ?? Enumerable.Empty<Hospital.ViewModels.DoctorViewModel>();
-    var hospitals     = ViewBag.Hospitals as IEnumerable<Hospital.ViewModels.HospitalInfoViewModel>  ?? Enumerable.Empty<Hospital.ViewModels.HospitalInfoViewModel>();
+    int appointmentCount = (int)(ViewBag.AppointmentCount ?? 0);
+    int billCount        = (int)(ViewBag.BillCount        ?? 0);
+    int labCount         = (int)(ViewBag.LabCount         ?? 0);
+    int reportCount      = (int)(ViewBag.ReportCount      ?? 0);
+    int doctorCount      = (int)(ViewBag.DoctorCount      ?? 0);
+    int hospitalCount    = (int)(ViewBag.HospitalCount    ?? 0);
+    var recentAppts    = ViewBag.RecentAppointments as IEnumerable<AppointmentViewModel>  ?? Enumerable.Empty<AppointmentViewModel>();
+    var recentBills    = ViewBag.RecentBills        as IEnumerable<BillViewModel>         ?? Enumerable.Empty<BillViewModel>();
+    var doctors        = ViewBag.Doctors   as IEnumerable<DoctorViewModel>       ?? Enumerable.Empty<DoctorViewModel>();
+    var hospitals      = ViewBag.Hospitals as IEnumerable<HospitalInfoViewModel>  ?? Enumerable.Empty<HospitalInfoViewModel>();
     string name = User.Identity?.Name?.Split('@')[0] ?? "Patient";
 }
 
 <div class="welcome-banner">
   <div>
     <h2>Welcome back, @name!</h2>
-    <p>Your personal health portal — view appointments, test results, and medical reports.</p>
+    <p>Your personal health portal — appointments, test results, bills, and reports at a glance.</p>
   </div>
   <div class="welcome-actions">
     <a asp-area="Patient" asp-controller="Appointments" asp-action="Create" class="btn btn-white-solid">
@@ -24,76 +30,171 @@
   </div>
 </div>
 
-<!-- Quick Nav -->
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.75rem;">
+<!-- Personal Stats Grid -->
+<div class="stats-grid stats-grid-4" style="margin-bottom:1.75rem;">
   <a class="stat-card stat-link" asp-area="Patient" asp-controller="Appointments" asp-action="Index">
-    <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+      <i class="fas fa-calendar-check"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-label" style="font-size:.875rem;font-weight:600;color:var(--text);">Appointments</div>
-      <div class="stat-label">View & Book</div>
+      <div class="stat-value">@appointmentCount</div>
+      <div class="stat-label">My Appointments</div>
     </div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Patient" asp-controller="Bills" asp-action="Index">
-    <div class="stat-icon green"><i class="fas fa-file-invoice-dollar"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;">
+      <i class="fas fa-file-invoice-dollar"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-label" style="font-size:.875rem;font-weight:600;color:var(--text);">Bills</div>
-      <div class="stat-label">View Statements</div>
+      <div class="stat-value">@billCount</div>
+      <div class="stat-label">My Bills</div>
     </div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Patient" asp-controller="Labs" asp-action="Index">
-    <div class="stat-icon orange"><i class="fas fa-flask"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#fff;">
+      <i class="fas fa-flask"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-label" style="font-size:.875rem;font-weight:600;color:var(--text);">Lab Results</div>
-      <div class="stat-label">Test Reports</div>
+      <div class="stat-value">@labCount</div>
+      <div class="stat-label">Lab Tests</div>
     </div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
   <a class="stat-card stat-link" asp-area="Patient" asp-controller="Reports" asp-action="Index">
-    <div class="stat-icon teal"><i class="fas fa-notes-medical"></i></div>
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;">
+      <i class="fas fa-notes-medical"></i>
+    </div>
     <div class="stat-body">
-      <div class="stat-label" style="font-size:.875rem;font-weight:600;color:var(--text);">Medical Reports</div>
-      <div class="stat-label">Doctor Notes</div>
+      <div class="stat-value">@reportCount</div>
+      <div class="stat-label">Medical Reports</div>
     </div>
     <i class="fas fa-chevron-right stat-arrow"></i>
   </a>
 </div>
 
-<!-- Stats -->
-<div class="stats-grid" style="margin-bottom:1.75rem;">
-  <div class="stat-card">
-    <div class="stat-icon blue"><i class="fas fa-hospital"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@hospitalCount</div>
-      <div class="stat-label">Hospital Branches</div>
+<!-- Two-column: Recent Appointments + Recent Bills -->
+<div class="dashboard-two-col" style="margin-bottom:1.75rem;">
+  <!-- My Appointments -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-calendar-alt" style="color:#667eea;margin-right:.5rem;"></i>Recent Appointments</span>
+      <a asp-area="Patient" asp-controller="Appointments" asp-action="Create" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Book
+      </a>
     </div>
+    @if (recentAppts.Any())
+    {
+      <div class="card-body" style="padding:0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:var(--surface);">
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Doctor</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Date</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Type</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var a in recentAppts)
+            {
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:.65rem 1rem;font-size:.875rem;font-weight:500;">@a.DoctorName</td>
+                <td style="padding:.65rem 1rem;font-size:.78rem;color:var(--text-muted);">@a.AppointmentDate.ToString("MMM dd, yyyy")</td>
+                <td style="padding:.65rem 1rem;font-size:.78rem;">@a.Type</td>
+                <td style="padding:.65rem 1rem;">
+                  @{
+                    var sc = a.Status == Hospital.Models.Enums.AppointmentStatus.Completed ? "badge-success"
+                           : a.Status == Hospital.Models.Enums.AppointmentStatus.Cancelled  ? "badge-danger"
+                           : a.Status == Hospital.Models.Enums.AppointmentStatus.InProgress ? "badge-warning"
+                           : "badge-info";
+                  }
+                  <span class="badge @sc">@a.Status</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    else
+    {
+      <div class="empty-state" style="padding:2rem;">
+        <i class="fas fa-calendar-times"></i>
+        <h3>No appointments yet</h3>
+        <p>Book your first appointment to get started.</p>
+        <a asp-area="Patient" asp-controller="Appointments" asp-action="Create" class="btn btn-primary">
+          <i class="fas fa-calendar-plus"></i> Book Appointment
+        </a>
+      </div>
+    }
   </div>
-  <div class="stat-card">
-    <div class="stat-icon green"><i class="fas fa-user-md"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@doctorCount</div>
-      <div class="stat-label">Available Doctors</div>
+
+  <!-- Recent Bills + Quick Nav -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-file-invoice-dollar" style="color:#11998e;margin-right:.5rem;"></i>Recent Bills</span>
+        <a asp-area="Patient" asp-controller="Bills" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      @if (recentBills.Any())
+      {
+        <div class="card-body nav-list" style="padding:.5rem 0;">
+          @foreach (var b in recentBills)
+          {
+            <div class="activity-item">
+              <div class="activity-icon" style="background:#d1fae5;color:#065f46;"><i class="fas fa-file-invoice-dollar"></i></div>
+              <div class="activity-body">
+                <strong>Bill #@b.BillNumber</strong>
+                <span>Total: $@b.TotalBill.ToString("N2")</span>
+              </div>
+              @{
+                var bc = b.Status == Hospital.Models.Enums.BillStatus.Paid ? "badge-success"
+                       : b.Status == Hospital.Models.Enums.BillStatus.Overdue ? "badge-danger"
+                       : "badge-warning";
+              }
+              <span class="badge @bc activity-time">@b.Status</span>
+            </div>
+          }
+        </div>
+      }
+      else
+      {
+        <div style="padding:1rem 1.25rem;color:var(--text-muted);font-size:.875rem;">No bills yet.</div>
+      }
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon orange"><i class="fas fa-bed"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">@roomCount</div>
-      <div class="stat-label">Total Rooms</div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon teal"><i class="fas fa-heartbeat"></i></div>
-    <div class="stat-body">
-      <div class="stat-value">24/7</div>
-      <div class="stat-label">Emergency Care</div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-th-large" style="color:var(--primary);margin-right:.5rem;"></i>Quick Access</span>
+      </div>
+      <div class="card-body" style="padding:1rem;">
+        <div class="quick-actions-grid">
+          <a class="quick-action-item" asp-area="Patient" asp-controller="Appointments" asp-action="Create">
+            <div class="qa-icon" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-calendar-plus"></i></div>
+            <span>Book Appt</span>
+          </a>
+          <a class="quick-action-item" asp-area="Patient" asp-controller="Labs" asp-action="Index">
+            <div class="qa-icon" style="background:#fef3c7;color:#92400e;"><i class="fas fa-flask"></i></div>
+            <span>Lab Results</span>
+          </a>
+          <a class="quick-action-item" asp-area="Patient" asp-controller="Reports" asp-action="Index">
+            <div class="qa-icon" style="background:#fce7f3;color:#be185d;"><i class="fas fa-notes-medical"></i></div>
+            <span>Reports</span>
+          </a>
+          <a class="quick-action-item" asp-area="Patient" asp-controller="Documents" asp-action="Upload">
+            <div class="qa-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-upload"></i></div>
+            <span>Upload Doc</span>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- Available Doctors + Hospital Branches -->
 <div class="dashboard-two-col">
-  <!-- Available Doctors -->
   <div class="card">
     <div class="card-header">
       <span class="card-header-title"><i class="fas fa-user-md" style="color:var(--success);margin-right:.5rem;"></i>Available Doctors</span>
@@ -115,7 +216,7 @@
                 @if (!string.IsNullOrEmpty(d.Day))
                 {
                   <p style="color:var(--primary);font-size:.78rem;font-weight:500;">
-                    <i class="fas fa-clock" style="margin-right:.25rem;"></i>@d.Day  @d.StartTime–@d.EndTime
+                    <i class="fas fa-clock" style="margin-right:.25rem;"></i>@d.Day @d.StartTime–@d.EndTime
                   </p>
                 }
               </div>
@@ -129,12 +230,10 @@
       <div class="empty-state" style="padding:2rem;">
         <i class="fas fa-user-md"></i>
         <h3>No doctors listed</h3>
-        <p>Doctor schedules will appear here once published.</p>
       </div>
     }
   </div>
 
-  <!-- Hospital Branches -->
   <div class="card">
     <div class="card-header">
       <span class="card-header-title"><i class="fas fa-hospital" style="color:var(--primary);margin-right:.5rem;"></i>Hospital Branches</span>
@@ -145,9 +244,7 @@
         @foreach (var h in hospitals)
         {
           <div class="activity-item">
-            <div class="activity-icon" style="background:#dbeafe;color:#1d4ed8;">
-              <i class="fas fa-hospital"></i>
-            </div>
+            <div class="activity-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-hospital"></i></div>
             <div class="activity-body">
               <strong>@h.Name</strong>
               @if (!string.IsNullOrEmpty(h.Address))
@@ -157,7 +254,7 @@
             </div>
             @if (!string.IsNullOrEmpty(h.PhoneNumber))
             {
-              <span class="activity-time"><i class="fas fa-phone" style="margin-right:.25rem;"></i>@h.PhoneNumber</span>
+              <span class="activity-time" style="font-size:.72rem;"><i class="fas fa-phone"></i> @h.PhoneNumber</span>
             }
           </div>
         }
