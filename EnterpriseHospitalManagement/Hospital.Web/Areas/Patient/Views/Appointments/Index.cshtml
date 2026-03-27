@@ -8,6 +8,10 @@
   <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> Book Appointment</a>
 </div>
 <div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" class="search-input" id="s" placeholder="Search appointments…" oninput="filterTable('s','t')"/></div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount appointment(s)</span>
+  </div>
   @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-calendar-check"></i><h3>No appointments</h3>
     <a asp-action="Create" class="btn btn-primary mt-2"><i class="fas fa-plus"></i> Book Now</a></div> }
   else {

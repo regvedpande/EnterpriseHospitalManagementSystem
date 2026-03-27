@@ -8,6 +8,10 @@
   <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> New Bill</a>
 </div>
 <div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" class="search-input" id="s" placeholder="Search bills…" oninput="filterTable('s','t')"/></div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount record(s)</span>
+  </div>
   @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-file-invoice-dollar"></i><h3>No bills</h3></div> }
   else {
     <table id="t">

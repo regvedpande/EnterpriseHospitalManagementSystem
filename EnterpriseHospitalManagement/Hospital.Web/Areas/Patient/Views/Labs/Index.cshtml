@@ -5,6 +5,10 @@
    ViewData["PagCtrl"] = "Labs"; ViewData["PagAction"] = "Index"; ViewData["PagArea"] = "Patient"; }
 <div class="page-header"><div><div class="page-title">My Lab Tests</div></div></div>
 <div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" class="search-input" id="s" placeholder="Search labs…" oninput="filterTable('s','t')"/></div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount test(s)</span>
+  </div>
   @if (!Model.Items.Any()) { <div class="empty-state"><i class="fas fa-flask"></i><h3>No lab tests</h3></div> }
   else {
     <table id="t">

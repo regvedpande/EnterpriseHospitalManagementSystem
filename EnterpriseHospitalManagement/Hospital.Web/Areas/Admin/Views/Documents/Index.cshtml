@@ -9,6 +9,10 @@
   <a asp-action="Upload" class="btn btn-primary"><i class="fas fa-upload"></i> Upload Document</a>
 </div>
 <div class="table-wrapper">
+  <div class="table-toolbar">
+    <div class="search-input-wrap"><i class="fas fa-search"></i><input type="text" class="search-input" id="s" placeholder="Search documents…" oninput="filterTable('s','t')"/></div>
+    <span class="text-muted" style="font-size:.8rem;">@Model.TotalCount document(s)</span>
+  </div>
   @if (!Model.Items.Any())
   {
     <div class="empty-state"><i class="fas fa-folder-open"></i><h3>No documents uploaded yet</h3></div>
