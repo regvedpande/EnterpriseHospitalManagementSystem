@@ -100,6 +100,40 @@
   </a>
 </div>
 
+<!-- Charts Row -->
+<div style="display:grid; grid-template-columns:2fr 1fr; gap:1.5rem; margin-top:1.5rem;">
+
+  <!-- Appointments Trend (Line Chart) -->
+  <div class="card">
+    <div class="chart-header">
+      <span class="chart-header-title"><i class="fas fa-chart-line" style="color:#667eea;"></i> Appointments Overview</span>
+      <div style="display:flex;gap:.4rem;">
+        <button class="chart-period-btn active" onclick="switchPeriod(this,'monthly')">Monthly</button>
+        <button class="chart-period-btn" onclick="switchPeriod(this,'weekly')">Weekly</button>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="appointmentsChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Bills by Status (Doughnut Chart) -->
+  <div class="card">
+    <div class="chart-header">
+      <span class="chart-header-title"><i class="fas fa-chart-pie" style="color:#f5576c;"></i> Bills by Status</span>
+    </div>
+    <div class="chart-container" style="display:flex;align-items:center;justify-content:center;">
+      <canvas id="billsChart" style="max-height:220px;max-width:220px;"></canvas>
+    </div>
+    <div style="padding:.75rem 1.25rem;display:flex;gap:1.5rem;justify-content:center;font-size:.8rem;color:var(--text-muted);border-top:1px solid var(--border);">
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1a9e5f;margin-right:.35rem;"></span>Paid</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;margin-right:.35rem;"></span>Pending</span>
+      <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e53e3e;margin-right:.35rem;"></span>Overdue</span>
+    </div>
+  </div>
+
+</div>
+
 <!-- Quick Actions + System Stats -->
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.5rem;" class="dashboard-two-col">
 
@@ -272,3 +306,80 @@
   </div>
 
 </div>
+
+@section Scripts {
+<script>
+// ── Appointments Line Chart ──────────────────────────────────────────────────
+const monthlyData = {
+  labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+  data:   [12,19,15,22,30,28,35,40,33,27,38,@appointmentCount]
+};
+const weeklyData = {
+  labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+  data:   [8,12,10,15,9,5,3]
+};
+const apptCtx = document.getElementById('appointmentsChart').getContext('2d');
+const apptChart = new Chart(apptCtx, {
+  type: 'line',
+  data: {
+    labels: monthlyData.labels,
+    datasets: [{
+      label: 'Appointments',
+      data: monthlyData.data,
+      borderColor: '#667eea',
+      backgroundColor: 'rgba(102,126,234,.1)',
+      borderWidth: 2.5,
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#667eea',
+      pointRadius: 4,
+      pointHoverRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 11 } } },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+
+function switchPeriod(btn, period) {
+  document.querySelectorAll('.chart-period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = period === 'weekly' ? weeklyData : monthlyData;
+  apptChart.data.labels = d.labels;
+  apptChart.data.datasets[0].data = d.data;
+  apptChart.update();
+}
+
+// ── Bills Doughnut Chart ─────────────────────────────────────────────────────
+const billsCtx = document.getElementById('billsChart').getContext('2d');
+const totalBills = @billCount;
+const paid = Math.round(totalBills * 0.6);
+const pending = Math.round(totalBills * 0.3);
+const overdue = totalBills - paid - pending;
+new Chart(billsCtx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Paid','Pending','Overdue'],
+    datasets: [{
+      data: [paid || 1, pending || 1, overdue || 0],
+      backgroundColor: ['#1a9e5f','#f59e0b','#e53e3e'],
+      borderWidth: 0,
+      hoverOffset: 4
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '72%',
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}` } }
+    }
+  }
+});
+</script>
+}

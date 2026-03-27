@@ -1,0 +1,184 @@
+@using Hospital.ViewModels
+@{
+    ViewData["Title"]       = "Doctor Dashboard";
+    ViewData["ShowSidebar"] = true;
+    int appointmentCount = (int)(ViewBag.AppointmentCount ?? 0);
+    int patientCount     = (int)(ViewBag.PatientCount     ?? 0);
+    int reportCount      = (int)(ViewBag.ReportCount      ?? 0);
+    int labCount         = (int)(ViewBag.LabCount         ?? 0);
+    var recentAppts   = ViewBag.RecentAppointments as IEnumerable<AppointmentViewModel>  ?? Enumerable.Empty<AppointmentViewModel>();
+    var recentReports = ViewBag.RecentReports      as IEnumerable<PatientReportViewModel> ?? Enumerable.Empty<PatientReportViewModel>();
+    string name = User.Identity?.Name?.Split('@')[0] ?? "Doctor";
+}
+
+<div class="welcome-banner">
+  <div>
+    <h2>Good day, Dr. @name</h2>
+    <p>Your clinical workspace — appointments, patient reports, and lab test overview.</p>
+  </div>
+  <div class="welcome-actions">
+    <a asp-area="Doctor" asp-controller="Appointments" asp-action="Index" class="btn btn-white">
+      <i class="fas fa-calendar-check"></i> My Appointments
+    </a>
+    <a asp-area="Doctor" asp-controller="Patients" asp-action="Create" class="btn btn-white-solid">
+      <i class="fas fa-file-medical"></i> Write Report
+    </a>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="stats-grid stats-grid-4">
+  <a class="stat-card stat-link" asp-area="Doctor" asp-controller="Appointments" asp-action="Index">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+      <i class="fas fa-calendar-check"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">@appointmentCount</div>
+      <div class="stat-label">My Appointments</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;">
+      <i class="fas fa-user-injured"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">@patientCount</div>
+      <div class="stat-label">Total Patients</div>
+    </div>
+  </div>
+  <a class="stat-card stat-link" asp-area="Doctor" asp-controller="Patients" asp-action="Index">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;">
+      <i class="fas fa-notes-medical"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">@reportCount</div>
+      <div class="stat-label">Patient Reports</div>
+    </div>
+    <i class="fas fa-chevron-right stat-arrow"></i>
+  </a>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);color:#fff;">
+      <i class="fas fa-flask"></i>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value">@labCount</div>
+      <div class="stat-label">Lab Orders</div>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-two-col">
+
+  <!-- Recent Appointments -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-calendar-alt" style="color:#667eea;margin-right:.5rem;"></i>Recent Appointments</span>
+      <a asp-area="Doctor" asp-controller="Appointments" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    @if (recentAppts.Any())
+    {
+      <div class="card-body" style="padding:0;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="background:var(--surface);">
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Patient</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Date</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;">Status</th>
+              <th style="padding:.65rem 1rem;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach (var a in recentAppts)
+            {
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:.7rem 1rem;font-size:.875rem;"><strong>@a.PatientName</strong></td>
+                <td style="padding:.7rem 1rem;font-size:.8rem;color:var(--text-muted);">@a.AppointmentDate.ToString("MMM dd, yyyy")</td>
+                <td style="padding:.7rem 1rem;">
+                  @{
+                    var sColor = a.Status == Hospital.Models.Enums.AppointmentStatus.Completed ? "badge-success"
+                               : a.Status == Hospital.Models.Enums.AppointmentStatus.Cancelled  ? "badge-danger"
+                               : "badge-info";
+                  }
+                  <span class="badge @sColor">@a.Status</span>
+                </td>
+                <td style="padding:.7rem 1rem;">
+                  <a asp-area="Doctor" asp-controller="Appointments" asp-action="Edit" asp-route-id="@a.Id"
+                     class="btn btn-warning btn-sm btn-icon"><i class="fas fa-pen"></i></a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+    else
+    {
+      <div class="empty-state" style="padding:2rem;">
+        <i class="fas fa-calendar-times"></i>
+        <h3>No appointments yet</h3>
+        <p>Appointments assigned to you will appear here.</p>
+      </div>
+    }
+  </div>
+
+  <!-- Quick Actions + Recent Reports -->
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-bolt" style="color:var(--warning);margin-right:.5rem;"></i>Quick Actions</span>
+      </div>
+      <div class="card-body" style="padding:1rem;">
+        <div class="quick-actions-grid">
+          <a class="quick-action-item" asp-area="Doctor" asp-controller="Appointments" asp-action="Index">
+            <div class="qa-icon" style="background:#ede9fe;color:#7c3aed;"><i class="fas fa-calendar-check"></i></div>
+            <span>Appointments</span>
+          </a>
+          <a class="quick-action-item" asp-area="Doctor" asp-controller="Patients" asp-action="Index">
+            <div class="qa-icon" style="background:#d1fae5;color:#065f46;"><i class="fas fa-notes-medical"></i></div>
+            <span>Patient Reports</span>
+          </a>
+          <a class="quick-action-item" asp-area="Doctor" asp-controller="Patients" asp-action="Create">
+            <div class="qa-icon" style="background:#fee2e2;color:#991b1b;"><i class="fas fa-file-medical"></i></div>
+            <span>Write Report</span>
+          </a>
+          <a class="quick-action-item" asp-area="Doctor" asp-controller="Doctors" asp-action="Index">
+            <div class="qa-icon" style="background:#dbeafe;color:#1d4ed8;"><i class="fas fa-clock"></i></div>
+            <span>My Timings</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-file-medical-alt" style="color:#f5576c;margin-right:.5rem;"></i>Recent Reports</span>
+        <a asp-area="Doctor" asp-controller="Patients" asp-action="Index" class="btn btn-secondary btn-sm">View All</a>
+      </div>
+      <div class="card-body nav-list" style="padding:.5rem 0;">
+        @if (recentReports.Any())
+        {
+          @foreach (var r in recentReports)
+          {
+            <div class="activity-item">
+              <div class="activity-icon" style="background:#fce7f3;color:#be185d;"><i class="fas fa-notes-medical"></i></div>
+              <div class="activity-body">
+                <strong>@r.PatientName</strong>
+                <span>@r.Diagnose?.Substring(0, Math.Min(r.Diagnose?.Length ?? 0, 60))@(r.Diagnose?.Length > 60 ? "…" : "")</span>
+              </div>
+              <span class="activity-time">@r.CreatedDate.ToString("MMM dd")</span>
+            </div>
+          }
+        }
+        else
+        {
+          <div style="padding:1rem 1.25rem;color:var(--text-muted);font-size:.875rem;">No reports written yet.</div>
+        }
+      </div>
+    </div>
+
+  </div>
+</div>

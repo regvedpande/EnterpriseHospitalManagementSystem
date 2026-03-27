@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -68,7 +69,7 @@
           }
           @if (User.IsInRole("Website_Doctor"))
           {
-            <a asp-area="Doctor" asp-controller="Appointments" asp-action="Index">
+            <a asp-area="Doctor" asp-controller="Home" asp-action="Index">
               <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
           }
@@ -216,6 +217,10 @@
                asp-area="Admin" asp-controller="Users" asp-action="Index">
               <i class="fas fa-users-cog"></i> User Management
             </a>
+            <a class="sidebar-link @(ctrl == "Documents" ? "active" : "")"
+               asp-area="Admin" asp-controller="Documents" asp-action="Index">
+              <i class="fas fa-folder-open"></i> Documents
+            </a>
           </div>
           <div class="sidebar-section">
             <div class="sidebar-label">Reports</div>
@@ -237,6 +242,13 @@
         @* ── DOCTOR ── *@
         @if (area == "Doctor")
         {
+          <div class="sidebar-section">
+            <div class="sidebar-label">Overview</div>
+            <a class="sidebar-link @(ctrl == "Home" ? "active" : "")"
+               asp-area="Doctor" asp-controller="Home" asp-action="Index">
+              <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+          </div>
           <div class="sidebar-section">
             <div class="sidebar-label">My Work</div>
             <a class="sidebar-link @(ctrl == "Appointments" ? "active" : "")"
@@ -298,11 +310,18 @@
                asp-area="Patient" asp-controller="Reports" asp-action="Index">
               <i class="fas fa-notes-medical"></i> My Reports
             </a>
+            <a class="sidebar-link @(ctrl == "Documents" ? "active" : "")"
+               asp-area="Patient" asp-controller="Documents" asp-action="Index">
+              <i class="fas fa-folder-open"></i> My Documents
+            </a>
           </div>
           <div class="sidebar-section">
             <div class="sidebar-label">Actions</div>
             <a class="sidebar-link" asp-area="Patient" asp-controller="Appointments" asp-action="Create">
               <i class="fas fa-calendar-plus"></i> Book Appointment
+            </a>
+            <a class="sidebar-link" asp-area="Patient" asp-controller="Documents" asp-action="Upload">
+              <i class="fas fa-upload"></i> Upload Document
             </a>
           </div>
         }
