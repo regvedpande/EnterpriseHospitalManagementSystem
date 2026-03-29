@@ -2,6 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using Hospital.Models;
 using Hospital.Models.Enums;
 using Hospital.Utilities;
+using Hospital.Web.Infrastructure.Messaging;
+using Hospital.Web.Infrastructure.Messaging.Messages;
+using Hospital.Web.Infrastructure.Queue;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,19 +15,16 @@ namespace Hospital.Web.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signIn;
         private readonly UserManager<ApplicationUser>  _users;
-        private readonly IEmailSender _email;
-        private readonly ISmsService  _sms;
+        private readonly IBackgroundTaskQueue _queue;
 
         public AuthController(
             SignInManager<ApplicationUser> signIn,
             UserManager<ApplicationUser>  users,
-            IEmailSender email,
-            ISmsService  sms)
+            IBackgroundTaskQueue queue)
         {
             _signIn = signIn;
             _users  = users;
-            _email  = email;
-            _sms    = sms;
+            _queue  = queue;
         }
 
         // ── LOGIN ─────────────────────────────────────────────────────────────
@@ -45,7 +45,13 @@ namespace Hospital.Web.Controllers
             var user = await _users.FindByEmailAsync(model.Email);
             if (user == null) { ModelState.AddModelError("", "Invalid email or password."); return View(model); }
 
-            var result = await _signIn.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+            // lockoutOnFailure: true — enforces the 5-attempt lockout configured in Program.cs
+            var result = await _signIn.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: true);
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError("", "Account locked for 5 minutes due to too many failed attempts.");
+                return View(model);
+            }
             if (!result.Succeeded) { ModelState.AddModelError("", "Invalid email or password."); return View(model); }
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) return Redirect(returnUrl);
@@ -85,20 +91,49 @@ namespace Hospital.Web.Controllers
             await _users.AddToRoleAsync(user, WebSiteRoles.Website_Patient);
             await _signIn.SignInAsync(user, false);
 
-            // Send welcome email (silently skipped if SMTP not configured)
-            await _email.SendEmailAsync(user.Email!, "Welcome to MedCore HMS",
-                $"<h2>Welcome, {user.Name}!</h2>" +
-                $"<p>Your patient account has been successfully created at <strong>MedCore HMS</strong>.</p>" +
-                $"<p>You can now book appointments, view your lab results, bills, and medical reports through your patient portal.</p>" +
-                $"<p>If you have any questions, please contact us at <a href='mailto:support@medcorehms.com'>support@medcorehms.com</a>.</p>" +
-                $"<br/><p>The MedCore HMS Team</p>");
+            // Offload email + SMS to the background queue (non-blocking, decoupled from HTTP request)
+            var userId    = user.Id;
+            var userName  = user.Name;
+            var userEmail = user.Email!;
+            var userPhone = user.PhoneNumber;
 
-            // Send welcome SMS (silently skipped if Twilio not configured or no phone)
-            if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+            _queue.Enqueue(async (sp, ct) =>
             {
-                await _sms.SendSmsAsync(user.PhoneNumber,
-                    $"Welcome to MedCore HMS, {user.Name}! Your patient account is ready. Log in to book appointments and view your health records.");
+                var email = sp.GetService(typeof(IEmailSender)) as IEmailSender;
+                if (email != null)
+                    await email.SendEmailAsync(userEmail, "Welcome to MedCore HMS",
+                        $"<h2>Welcome, {userName}!</h2>" +
+                        $"<p>Your patient account has been successfully created at <strong>MedCore HMS</strong>.</p>" +
+                        $"<p>You can now book appointments, view your lab results, bills, and medical reports through your patient portal.</p>" +
+                        $"<p>If you have any questions, please contact us at <a href='mailto:support@medcorehms.com'>support@medcorehms.com</a>.</p>" +
+                        $"<br/><p>The MedCore HMS Team</p>");
+            });
+
+            if (!string.IsNullOrWhiteSpace(userPhone))
+            {
+                _queue.Enqueue(async (sp, ct) =>
+                {
+                    var sms = sp.GetService(typeof(ISmsService)) as ISmsService;
+                    if (sms != null)
+                        await sms.SendSmsAsync(userPhone,
+                            $"Welcome to MedCore HMS, {userName}! Your patient account is ready. Log in to book appointments and view your health records.");
+                });
             }
+
+            // Publish user.registered event to message bus
+            _queue.Enqueue(async (sp, ct) =>
+            {
+                var bus = sp.GetService(typeof(IMessageBus)) as IMessageBus;
+                if (bus != null)
+                    await bus.PublishAsync("user.registered",
+                        new UserRegisteredMessage
+                        {
+                            UserId = userId,
+                            Email  = userEmail,
+                            Name   = userName ?? "",
+                            Phone  = userPhone
+                        }, ct);
+            });
 
             TempData["success"] = "Welcome! Your account has been created.";
             return RedirectToAction("Index", "Home", new { area = "Patient" });

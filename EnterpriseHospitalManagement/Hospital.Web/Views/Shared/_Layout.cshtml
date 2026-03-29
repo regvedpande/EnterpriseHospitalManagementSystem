@@ -34,8 +34,14 @@
   else if (User.IsInRole("Website_Pharmacist")){ roleBadge = "Pharmacist";   roleColor = "#e11d48"; }
   else if (User.IsInRole("Website_Receptionist")){ roleBadge = "Receptionist"; roleColor = "#ea580c"; }
   else if (User.IsInRole("Website_Accountant")){ roleBadge = "Accountant";   roleColor = "#16a34a"; }
-  string displayName = User.Identity?.Name ?? "User";
-  string initials = displayName.Length >= 2 ? displayName.Substring(0, 2).ToUpper() : displayName.ToUpper();
+  // FullName claim is injected by ApplicationUserClaimsPrincipalFactory (shows real name not email)
+  string displayName = User.FindFirst("FullName")?.Value
+                    ?? User.Identity?.Name
+                    ?? "User";
+  var nameParts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+  string initials = nameParts.Length >= 2
+      ? $"{nameParts[0][0]}{nameParts[^1][0]}".ToUpper()
+      : (displayName.Length >= 2 ? displayName[..2].ToUpper() : displayName.ToUpper());
 }
 
 <!-- ── TOP NAV ─────────────────────────────────────────────────────────── -->

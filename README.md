@@ -591,25 +591,103 @@ EnterpriseHospitalManagementSystem/
 
 ---
 
+## Infrastructure & Resilience
+
+```mermaid
+graph TB
+    subgraph AppLayer["ASP.NET Core Application"]
+        MVC[MVC Controllers]
+        SVC[Service Layer]
+        BG[Background Queue\nQueuedHostedService]
+    end
+
+    subgraph Cache["Redis Cache Layer"]
+        RC[IDistributedCache\nStackExchange.Redis]
+        MC[In-Memory Fallback\n dev / no Redis]
+    end
+
+    subgraph MQ["Message Bus"]
+        RMQ[RabbitMQ\nTopic Exchange: hms.events]
+        CONS[Consumer Hosted Service\nAppointments · Bills · Labs · Users]
+        NOOP[No-op Fallback\n not configured]
+    end
+
+    subgraph Resilience["Polly Resilience"]
+        RETRY[EF Core Retry\n5 retries, exp back-off]
+        CB[Circuit Breaker\nHTTP calls, 5 failures / 30s]
+    end
+
+    MVC --> SVC
+    SVC -->|cache read/write| RC
+    RC -.->|unavailable| MC
+    SVC -->|enqueue event| BG
+    BG -->|publish| RMQ
+    RMQ -->|route| CONS
+    CONS -->|email notification| SVC
+    RMQ -.->|not configured| NOOP
+    SVC --> RETRY
+    RETRY -->|transient error| CB
+```
+
+### How It Works
+
+| Component | Location | Behaviour |
+|---|---|---|
+| **Redis Cache** | `ICacheService` / `RedisCacheService` | Caches appointment, bill & dashboard data (2–5 min TTL). Falls back to in-memory if Redis is unreachable. |
+| **Background Queue** | `IBackgroundTaskQueue` / `BackgroundTaskQueue` | Channel-based (capacity 500). All email, SMS and event publishing happens off-request in `QueuedHostedService`. |
+| **RabbitMQ Bus** | `IMessageBus` / `RabbitMqMessageBus` | Topic exchange `hms.events` with queues: `hms.appointments`, `hms.billing`, `hms.labs`, `hms.users`. Auto-reconnects. No-ops gracefully when `RabbitMQ:ConnectionString` is empty. |
+| **Polly Retry** | `ResiliencePolicies` + EF Core | EF Core SQL provider: 5 retries with exponential back-off on transient SQL errors. Circuit breaker (5 failures → 30 s open) for external HTTP calls. |
+| **Lockout** | `AuthController` | 5 failed login attempts → 5-minute account lockout (Identity `LockoutOptions`). |
+| **Security Headers** | `Program.cs` middleware | `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy` on every response. |
+
+### Docker Quick-Start (Redis + RabbitMQ)
+
+```bash
+# Redis (required for distributed caching)
+docker run -d --name redis -p 6379:6379 redis:7
+
+# RabbitMQ with management UI (optional — app degrades gracefully without it)
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+
+Then set in `appsettings.json` (or environment variables):
+
+```json
+{
+  "Redis": {
+    "ConnectionString": "localhost:6379,abortConnect=false"
+  },
+  "RabbitMQ": {
+    "ConnectionString": "amqp://guest:guest@localhost:5672/"
+  }
+}
+```
+
+---
+
 ## Technology Stack
 
 | Category | Technology | Version |
 |---|---|---|
 | Runtime | .NET | 8.0 |
 | Web Framework | ASP.NET Core MVC | 8.0 |
-| ORM | Entity Framework Core | 8.0 |
+| ORM | Entity Framework Core | 8.0 (with retry) |
 | Database | Microsoft SQL Server / LocalDB | 2019+ |
 | Authentication | ASP.NET Identity | 8.0 |
 | API Auth | JWT Bearer | — |
+| **Cache** | **Redis (StackExchange.Redis)** | **7.x** |
+| **Resilience** | **Polly** | **8.4** |
+| **Message Bus** | **RabbitMQ.Client** | **6.8** |
+| **Background Queue** | **System.Threading.Channels** | **built-in** |
 | CSS Framework | Custom CSS Design System | — |
 | JS Charts | Chart.js | 4.4.0 |
 | Icons | Font Awesome | 6.4.0 |
 | Typography | DM Sans + DM Serif Display | Google Fonts |
 | Bootstrap | Bootstrap | 5.x (utilities only) |
-| Logging | Serilog | — |
+| Logging | Serilog | 8.x |
 | SMS | Twilio | — |
-| File Transfers | SFTP | — |
-| Export | iTextSharp (PDF) + EPPlus (Excel) | — |
+| File Transfers | SFTP (SSH.NET) | — |
+| Export | QuestPDF + CsvHelper + ClosedXML | — |
 
 ---
 
@@ -698,8 +776,10 @@ graph LR
 |---|---|---|
 | `ConnectionStrings__DefaultConnection` | Database connection | `Server=prod-sql;Database=HospitalDB;...` |
 | `Jwt__Key` | JWT signing secret (min 32 chars) | Use a strong random string |
-| `Jwt__Issuer` | JWT issuer claim | `EnterpriseHospitalManagement` |
-| `Jwt__Audience` | JWT audience claim | `EnterpriseHospitalManagement` |
+| `Jwt__Issuer` | JWT issuer claim | `MedCoreHMS` |
+| `Jwt__Audience` | JWT audience claim | `MedCoreHMS` |
+| `Redis__ConnectionString` | Redis for distributed cache | `localhost:6379,abortConnect=false` |
+| `RabbitMQ__ConnectionString` | RabbitMQ for event bus | `amqp://guest:guest@localhost:5672/` |
 | `Twilio__AccountSid` | Twilio Account SID | `ACxxxxxxxxxxxxxxx` |
 | `Twilio__AuthToken` | Twilio Auth Token | Never commit |
 | `Twilio__FromPhone` | SMS sender number | `+1XXXXXXXXXX` |
@@ -730,13 +810,18 @@ flowchart TD
 
 **Key security measures implemented:**
 
-- **RBAC**: Every controller action decorated with `[Authorize(Roles = "Website_{Role}")]`
-- **CSRF protection**: `@Html.AntiForgeryToken()` on every POST form
-- **Input validation**: `[Required]`, `[MaxLength]`, `ModelState.IsValid` checks
-- **Scoped data access**: Doctors only see their own appointments; patients only see their own records
-- **No secrets in source**: `appsettings.Production.json` gitignored; placeholder values committed
-- **Status code pages**: Custom 404/403/500 error pages via `UseStatusCodePagesWithReExecute`
-- **Password policy**: ASP.NET Identity with minimum length + digit requirement
+- **RBAC**: Every controller decorated with `[Authorize(Roles = "Website_{Role}")]`; global `AutoValidateAntiforgeryTokenAttribute` filter
+- **CSRF protection**: `@Html.AntiForgeryToken()` on every POST form + global antiforgery filter
+- **Account lockout**: 5 failed login attempts → 5-minute lock (`LockoutOptions`)
+- **Security headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Referrer-Policy` on all responses
+- **Cookie hardening**: `HttpOnly=true`, `SameSite=Strict`, `SecurePolicy=SameAsRequest`
+- **Input validation**: `[Required]`, `[MaxLength]`, `[EmailAddress]`, `ModelState.IsValid` + antiforgery at every POST
+- **Scoped data access**: Doctors/patients filtered by own ID at service layer
+- **No secrets in source**: `appsettings.Production.json` gitignored; safe empty placeholders committed
+- **Status code pages**: Custom 404/403/500 via `UseStatusCodePagesWithReExecute`
+- **DB retry**: EF Core SQL provider with 5-retry exponential back-off on transient failures
+- **Password policy**: Identity minimum 6 chars + digit; all passwords hashed (ASP.NET Identity PBKDF2)
+- **JWT**: Empty key placeholder — auto-generates random key in dev; always override in production via env var
 
 ---
 

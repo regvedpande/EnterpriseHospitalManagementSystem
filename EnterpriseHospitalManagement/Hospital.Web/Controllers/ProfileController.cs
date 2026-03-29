@@ -23,7 +23,24 @@ namespace Hospital.Web.Controllers
         {
             var user = await _um.GetUserAsync(User);
             if (user == null) return RedirectToAction("Login", "Auth");
-            return View(new ProfileViewModel(user));
+
+            // Get the actual Identity role (not the stale user.Role field)
+            var roles       = await _um.GetRolesAsync(user);
+            var roleDisplay = roles.FirstOrDefault() switch
+            {
+                "Website_Admin"        => "System Administrator",
+                "Website_Doctor"       => "Doctor",
+                "Website_Patient"      => "Patient",
+                "Website_Nurse"        => "Nurse",
+                "Website_Pharmacist"   => "Pharmacist",
+                "Website_LabTech"      => "Lab Technician",
+                "Website_Receptionist" => "Receptionist",
+                "Website_Accountant"   => "Accountant",
+                var r when r != null   => r,
+                _                      => "User"
+            };
+
+            return View(new ProfileViewModel(user) { Role = roleDisplay });
         }
 
         [HttpGet]
