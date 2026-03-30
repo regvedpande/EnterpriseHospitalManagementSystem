@@ -1,0 +1,182 @@
+@{
+    ViewData["Title"]       = "AI Clinical Assistant";
+    ViewData["ShowSidebar"] = true;
+    bool configured = (bool)(ViewBag.IsConfigured ?? false);
+}
+
+<div class="page-header">
+  <div>
+    <div class="page-title"><i class="fas fa-robot" style="color:var(--primary);"></i> AI Clinical Assistant</div>
+    <small class="text-muted">Powered by NVIDIA NIM — for decision support only, not a substitute for clinical judgement</small>
+  </div>
+</div>
+
+@if (!configured)
+{
+  <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> AI service is not configured. Contact your system administrator.</div>
+}
+else
+{
+<div class="row g-3">
+
+  <!-- ── Symptom Analysis ─────────────────────────────────────────────────── -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:var(--radius) var(--radius) 0 0;">
+        <i class="fas fa-stethoscope"></i> Symptom & Diagnosis Analysis
+      </div>
+      <div class="card-body d-flex flex-column gap-3">
+        <div>
+          <label class="form-label fw-semibold">Patient symptoms <span class="text-danger">*</span></label>
+          <textarea id="sympInput" class="form-control" rows="4"
+            placeholder="e.g. High fever (39°C), dry cough, fatigue for 3 days, shortness of breath…"></textarea>
+        </div>
+        <div>
+          <label class="form-label fw-semibold">Additional patient context <small class="text-muted">(optional)</small></label>
+          <textarea id="ctxInput" class="form-control" rows="2"
+            placeholder="e.g. 45-year-old male, diabetic, no recent travel, on metformin…"></textarea>
+        </div>
+        <button id="diagBtn" class="btn btn-primary" onclick="runDiagnosis()">
+          <i class="fas fa-brain"></i> Analyse Symptoms
+        </button>
+        <div id="diagResult" class="ai-result" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chat / Q&A ──────────────────────────────────────────────────────── -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;border-radius:var(--radius) var(--radius) 0 0;">
+        <i class="fas fa-comments"></i> Medical Q&A Chat
+      </div>
+      <div class="card-body d-flex flex-column" style="min-height:420px;">
+        <div id="chatBox" class="chat-box flex-grow-1 mb-3" style="overflow-y:auto;max-height:320px;padding:.5rem;background:var(--bg-light,#f8f9fa);border-radius:8px;"></div>
+        <div class="input-group">
+          <input id="chatInput" type="text" class="form-control"
+                 placeholder="Ask a medical question…"
+                 onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button class="btn btn-success" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+}
+
+<style>
+.ai-result { background:#f0f4ff; border-left:4px solid var(--primary,#6c63ff); padding:1rem 1.2rem; border-radius:6px; white-space:pre-wrap; font-size:.9rem; line-height:1.6; }
+.chat-msg  { margin-bottom:.75rem; }
+.chat-msg.user   .bubble { background:var(--primary,#6c63ff); color:#fff; border-radius:18px 18px 4px 18px; margin-left:auto; max-width:80%; }
+.chat-msg.ai     .bubble { background:#fff; border:1px solid #dee2e6; border-radius:18px 18px 18px 4px; max-width:85%; }
+.bubble { padding:.55rem .9rem; display:inline-block; font-size:.875rem; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+.chat-msg.user { text-align:right; }
+.spinner-sm { width:1.2rem; height:1.2rem; }
+</style>
+
+<script>
+const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+    || document.cookie.split(';').find(c=>c.includes('XSRF'))?.split('=')[1] || '';
+
+const chatHistory = [
+    { role:'system', content:'You are MedCoreAI, a clinical decision support assistant. Help this licensed doctor with medical questions, drug interactions, dosage guidance, and clinical reasoning. Be concise and evidence-based. Use markdown.' }
+];
+
+// ── Diagnosis ──────────────────────────────────────────────────────────────
+async function runDiagnosis() {
+    const symptoms = document.getElementById('sympInput').value.trim();
+    const ctx      = document.getElementById('ctxInput').value.trim();
+    if (!symptoms) { alert('Please enter patient symptoms.'); return; }
+
+    const btn    = document.getElementById('diagBtn');
+    const result = document.getElementById('diagResult');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-sm"></span> Analysing…';
+    result.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('symptoms', symptoms);
+    fd.append('patientContext', ctx);
+    fd.append('__RequestVerificationToken', getToken());
+
+    try {
+        const resp = await fetch('@Url.Action("Diagnose","AiAssistant",new{area="Doctor"})', { method:'POST', body:fd });
+        const data = await resp.json();
+        result.innerHTML = renderMarkdown(data.result || 'No response.');
+        result.style.display = 'block';
+    } catch(e) {
+        result.innerHTML = 'Error contacting AI service.';
+        result.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-brain"></i> Analyse Symptoms';
+    }
+}
+
+// ── Chat ───────────────────────────────────────────────────────────────────
+async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg   = input.value.trim();
+    if (!msg) return;
+
+    appendBubble('user', msg);
+    chatHistory.push({ role:'user', content:msg });
+    input.value = '';
+
+    const thinking = appendBubble('ai', '<span class="spinner-border spinner-sm"></span> Thinking…');
+
+    try {
+        const resp = await fetch('@Url.Action("Chat","AiAssistant",new{area="Doctor"})', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'RequestVerificationToken': getToken() },
+            body: JSON.stringify({ messages: chatHistory })
+        });
+        const data = await resp.json();
+        thinking.querySelector('.bubble').innerHTML = renderMarkdown(data.result || 'No response.');
+        chatHistory.push({ role:'assistant', content: data.result || '' });
+    } catch(e) {
+        thinking.querySelector('.bubble').textContent = 'Error contacting AI service.';
+    }
+    scrollChat();
+}
+
+function appendBubble(role, html) {
+    const box = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.innerHTML = `<div class="bubble">${html}</div>`;
+    box.appendChild(div);
+    scrollChat();
+    return div;
+}
+
+function scrollChat() {
+    const box = document.getElementById('chatBox');
+    box.scrollTop = box.scrollHeight;
+}
+
+function getToken() {
+    return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+}
+
+// Minimal markdown → HTML (bold, italic, bullets, headings)
+function renderMarkdown(text) {
+    return text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/^### (.+)$/gm,'<strong style="font-size:.95em;text-decoration:underline">$1</strong>')
+        .replace(/^## (.+)$/gm,'<strong style="font-size:1em">$1</strong>')
+        .replace(/^# (.+)$/gm,'<strong style="font-size:1.05em">$1</strong>')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g,'<em>$1</em>')
+        .replace(/^- (.+)$/gm,'• $1')
+        .replace(/\n/g,'<br>');
+}
+
+// Dummy antiforgery form for token access
+document.addEventListener('DOMContentLoaded', () => {
+    const f = document.createElement('form');
+    f.innerHTML = '@Html.AntiForgeryToken()';
+    document.body.appendChild(f);
+});
+</script>

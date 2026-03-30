@@ -1,0 +1,259 @@
+@{
+    ViewData["Title"]       = "Health AI Assistant";
+    ViewData["ShowSidebar"] = true;
+    bool configured = (bool)(ViewBag.IsConfigured ?? false);
+}
+
+<div class="page-header">
+  <div>
+    <div class="page-title"><i class="fas fa-heartbeat" style="color:#e74c3c;"></i> Health AI Assistant</div>
+    <small class="text-muted">AI-powered health guidance — always consult your doctor for medical advice</small>
+  </div>
+</div>
+
+@if (!configured)
+{
+  <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> AI service is not configured. Please contact your doctor or hospital administrator.</div>
+}
+else
+{
+<div class="row g-3">
+
+  <!-- ── Symptom Checker ─────────────────────────────────────────────────── -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border-radius:var(--radius) var(--radius) 0 0;">
+        <i class="fas fa-notes-medical"></i> Symptom Checker
+      </div>
+      <div class="card-body d-flex flex-column gap-3">
+        <p class="text-muted small mb-0">Describe how you are feeling and get general health guidance.</p>
+        <textarea id="sympInput" class="form-control" rows="5"
+          placeholder="e.g. I have a headache, sore throat and runny nose for 2 days. I also feel tired…"></textarea>
+        <button id="sympBtn" class="btn btn-danger" onclick="checkSymptoms()">
+          <i class="fas fa-search-plus"></i> Check Symptoms
+        </button>
+        <div id="sympResult" class="ai-result" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- ── Document Upload ──────────────────────────────────────────────── -->
+    <div class="card mt-3">
+      <div class="card-header" style="background:linear-gradient(135deg,#3498db,#1a5276);color:#fff;border-radius:var(--radius) var(--radius) 0 0;">
+        <i class="fas fa-file-medical-alt"></i> Upload Medical Document
+      </div>
+      <div class="card-body d-flex flex-column gap-3">
+        <p class="text-muted small mb-0">Upload a lab report, medical letter, or test result (.txt, .pdf, .csv, .md — max 5 MB).</p>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+             ondragover="event.preventDefault();this.classList.add('drag-over')"
+             ondragleave="this.classList.remove('drag-over')"
+             ondrop="handleDrop(event)">
+          <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i><br>
+          <span id="fileLabel">Click or drag &amp; drop a file here</span>
+        </div>
+        <input id="fileInput" type="file" accept=".txt,.pdf,.csv,.md" style="display:none" onchange="fileSelected(this)"/>
+        <button id="uploadBtn" class="btn btn-primary" onclick="uploadDocument()" disabled>
+          <i class="fas fa-microscope"></i> Analyse Document
+        </button>
+        <div id="uploadResult" class="ai-result" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chat ───────────────────────────────────────────────────────────── -->
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header" style="background:linear-gradient(135deg,#27ae60,#145a32);color:#fff;border-radius:var(--radius) var(--radius) 0 0;">
+        <i class="fas fa-comments"></i> Health Assistant Chat
+      </div>
+      <div class="card-body d-flex flex-column" style="min-height:540px;">
+        <div id="chatBox" class="chat-box flex-grow-1 mb-3"
+             style="overflow-y:auto;max-height:440px;padding:.75rem;background:var(--bg-light,#f8f9fa);border-radius:8px;">
+          <div class="chat-msg ai">
+            <div class="bubble">
+              <strong>MedCore Health AI</strong><br>
+              Hello! I'm your health assistant. You can:<br>
+              • Describe your symptoms for general guidance<br>
+              • Ask questions about medications or conditions<br>
+              • Upload a medical document for AI analysis<br><br>
+              <em>Remember: I'm an AI assistant, not a doctor. Always consult a medical professional.</em>
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
+          <input id="chatInput" type="text" class="form-control"
+                 placeholder="Type your health question…"
+                 onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button class="btn btn-success" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+}
+
+<style>
+.ai-result   { background:#f0f9ff; border-left:4px solid #3498db; padding:.9rem 1.1rem; border-radius:6px; white-space:pre-wrap; font-size:.875rem; line-height:1.6; }
+.upload-zone { border:2px dashed #adb5bd; border-radius:8px; padding:2rem; text-align:center; cursor:pointer; transition:.2s; }
+.upload-zone:hover,.upload-zone.drag-over { border-color:var(--primary,#6c63ff); background:#f5f3ff; }
+.chat-msg    { margin-bottom:.75rem; }
+.chat-msg.user   .bubble { background:var(--primary,#6c63ff); color:#fff; border-radius:18px 18px 4px 18px; margin-left:auto; max-width:80%; }
+.chat-msg.ai     .bubble { background:#fff; border:1px solid #dee2e6; border-radius:18px 18px 18px 4px; max-width:85%; }
+.bubble      { padding:.55rem .9rem; display:inline-block; font-size:.875rem; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+.chat-msg.user   { text-align:right; }
+.spinner-sm  { width:1.2rem; height:1.2rem; }
+</style>
+
+<script>
+const chatHistory = [
+    { role:'system', content:'You are MedCoreAI, a patient health assistant in a hospital management system. Help patients understand their symptoms, health documents, and when to seek care. Be empathetic, clear, and always recommend consulting a doctor for diagnosis or treatment.' }
+];
+
+// ── Symptom Checker ────────────────────────────────────────────────────────
+async function checkSymptoms() {
+    const symptoms = document.getElementById('sympInput').value.trim();
+    if (!symptoms) { alert('Please describe your symptoms.'); return; }
+
+    const btn = document.getElementById('sympBtn');
+    const res = document.getElementById('sympResult');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-sm"></span> Checking…';
+    res.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('symptoms', symptoms);
+    fd.append('__RequestVerificationToken', getToken());
+
+    try {
+        const resp = await fetch('@Url.Action("AnalyseSymptoms","AiAssistant",new{area="Patient"})', { method:'POST', body:fd });
+        const data = await resp.json();
+        res.innerHTML = renderMarkdown(data.result || 'No response.');
+        res.style.display = 'block';
+    } catch(e) {
+        res.innerHTML = 'Error contacting AI service. Please try again.';
+        res.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-search-plus"></i> Check Symptoms';
+    }
+}
+
+// ── Document Upload ────────────────────────────────────────────────────────
+let selectedFile = null;
+
+function fileSelected(input) {
+    selectedFile = input.files[0];
+    document.getElementById('fileLabel').textContent = selectedFile ? selectedFile.name : 'Click or drag & drop a file here';
+    document.getElementById('uploadBtn').disabled = !selectedFile;
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        selectedFile = file;
+        document.getElementById('fileLabel').textContent = file.name;
+        document.getElementById('uploadBtn').disabled = false;
+    }
+}
+
+async function uploadDocument() {
+    if (!selectedFile) return;
+    const btn = document.getElementById('uploadBtn');
+    const res = document.getElementById('uploadResult');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-sm"></span> Analysing…';
+    res.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('document', selectedFile);
+    fd.append('__RequestVerificationToken', getToken());
+
+    try {
+        const resp = await fetch('@Url.Action("AnalyseDocument","AiAssistant",new{area="Patient"})', { method:'POST', body:fd });
+        if (!resp.ok) {
+            const err = await resp.text();
+            res.innerHTML = `<strong>Error:</strong> ${err}`;
+        } else {
+            const data = await resp.json();
+            res.innerHTML = `<strong>Analysis of:</strong> ${data.fileName}<hr style="margin:.5rem 0;">` + renderMarkdown(data.result || 'No response.');
+        }
+        res.style.display = 'block';
+    } catch(e) {
+        res.innerHTML = 'Error contacting AI service. Please try again.';
+        res.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-microscope"></i> Analyse Document';
+    }
+}
+
+// ── Chat ───────────────────────────────────────────────────────────────────
+async function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg   = input.value.trim();
+    if (!msg) return;
+
+    appendBubble('user', escHtml(msg));
+    chatHistory.push({ role:'user', content:msg });
+    input.value = '';
+
+    const thinking = appendBubble('ai', '<span class="spinner-border spinner-sm"></span> Thinking…');
+
+    try {
+        const resp = await fetch('@Url.Action("Chat","AiAssistant",new{area="Patient"})', {
+            method:'POST',
+            headers:{ 'Content-Type':'application/json', 'RequestVerificationToken': getToken() },
+            body: JSON.stringify({ messages: chatHistory })
+        });
+        const data = await resp.json();
+        thinking.querySelector('.bubble').innerHTML = renderMarkdown(data.result || 'No response.');
+        chatHistory.push({ role:'assistant', content: data.result || '' });
+    } catch(e) {
+        thinking.querySelector('.bubble').textContent = 'Error contacting AI service.';
+    }
+    scrollChat();
+}
+
+function appendBubble(role, html) {
+    const box = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = `chat-msg ${role}`;
+    div.innerHTML = `<div class="bubble">${html}</div>`;
+    box.appendChild(div);
+    scrollChat();
+    return div;
+}
+
+function scrollChat() {
+    const box = document.getElementById('chatBox');
+    box.scrollTop = box.scrollHeight;
+}
+
+function getToken() {
+    return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+}
+
+function escHtml(t) {
+    return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderMarkdown(text) {
+    return text
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/^### (.+)$/gm,'<strong style="font-size:.95em;text-decoration:underline">$1</strong>')
+        .replace(/^## (.+)$/gm,'<strong style="font-size:1em">$1</strong>')
+        .replace(/^# (.+)$/gm,'<strong style="font-size:1.05em">$1</strong>')
+        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g,'<em>$1</em>')
+        .replace(/^- (.+)$/gm,'• $1')
+        .replace(/\n/g,'<br>');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const f = document.createElement('form');
+    f.innerHTML = '@Html.AntiForgeryToken()';
+    document.body.appendChild(f);
+});
+</script>

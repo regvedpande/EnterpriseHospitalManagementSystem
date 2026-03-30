@@ -3,6 +3,7 @@ using Hospital.Repositories;
 using Hospital.Services;
 using Hospital.Services.Interfaces;
 using Hospital.Utilities;
+using Hospital.Web.Infrastructure.AI;
 using Hospital.Web.Infrastructure.Caching;
 using Hospital.Web.Infrastructure.Claims;
 using Hospital.Web.Infrastructure.Messaging;
@@ -33,10 +34,11 @@ builder.Services.AddControllersWithViews(opts =>
     })
     .AddRazorOptions(options =>
     {
-        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/{1}/{0}.cshtml");
-        options.AreaViewLocationFormats.Add("/Hospital.Web/Areas/{2}/Views/Shared/{0}.cshtml");
-        options.ViewLocationFormats.Add("/Hospital.Web/Views/{1}/{0}.cshtml");
-        options.ViewLocationFormats.Add("/Hospital.Web/Views/Shared/{0}.cshtml");
+        // Insert Hospital.Web paths FIRST so they take precedence over root-level duplicates
+        options.AreaViewLocationFormats.Insert(0, "/Hospital.Web/Areas/{2}/Views/{1}/{0}.cshtml");
+        options.AreaViewLocationFormats.Insert(1, "/Hospital.Web/Areas/{2}/Views/Shared/{0}.cshtml");
+        options.ViewLocationFormats.Insert(0, "/Hospital.Web/Views/{1}/{0}.cshtml");
+        options.ViewLocationFormats.Insert(1, "/Hospital.Web/Views/Shared/{0}.cshtml");
     });
 builder.Services.AddRazorPages();
 
@@ -100,6 +102,14 @@ builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 // ── In-process Background Task Queue ─────────────────────────────────────────
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();
+
+// ── NVIDIA AI Service ─────────────────────────────────────────────────────
+builder.Services.AddHttpClient("nvidia", c =>
+{
+    c.Timeout = TimeSpan.FromSeconds(60);
+    c.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+builder.Services.AddSingleton<IAiService, NvidiaAiService>();
 
 // ── RabbitMQ Message Bus ──────────────────────────────────────────────────────
 builder.Services.AddSingleton<IMessageBus, RabbitMqMessageBus>();

@@ -9,7 +9,8 @@
 		     DefaultItemExcludes is evaluated before any items are created, making
 		     it the most reliable exclusion for both CLI MSBuild and Visual Studio. -->
 		<DefaultItemExcludes>$(DefaultItemExcludes);Hospital.Web\obj\**;Hospital.Web\bin\**</DefaultItemExcludes>
-	</PropertyGroup>
+	  <UserSecretsId>16d45025-d9ff-4d41-859d-f9ad0d271710</UserSecretsId>
+  </PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="ClosedXML" Version="0.105.0" />

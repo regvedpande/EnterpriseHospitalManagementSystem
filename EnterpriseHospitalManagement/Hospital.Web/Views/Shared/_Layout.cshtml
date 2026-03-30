@@ -310,6 +310,13 @@
               <i class="fas fa-file-excel" style="color:#1a9e5f;"></i> Schedule Excel
             </a>
           </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">AI Tools</div>
+            <a class="sidebar-link @(ctrl == "AiAssistant" ? "active" : "")"
+               asp-area="Doctor" asp-controller="AiAssistant" asp-action="Index">
+              <i class="fas fa-robot" style="color:#667eea;"></i> AI Clinical Assistant
+            </a>
+          </div>
         }
 
         @* ── PATIENT ── *@
@@ -349,6 +356,10 @@
             </a>
             <a class="sidebar-link" asp-area="Patient" asp-controller="Documents" asp-action="Upload">
               <i class="fas fa-upload"></i> Upload Document
+            </a>
+            <a class="sidebar-link @(ctrl == "AiAssistant" ? "active" : "")"
+               asp-area="Patient" asp-controller="AiAssistant" asp-action="Index">
+              <i class="fas fa-heartbeat" style="color:#e74c3c;"></i> Health AI Assistant
             </a>
           </div>
         }

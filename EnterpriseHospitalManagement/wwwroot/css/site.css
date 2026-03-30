@@ -610,3 +610,111 @@ form.d-inline { margin: 0; }
 
 /* ── ME-1 SPACING ─────────────────────────────────────────────────────────── */
 .me-1 { margin-right: .25rem; }
+
+/* ── DASHBOARD CHART LAYOUT ───────────────────────────────────────────────── */
+.dashboard-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 768px) {
+  .dashboard-chart-row { grid-template-columns: 1fr; }
+}
+.chart-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.chart-card-header {
+  padding: .85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chart-card-title { font-weight: 600; font-size: .875rem; color: var(--text); }
+.chart-card-body  { padding: 1.1rem; }
+
+/* ── DASHBOARD TWO-COL ────────────────────────────────────────────────────── */
+.dashboard-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+@media (max-width: 900px) {
+  .dashboard-two-col { grid-template-columns: 1fr; }
+}
+
+/* ── QUICK ACTIONS GRID ───────────────────────────────────────────────────── */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+.quick-action-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: .85rem .5rem;
+  border-radius: 10px;
+  background: var(--bg-light, #f8f9fa);
+  color: var(--text);
+  text-decoration: none;
+  font-size: .78rem;
+  font-weight: 500;
+  transition: var(--transition);
+  gap: .5rem;
+}
+.quick-action-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); color: var(--primary); }
+.qa-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* ── ACTIVITY FEED ────────────────────────────────────────────────────────── */
+.activity-feed   { padding: .5rem 0; }
+.activity-item   { display: flex; align-items: flex-start; gap: .85rem; padding: .65rem 1.25rem; border-bottom: 1px solid var(--border); }
+.activity-item:last-child { border-bottom: none; }
+.activity-icon   { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: .85rem; }
+.activity-content{ flex: 1; min-width: 0; }
+.activity-title  { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.activity-meta   { font-size: .75rem; color: var(--text-muted); margin-top: .1rem; }
+.activity-badge  { flex-shrink: 0; }
+
+/* ── NAV LIST (used in dashboards) ───────────────────────────────────────── */
+.nav-list { padding: 0; }
+.nav-list-item {
+  display: flex; align-items: center; gap: .65rem;
+  padding: .65rem 1.25rem;
+  font-size: .85rem; color: var(--text);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.nav-list-item:last-child { border-bottom: none; }
+.nav-list-item:hover { background: var(--bg-light, #f8f9fa); color: var(--primary); }
+.nav-list-item i { width: 16px; text-align: center; color: var(--text-muted); }
+
+/* ── OVERVIEW LIST (used in dashboards) ──────────────────────────────────── */
+.overview-list  { display: flex; flex-direction: column; gap: .6rem; }
+.overview-item  { display: flex; justify-content: space-between; align-items: center; }
+.ov-label { font-size: .82rem; color: var(--text-muted); display: flex; align-items: center; gap: .4rem; }
+.ov-value { font-size: .82rem; font-weight: 600; }
+
+/* ── WELCOME BANNER ───────────────────────────────────────────────────────── */
+.btn-white-solid {
+  background: #fff; color: var(--primary);
+  border: none; font-weight: 600;
+}
+.btn-white-solid:hover { background: #f0f4ff; color: var(--primary); }
+.btn-white {
+  background: rgba(255,255,255,.15); color: #fff;
+  border: 1px solid rgba(255,255,255,.4);
+}
+.btn-white:hover { background: rgba(255,255,255,.28); color: #fff; }
