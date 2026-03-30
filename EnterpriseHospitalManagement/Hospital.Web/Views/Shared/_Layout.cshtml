@@ -261,6 +261,13 @@
               <i class="fas fa-file-excel" style="color:#1a9e5f;"></i> Rooms Excel
             </a>
           </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">AI Intelligence</div>
+            <a class="sidebar-link @(ctrl == "AiAssistant" ? "active" : "")"
+               asp-area="Admin" asp-controller="AiAssistant" asp-action="Index">
+              <i class="fas fa-brain" style="color:#1a56db;"></i> Hospital AI Analytics
+            </a>
+          </div>
         }
 
         @* ── DOCTOR ── *@
@@ -378,6 +385,13 @@
               <i class="fas fa-calendar-check"></i> Appointments
             </a>
           </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">AI Tools</div>
+            <a class="sidebar-link @(ctrl == "AiAssistant" ? "active" : "")"
+               asp-area="Nurse" asp-controller="AiAssistant" asp-action="Index">
+              <i class="fas fa-robot" style="color:#7c3aed;"></i> AI Nursing Assistant
+            </a>
+          </div>
         }
 
         @* ── LABTECH ── *@
@@ -395,6 +409,13 @@
             </a>
             <a class="sidebar-link" asp-area="LabTech" asp-controller="Labs" asp-action="Create">
               <i class="fas fa-plus-circle"></i> New Lab Order
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">AI Tools</div>
+            <a class="sidebar-link @(ctrl == "AiAssistant" ? "active" : "")"
+               asp-area="LabTech" asp-controller="AiAssistant" asp-action="Index">
+              <i class="fas fa-robot" style="color:#d97706;"></i> AI Lab Interpreter
             </a>
           </div>
         }
@@ -423,6 +444,13 @@
               <i class="fas fa-plus-circle"></i> Add Medicine
             </a>
           </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">AI Tools</div>
+            <a class="sidebar-link @(ctrl == "AiAssistant" ? "active" : "")"
+               asp-area="Pharmacist" asp-controller="AiAssistant" asp-action="Index">
+              <i class="fas fa-robot" style="color:#dc2626;"></i> AI Pharmacy Assistant
+            </a>
+          </div>
         }
 
         @* ── RECEPTIONIST ── *@
@@ -443,6 +471,13 @@
             <div class="sidebar-label">Actions</div>
             <a class="sidebar-link" asp-area="Receptionist" asp-controller="Appointments" asp-action="Create">
               <i class="fas fa-calendar-plus"></i> Schedule Appointment
+            </a>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-label">AI Tools</div>
+            <a class="sidebar-link @(ctrl == "AiAssistant" ? "active" : "")"
+               asp-area="Receptionist" asp-controller="AiAssistant" asp-action="Index">
+              <i class="fas fa-robot" style="color:#ea580c;"></i> AI Triage Assistant
             </a>
           </div>
         }

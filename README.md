@@ -4,32 +4,37 @@
 [![ASP.NET Core MVC](https://img.shields.io/badge/ASP.NET%20Core%20MVC-8.0-512BD4)](https://learn.microsoft.com/aspnet/core)
 [![SQL Server](https://img.shields.io/badge/SQL%20Server-LocalDB-CC2927?logo=microsoftsqlserver)](https://www.microsoft.com/sql-server)
 [![Entity Framework Core](https://img.shields.io/badge/EF%20Core-8.0-512BD4)](https://learn.microsoft.com/ef/core)
+[![NVIDIA NIM AI](https://img.shields.io/badge/NVIDIA%20NIM-LLaMA%203.1%2070B-76b900?logo=nvidia)](https://build.nvidia.com)
 [![Chart.js](https://img.shields.io/badge/Chart.js-4.4-FF6384?logo=chartdotjs)](https://www.chartjs.org)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap)](https://getbootstrap.com)
+[![Redis](https://img.shields.io/badge/Redis-7.x-DC382D?logo=redis)](https://redis.io)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-3.x-FF6600?logo=rabbitmq)](https://www.rabbitmq.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> A **production-ready**, full-stack hospital management platform with 8 role-based portals, real-time analytics dashboards, Chart.js visualisations, document management, and complete CRUD across every clinical and administrative workflow.
+> A **production-ready**, full-stack hospital management platform with **8 role-based portals**, **NVIDIA NIM AI assistants** in every portal, real-time analytics dashboards, Chart.js visualisations, document management, and complete CRUD across every clinical and administrative workflow.
 
 ---
 
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Live Demo & Credentials](#live-demo--credentials)
-3. [System Architecture](#system-architecture)
-4. [Layer Breakdown](#layer-breakdown)
-5. [Database Entity Relationship Diagram](#database-entity-relationship-diagram)
-6. [Authentication & Authorization Flow](#authentication--authorization-flow)
-7. [Role Portals & Feature Matrix](#role-portals--feature-matrix)
-8. [Dashboard Analytics](#dashboard-analytics)
-9. [Project Structure](#project-structure)
-10. [Technology Stack](#technology-stack)
-11. [Prerequisites](#prerequisites)
-12. [Quick Start](#quick-start)
-13. [Configuration Reference](#configuration-reference)
-14. [Security Practices](#security-practices)
-15. [Contributing](#contributing)
-16. [License & Contact](#license--contact)
+2. [AI Integration — NVIDIA NIM](#ai-integration--nvidia-nim)
+3. [Live Demo & Credentials](#live-demo--credentials)
+4. [System Architecture](#system-architecture)
+5. [Layer Breakdown](#layer-breakdown)
+6. [Database Entity Relationship Diagram](#database-entity-relationship-diagram)
+7. [Authentication & Authorization Flow](#authentication--authorization-flow)
+8. [Role Portals & Feature Matrix](#role-portals--feature-matrix)
+9. [Dashboard Analytics](#dashboard-analytics)
+10. [Infrastructure & Resilience](#infrastructure--resilience)
+11. [Project Structure](#project-structure)
+12. [Technology Stack](#technology-stack)
+13. [Prerequisites](#prerequisites)
+14. [Quick Start](#quick-start)
+15. [Configuration Reference](#configuration-reference)
+16. [Security Practices](#security-practices)
+17. [Contributing](#contributing)
+18. [License & Contact](#license--contact)
 
 ---
 
@@ -39,14 +44,144 @@
 
 **What makes it enterprise-grade:**
 - **8 isolated role portals** each with their own sidebar navigation, dashboard, and workflows
+- **NVIDIA NIM AI Assistants** embedded in every role portal — doctors get diagnosis support, pharmacists get drug interaction checks, nurses get vitals interpretation, and more
 - **Real-time Chart.js analytics** — line charts, doughnut charts, bar charts, horizontal bar charts — all driven by live database data
 - **Full CRUD** for 15+ entities (Appointments, Bills, Labs, Medicines, Rooms, Payrolls, Suppliers, Insurance, Departments, Contacts, Patient Reports, Prescriptions, Documents, Hospitals, Users)
 - **Document management** — patients upload PDFs, images, Word/Excel files; categorised with analytics
 - **PDF + Excel exports** for every major data set
+- **Redis distributed cache** with in-memory fallback, **RabbitMQ** event bus, **Polly** resilience
 - **Twilio SMS** and email notification hooks
 - **JWT API layer** alongside cookie-based MVC authentication
 - **Serilog** structured logging with rolling file sinks
 - **Responsive UI** — custom CSS design system (no Bootstrap utility classes), DM Sans / DM Serif Display typography
+
+---
+
+## AI Integration — NVIDIA NIM
+
+MedCore HMS integrates **NVIDIA NIM** (powered by Meta LLaMA 3.1 70B Instruct) as a clinical intelligence layer across all 8 role portals. Every AI assistant is **role-specific** — it does not give generic responses; it thinks like the professional using it.
+
+### How It Works
+
+```mermaid
+sequenceDiagram
+    actor User as Role User (Doctor / Nurse / etc.)
+    participant View as AI Assistant View
+    participant Ctrl as AiAssistantController
+    participant Svc as NvidiaAiService
+    participant DB as SQL Server (real patient data)
+    participant NVIDIA as NVIDIA NIM API\n(LLaMA 3.1 70B)
+
+    User->>View: Fills in symptoms / vitals / drug names
+    View->>Ctrl: POST /AiAssistant/{action} (CSRF protected)
+
+    alt Doctor endpoints
+        Ctrl->>DB: Fetch patient history + reports + appointments
+        DB-->>Ctrl: Real patient context (diagnoses, meds, dates)
+    end
+
+    Ctrl->>Svc: Call role-specific method (e.g. GetDiagnosisSuggestionAsync)
+    Svc->>Svc: Build system prompt tuned to this role
+    Svc->>Svc: Inject patient context into user message
+    Svc->>NVIDIA: POST /v1/chat/completions\n{model, messages, temperature:0.4, max_tokens:1200}
+    NVIDIA-->>Svc: Structured clinical response
+    Svc-->>Ctrl: Response string
+    Ctrl-->>View: JSON {result: "..."}
+    View->>User: Rendered AI response panel
+```
+
+### Role-Specific AI Capabilities
+
+| Portal | AI Assistant | Key Features |
+|---|---|---|
+| **Doctor** | AI Clinical Assistant | Differential diagnosis from symptoms + patient history, medicine recommendations with dosage, drug interaction check (multi-drug), early symptom warnings, personalised treatment plans, clinical chat |
+| **Pharmacist** | AI Pharmacy Assistant | Drug-drug interaction checker (multiple meds), dosage guidance by patient profile, therapeutic substitutes when drugs are unavailable, pharmacy chat |
+| **Nurse** | AI Nursing Assistant | Vitals interpretation with alert flags (critical / warning / normal), nursing care plan generation by condition, nursing chat |
+| **Lab Technician** | AI Lab Interpreter | Lab result interpretation (test + value + unit + reference range), test panel recommendations for suspected conditions, lab chat |
+| **Receptionist** | AI Triage Assistant | Symptom triage with urgency classification (Emergency / Urgent / Routine), appropriate department routing, triage chat |
+| **Admin** | Hospital AI Analytics | Real-time hospital stats analysis (patient count, revenue, bills, labs), operational insights and anomaly detection, admin chat |
+| **Patient** | Health AI Assistant | Health question answering, document text analysis (upload report → AI explains it), medication questions, general health chat |
+
+### System Prompts Design
+
+Each role has a dedicated system prompt constant in `NvidiaAiService.cs` that gives the LLM a precise professional persona:
+
+```
+SysDoctor   → "expert clinical physician... evidence-based, structured differentials"
+SysPharmacist → "senior clinical pharmacist... drug safety focused"
+SysNurse    → "experienced registered nurse... concise, actionable clinical observations"
+SysLabTech  → "expert medical laboratory scientist... explain in clinical terms"
+SysRecept   → "experienced hospital triage nurse... urgency classification: Emergency/Urgent/Routine"
+SysAdmin    → "senior hospital administrator and healthcare analytics expert"
+SysPatient  → "friendly medical assistant... clear, jargon-free, compassionate"
+```
+
+### AI Service Architecture
+
+```
+Hospital.Web/Infrastructure/AI/
+├── IAiService.cs          # Interface — 15 role-specific async methods + ChatAsync
+└── NvidiaAiService.cs     # Implementation — NVIDIA NIM OpenAI-compatible REST client
+```
+
+**`IAiService` methods:**
+
+```csharp
+// Doctor
+Task<string> GetDiagnosisSuggestionAsync(symptoms, patientContext)
+Task<string> GetMedicineRecommendationAsync(diagnosis, patientContext)
+Task<string> GetDrugInteractionCheckAsync(medicineList)
+Task<string> GetEarlySymptomAlertAsync(symptoms, patientHistory)
+Task<string> GetTreatmentPlanAsync(diagnosis, patientContext)
+
+// Pharmacist
+Task<string> GetPharmacistDrugInteractionAsync(medicines)
+Task<string> GetDosageGuideAsync(drugName, patientInfo)
+Task<string> GetDrugSubstituteAsync(drugName, reason)
+
+// Nurse
+Task<string> InterpretVitalsAsync(vitals, patientContext)
+Task<string> GetNursingCarePlanAsync(condition)
+
+// Lab Tech
+Task<string> InterpretLabResultAsync(testName, value, unit, patientContext)
+Task<string> SuggestTestPanelAsync(suspectedCondition)
+
+// Receptionist
+Task<string> TriageSymptomsAsync(symptoms)
+
+// Admin
+Task<string> AnalyseHospitalStatsAsync(statsJson)
+
+// Universal
+Task<string> ChatAsync(IEnumerable<AiMessage> messages)
+bool IsConfigured { get; }
+```
+
+### AI Setup (Local Development)
+
+```bash
+# Store your NVIDIA API key securely (never committed to git)
+dotnet user-secrets set "Nvidia:ApiKey" "nvapi-YOUR_KEY_HERE" \
+  --project EnterpriseHospitalManagement
+
+# Verify
+dotnet user-secrets list --project EnterpriseHospitalManagement
+```
+
+The app checks `IsConfigured` before every call and shows a clear "AI not configured" message instead of crashing if the key is missing.
+
+### Production AI Configuration
+
+Set via environment variable — **never** put the key in `appsettings.json`:
+
+```bash
+# Linux / Docker
+export Nvidia__ApiKey="nvapi-YOUR_KEY_HERE"
+
+# Windows environment variable
+set Nvidia__ApiKey=nvapi-YOUR_KEY_HERE
+```
 
 ---
 
@@ -85,18 +220,23 @@ graph TB
 
         subgraph Areas["Role-Based Areas"]
             direction LR
-            Admin["🔴 Admin\n15 controllers"]
-            Doctor["🟢 Doctor\n3 controllers"]
-            Patient["🔵 Patient\n5 controllers"]
-            Nurse["🟣 Nurse\n2 controllers"]
-            LabTech["🟡 LabTech\n2 controllers"]
-            Pharma["🟠 Pharmacist\n3 controllers"]
-            Recept["⚪ Receptionist\n2 controllers"]
+            Admin["🔴 Admin\n15+ controllers\n+ AI Analytics"]
+            Doctor["🟢 Doctor\n4 controllers\n+ AI Clinical"]
+            Patient["🔵 Patient\n5 controllers\n+ Health AI"]
+            Nurse["🟣 Nurse\n3 controllers\n+ AI Nursing"]
+            LabTech["🟡 LabTech\n3 controllers\n+ AI Lab"]
+            Pharma["🟠 Pharmacist\n4 controllers\n+ AI Pharmacy"]
+            Recept["⚪ Receptionist\n3 controllers\n+ AI Triage"]
             Account["🟤 Accountant\n3 controllers"]
         end
 
+        AI["🤖 AI Layer\nIAiService / NvidiaAiService\nSingleton — 1 HttpClient"]
         Layout[_Layout.cshtml\nShared sidebar · topbar · alerts · modals]
         Middleware[Middleware Pipeline\nIdentity · RBAC · StatusCodePages · Serilog]
+    end
+
+    subgraph NvidiaCloud["☁️ NVIDIA NIM Cloud"]
+        NIM[LLaMA 3.1 70B Instruct\nOpenAI-compatible API\nhttps://integrate.api.nvidia.com/v1]
     end
 
     subgraph Services["Hospital.Services — Business Logic"]
@@ -128,6 +268,9 @@ graph TB
     Middleware --> Auth
     Middleware --> Areas
     Areas --> Services
+    Areas -->|patient context| AI
+    AI -->|HTTPS + Bearer token| NIM
+    NIM -->|JSON response| AI
     Services --> Repos
     Repos --> GR
     GR --> DB
@@ -141,18 +284,20 @@ graph TB
 
 ```mermaid
 flowchart LR
-    A["🌐 Presentation\nHospital.Web\nMVC Controllers\nRazor Views\nCSS Design System"] -->|ViewModels| B["⚙️ Application\nHospital.Services\nBusiness Logic\nService Interfaces\nImplementations"]
+    A["🌐 Presentation\nHospital.Web\nMVC Controllers\nRazor Views\nCSS Design System\n🤖 AI Controllers"] -->|ViewModels| B["⚙️ Application\nHospital.Services\nBusiness Logic\nService Interfaces\nImplementations"]
     B -->|Domain Models| C["🗄️ Data Access\nHospital.Repositories\nUnit of Work\nGeneric Repository\nEF Core DbContext"]
     C --> D[("💾 SQL Server\nHospitalDB")]
     E["📦 Domain\nHospital.Models\nEntities · Enums"] -.->|used by| B
     E -.->|used by| C
     F["🔧 Utilities\nHospital.Utilities\nWebSiteRoles\nImageOperations\nJwtService\nEmailSender\nTwilioSmsService"] -.->|used by| A
     F -.->|used by| B
+    G["🤖 AI Infrastructure\nHospital.Web/Infrastructure/AI\nIAiService\nNvidiaAiService"] -.->|injected into| A
 ```
 
 | Layer | Project | Responsibility |
 |---|---|---|
 | Presentation | `Hospital.Web` | MVC controllers, Razor views, CSS/JS, Areas |
+| **AI Layer** | **`Hospital.Web/Infrastructure/AI`** | **NVIDIA NIM integration — IAiService + NvidiaAiService** |
 | ViewModels | `Hospital.ViewModels` | DTO layer — shapes data between controllers and services |
 | Services | `Hospital.Services` | All business logic, service interfaces, implementations |
 | Repositories | `Hospital.Repositories` | EF Core Unit of Work, Generic Repository, DbContext |
@@ -287,12 +432,13 @@ erDiagram
     Payroll {
         int Id PK
         string EmployeeId FK
-        decimal BasicSalary
-        decimal Allowances
-        decimal Deductions
         decimal NetSalary
+        decimal HourlySalary
+        decimal BonusSalary
+        decimal Compensation
         PayrollStatus Status
-        DateTime PayDate
+        DateTime PayPeriodStart
+        DateTime PayPeriodEnd
     }
 
     PatientDocument {
@@ -389,6 +535,7 @@ graph LR
     ADM --> ADM6["Payroll · Documents · Contacts"]
     ADM --> ADM7["PDF/Excel Exports"]
     ADM --> ADM8["3 Chart.js Dashboards"]
+    ADM --> ADM9["🤖 Hospital AI Analytics"]
 
     HMS --> DOC["🟢 Doctor"]
     DOC --> DOC1["My Appointments — Create/Edit"]
@@ -397,6 +544,7 @@ graph LR
     DOC --> DOC4["My Schedule & Timings"]
     DOC --> DOC5["PDF/Excel Export"]
     DOC --> DOC6["Trend + Status Charts"]
+    DOC --> DOC7["🤖 AI Clinical Assistant\nDiagnosis · Medicines · Interactions\nEarly Warning · Treatment Plan"]
 
     HMS --> PAT["🔵 Patient"]
     PAT --> PAT1["My Appointments — Book"]
@@ -405,25 +553,30 @@ graph LR
     PAT --> PAT4["My Medical Reports"]
     PAT --> PAT5["My Documents — Upload"]
     PAT --> PAT6["Document Analytics"]
+    PAT --> PAT7["🤖 Health AI Assistant"]
 
     HMS --> NRS["🟣 Nurse"]
     NRS --> NRS1["View & Update Appointments"]
     NRS --> NRS2["Appointment Status Charts"]
+    NRS --> NRS3["🤖 AI Nursing Assistant\nVitals Interpretation · Care Plans"]
 
     HMS --> LAB["🟡 LabTech"]
     LAB --> LAB1["Lab Orders — Create/Edit"]
     LAB --> LAB2["Record Test Results"]
     LAB --> LAB3["Status Doughnut Chart"]
+    LAB --> LAB4["🤖 AI Lab Interpreter\nResult Interpretation · Test Panels"]
 
     HMS --> PHA["🟠 Pharmacist"]
     PHA --> PHA1["Medicines Stock — CRUD"]
     PHA --> PHA2["Prescriptions — View/Dispense"]
     PHA --> PHA3["Medicine Type Bar Chart"]
+    PHA --> PHA4["🤖 AI Pharmacy Assistant\nInteractions · Dosage · Substitutes"]
 
     HMS --> REC["⚪ Receptionist"]
     REC --> REC1["Schedule Appointments"]
     REC --> REC2["All Appointments — View/Edit"]
     REC --> REC3["Status Overview Chart"]
+    REC --> REC4["🤖 AI Triage Assistant\nSymptom Triage · Urgency Classification"]
 
     HMS --> ACC["🟤 Accountant"]
     ACC --> ACC1["Bills — Create/Edit"]
@@ -435,6 +588,7 @@ graph LR
 | Feature | Admin | Doctor | Patient | Nurse | LabTech | Pharmacist | Receptionist | Accountant |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | Dashboard with Charts | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **AI Assistant** | **✅** | **✅** | **✅** | **✅** | **✅** | **✅** | **✅** | — |
 | Appointments (View) | ✅ | ✅ | ✅ | ✅ | — | — | ✅ | — |
 | Appointments (Create) | ✅ | ✅ | ✅ | — | — | — | ✅ | — |
 | Appointments (Edit Status) | ✅ | ✅ | — | ✅ | — | — | ✅ | — |
@@ -500,6 +654,75 @@ flowchart TD
 
 ---
 
+## Infrastructure & Resilience
+
+```mermaid
+graph TB
+    subgraph AppLayer["ASP.NET Core Application"]
+        MVC[MVC Controllers]
+        SVC[Service Layer]
+        BG[Background Queue\nQueuedHostedService]
+        AI[AI Layer\nNvidiaAiService Singleton]
+    end
+
+    subgraph Cache["Redis Cache Layer"]
+        RC[IDistributedCache\nStackExchange.Redis]
+        MC[In-Memory Fallback\n dev / no Redis]
+    end
+
+    subgraph MQ["Message Bus"]
+        RMQ[RabbitMQ\nTopic Exchange: hms.events]
+        CONS[Consumer Hosted Service\nAppointments · Bills · Labs · Users]
+        NOOP[No-op Fallback\n not configured]
+    end
+
+    subgraph Resilience["Polly Resilience"]
+        RETRY[EF Core Retry\n5 retries, exp back-off]
+        CB[Circuit Breaker\nHTTP calls, 5 failures / 30s]
+    end
+
+    subgraph NvidiaCloud["NVIDIA NIM Cloud"]
+        NIM[LLaMA 3.1 70B Instruct\n60s HTTP timeout\ntemperature: 0.4\nmax_tokens: 1200]
+    end
+
+    MVC --> SVC
+    MVC --> AI
+    AI -->|Named HttpClient nvidia\nBearer token auth| NIM
+    SVC -->|cache read/write| RC
+    RC -.->|unavailable| MC
+    SVC -->|enqueue event| BG
+    BG -->|publish| RMQ
+    RMQ -->|route| CONS
+    CONS -->|email notification| SVC
+    RMQ -.->|not configured| NOOP
+    SVC --> RETRY
+    RETRY -->|transient error| CB
+```
+
+### How It Works
+
+| Component | Location | Behaviour |
+|---|---|---|
+| **NVIDIA NIM AI** | `Infrastructure/AI/NvidiaAiService` | Singleton; named `HttpClient("nvidia")` with 60 s timeout. OpenAI-compatible `/v1/chat/completions`. Gracefully returns error string if not configured. |
+| **Redis Cache** | `ICacheService` / `RedisCacheService` | Caches appointment, bill & dashboard data (2–5 min TTL). Falls back to in-memory if Redis is unreachable. |
+| **Background Queue** | `IBackgroundTaskQueue` / `BackgroundTaskQueue` | Channel-based (capacity 500). All email, SMS and event publishing happens off-request in `QueuedHostedService`. |
+| **RabbitMQ Bus** | `IMessageBus` / `RabbitMqMessageBus` | Topic exchange `hms.events` with queues: `hms.appointments`, `hms.billing`, `hms.labs`, `hms.users`. Auto-reconnects. No-ops gracefully when `RabbitMQ:ConnectionString` is empty. |
+| **Polly Retry** | `ResiliencePolicies` + EF Core | EF Core SQL provider: 5 retries with exponential back-off on transient SQL errors. Circuit breaker (5 failures → 30 s open) for external HTTP calls. |
+| **Lockout** | `AuthController` | 5 failed login attempts → 5-minute account lockout (Identity `LockoutOptions`). |
+| **Security Headers** | `Program.cs` middleware | `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy` on every response. |
+
+### Docker Quick-Start (Redis + RabbitMQ)
+
+```bash
+# Redis (required for distributed caching)
+docker run -d --name redis -p 6379:6379 redis:7
+
+# RabbitMQ with management UI (optional — app degrades gracefully without it)
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -552,28 +775,75 @@ EnterpriseHospitalManagementSystem/
     │
     ├── Hospital.Utilities/              # Cross-cutting concerns
     │   ├── WebSiteRoles.cs              # Role string constants
+    │   ├── DbInitializer.cs             # Seed roles, demo users, demo data
     │   ├── JwtService.cs
     │   ├── ImageOperations.cs
     │   ├── EmailSender.cs
     │   └── TwilioSmsService.cs
     │
     └── Hospital.Web/                    # Presentation layer
-        ├── Program.cs                   # DI wiring, middleware, seeding
+        ├── Program.cs                   # DI wiring, middleware, seeding, AI service registration
         ├── appsettings.json             # Dev config (safe placeholders only)
+        │
+        ├── Infrastructure/
+        │   └── AI/                      # 🤖 NVIDIA NIM AI Integration
+        │       ├── IAiService.cs        # Interface — 15 role-specific methods + ChatAsync
+        │       └── NvidiaAiService.cs   # NVIDIA NIM OpenAI-compatible client
         │
         ├── Areas/
         │   ├── Admin/
-        │   │   ├── Controllers/         # 15 controllers
-        │   │   └── Views/               # Create/Edit/Index per entity
-        │   ├── Doctor/
-        │   │   ├── Controllers/         # HomeController + Appointments + Patients + Doctors
+        │   │   ├── Controllers/
+        │   │   │   ├── HomeController.cs
+        │   │   │   ├── AiAssistantController.cs  # 🤖 Hospital stats AI + admin chat
+        │   │   │   └── ... (14 more controllers)
         │   │   └── Views/
-        │   ├── Patient/
+        │   │       ├── AiAssistant/Index.cshtml  # Stats Analysis + Chat tabs
+        │   │       └── ... (per entity views)
+        │   │
+        │   ├── Doctor/
+        │   │   ├── Controllers/
+        │   │   │   ├── HomeController.cs
+        │   │   │   ├── AiAssistantController.cs  # 🤖 Diagnosis/Medicines/Interactions/Warning/Plan/Chat
+        │   │   │   ├── AppointmentsController.cs
+        │   │   │   ├── PatientsController.cs
+        │   │   │   └── DoctorsController.cs
+        │   │   └── Views/
+        │   │       └── AiAssistant/Index.cshtml  # 6-tab clinical AI panel
+        │   │
         │   ├── Nurse/
+        │   │   ├── Controllers/
+        │   │   │   ├── AiAssistantController.cs  # 🤖 Vitals + Care plan + Chat
+        │   │   │   └── ...
+        │   │   └── Views/
+        │   │       └── AiAssistant/Index.cshtml
+        │   │
         │   ├── LabTech/
+        │   │   ├── Controllers/
+        │   │   │   ├── AiAssistantController.cs  # 🤖 Lab interpretation + Test panels + Chat
+        │   │   │   └── ...
+        │   │   └── Views/
+        │   │       └── AiAssistant/Index.cshtml
+        │   │
         │   ├── Pharmacist/
+        │   │   ├── Controllers/
+        │   │   │   ├── AiAssistantController.cs  # 🤖 Interactions + Dosage + Substitutes + Chat
+        │   │   │   └── ...
+        │   │   └── Views/
+        │   │       └── AiAssistant/Index.cshtml
+        │   │
         │   ├── Receptionist/
+        │   │   ├── Controllers/
+        │   │   │   ├── AiAssistantController.cs  # 🤖 Symptom triage + urgency + Chat
+        │   │   │   └── ...
+        │   │   └── Views/
+        │   │       └── AiAssistant/Index.cshtml
+        │   │
+        │   ├── Patient/
+        │   │   └── Controllers/
+        │   │       └── AiAssistantController.cs  # 🤖 Health Q&A + document analysis + Chat
+        │   │
         │   └── Accountant/
+        │       └── Controllers/ ...
         │
         ├── Controllers/
         │   ├── AuthController.cs        # Login/Register/Logout
@@ -582,85 +852,11 @@ EnterpriseHospitalManagementSystem/
         │
         └── Views/
             ├── Shared/
-            │   ├── _Layout.cshtml       # Main layout — topbar, sidebar, alerts, modals
+            │   ├── _Layout.cshtml       # Main layout — topbar, sidebar (AI links in every role), alerts, modals
             │   └── _Pagination.cshtml   # Reusable pagination partial
             ├── Auth/                    # Login, Register, AccessDenied
             ├── Home/                    # Landing, Error, StatusCode
             └── Profile/                 # Index, Edit, ChangePassword
-```
-
----
-
-## Infrastructure & Resilience
-
-```mermaid
-graph TB
-    subgraph AppLayer["ASP.NET Core Application"]
-        MVC[MVC Controllers]
-        SVC[Service Layer]
-        BG[Background Queue\nQueuedHostedService]
-    end
-
-    subgraph Cache["Redis Cache Layer"]
-        RC[IDistributedCache\nStackExchange.Redis]
-        MC[In-Memory Fallback\n dev / no Redis]
-    end
-
-    subgraph MQ["Message Bus"]
-        RMQ[RabbitMQ\nTopic Exchange: hms.events]
-        CONS[Consumer Hosted Service\nAppointments · Bills · Labs · Users]
-        NOOP[No-op Fallback\n not configured]
-    end
-
-    subgraph Resilience["Polly Resilience"]
-        RETRY[EF Core Retry\n5 retries, exp back-off]
-        CB[Circuit Breaker\nHTTP calls, 5 failures / 30s]
-    end
-
-    MVC --> SVC
-    SVC -->|cache read/write| RC
-    RC -.->|unavailable| MC
-    SVC -->|enqueue event| BG
-    BG -->|publish| RMQ
-    RMQ -->|route| CONS
-    CONS -->|email notification| SVC
-    RMQ -.->|not configured| NOOP
-    SVC --> RETRY
-    RETRY -->|transient error| CB
-```
-
-### How It Works
-
-| Component | Location | Behaviour |
-|---|---|---|
-| **Redis Cache** | `ICacheService` / `RedisCacheService` | Caches appointment, bill & dashboard data (2–5 min TTL). Falls back to in-memory if Redis is unreachable. |
-| **Background Queue** | `IBackgroundTaskQueue` / `BackgroundTaskQueue` | Channel-based (capacity 500). All email, SMS and event publishing happens off-request in `QueuedHostedService`. |
-| **RabbitMQ Bus** | `IMessageBus` / `RabbitMqMessageBus` | Topic exchange `hms.events` with queues: `hms.appointments`, `hms.billing`, `hms.labs`, `hms.users`. Auto-reconnects. No-ops gracefully when `RabbitMQ:ConnectionString` is empty. |
-| **Polly Retry** | `ResiliencePolicies` + EF Core | EF Core SQL provider: 5 retries with exponential back-off on transient SQL errors. Circuit breaker (5 failures → 30 s open) for external HTTP calls. |
-| **Lockout** | `AuthController` | 5 failed login attempts → 5-minute account lockout (Identity `LockoutOptions`). |
-| **Security Headers** | `Program.cs` middleware | `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`, `Referrer-Policy` on every response. |
-
-### Docker Quick-Start (Redis + RabbitMQ)
-
-```bash
-# Redis (required for distributed caching)
-docker run -d --name redis -p 6379:6379 redis:7
-
-# RabbitMQ with management UI (optional — app degrades gracefully without it)
-docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
-```
-
-Then set in `appsettings.json` (or environment variables):
-
-```json
-{
-  "Redis": {
-    "ConnectionString": "localhost:6379,abortConnect=false"
-  },
-  "RabbitMQ": {
-    "ConnectionString": "amqp://guest:guest@localhost:5672/"
-  }
-}
 ```
 
 ---
@@ -675,6 +871,7 @@ Then set in `appsettings.json` (or environment variables):
 | Database | Microsoft SQL Server / LocalDB | 2019+ |
 | Authentication | ASP.NET Identity | 8.0 |
 | API Auth | JWT Bearer | — |
+| **AI Engine** | **NVIDIA NIM — LLaMA 3.1 70B Instruct** | **OpenAI-compatible** |
 | **Cache** | **Redis (StackExchange.Redis)** | **7.x** |
 | **Resilience** | **Polly** | **8.4** |
 | **Message Bus** | **RabbitMQ.Client** | **6.8** |
@@ -699,6 +896,7 @@ Then set in `appsettings.json` (or environment variables):
 | SQL Server | 2019 LocalDB (bundled with VS) **or** SQL Server Developer / Express |
 | Visual Studio | 2022 (17.8+) **or** VS Code + C# DevKit |
 | Git | Any recent version |
+| NVIDIA NIM API Key | Free at [build.nvidia.com](https://build.nvidia.com) (optional — AI degrades gracefully without it) |
 
 ---
 
@@ -730,47 +928,31 @@ Edit `EnterpriseHospitalManagement/appsettings.json`:
 
 > For SQL Server Express: `Server=.\\SQLEXPRESS;Database=HospitalDB;Trusted_Connection=True;`
 
-### 3. Restore and run
+### 3. Add your NVIDIA API key (for AI features)
 
 ```bash
 cd EnterpriseHospitalManagement
+dotnet user-secrets set "Nvidia:ApiKey" "nvapi-YOUR_KEY_HERE"
+```
+
+Get a free API key at [build.nvidia.com](https://build.nvidia.com). The app runs fine without it — AI pages will show a "not configured" message.
+
+### 4. Restore and run
+
+```bash
 dotnet restore
 dotnet run --project Hospital.Web
 ```
 
-The app auto-creates the database and seeds all roles + demo users on first run. Navigate to `https://localhost:7xxx` (port shown in terminal).
+The app auto-creates the database and seeds all roles + demo users + demo clinical data on first run. Navigate to `https://localhost:7xxx` (port shown in terminal).
 
-### 4. Login
+### 5. Login
 
-Use any of the seeded credentials from the [table above](#live-demo--credentials).
+Use any of the seeded credentials from the [table above](#live-demo--credentials). The AI Assistant link appears in the sidebar for every role.
 
 ---
 
 ## Configuration Reference
-
-```mermaid
-graph LR
-    subgraph appsettings.json["appsettings.json (safe defaults — committed)"]
-        CS[ConnectionStrings\nDefaultConnection]
-        JWT[Jwt\nKey · Issuer · Audience]
-        LOG[Logging\nLogLevel defaults]
-    end
-
-    subgraph appsettings.Production.json["appsettings.Production.json (🔒 NOT committed)"]
-        PCS[Production connection string]
-        PJWT[Real JWT secret key]
-        TWILIO[Twilio AccountSid\nAuthToken · FromPhone]
-        EMAIL[SMTP Host\nUsername · Password]
-    end
-
-    subgraph EnvVars["Environment Variables (recommended for prod)"]
-        E1["ConnectionStrings__DefaultConnection"]
-        E2["Jwt__Key"]
-        E3["Twilio__AccountSid"]
-        E4["Twilio__AuthToken"]
-        E5["Email__SmtpPassword"]
-    end
-```
 
 | Variable | Purpose | Example |
 |---|---|---|
@@ -778,6 +960,7 @@ graph LR
 | `Jwt__Key` | JWT signing secret (min 32 chars) | Use a strong random string |
 | `Jwt__Issuer` | JWT issuer claim | `MedCoreHMS` |
 | `Jwt__Audience` | JWT audience claim | `MedCoreHMS` |
+| **`Nvidia__ApiKey`** | **NVIDIA NIM API key for AI features** | **`nvapi-...` — use user-secrets in dev, env var in prod** |
 | `Redis__ConnectionString` | Redis for distributed cache | `localhost:6379,abortConnect=false` |
 | `RabbitMQ__ConnectionString` | RabbitMQ for event bus | `amqp://guest:guest@localhost:5672/` |
 | `Twilio__AccountSid` | Twilio Account SID | `ACxxxxxxxxxxxxxxx` |
@@ -805,13 +988,15 @@ flowchart TD
     G -- Delete --> H[Delete Confirm Modal\nCSRF Token validated]
     G -- Password Change --> I[Current password required\nSignIn refreshed after change]
     G -- File Upload --> J[Content-type checked\n20MB limit enforced]
-    G -- Other --> K[AntiForgery token on\nall POST forms]
+    G -- AI Endpoint --> K[CSRF token on every AI POST\nAPI key in user-secrets only]
+    G -- Other --> L[AntiForgery token on\nall POST forms]
 ```
 
 **Key security measures implemented:**
 
 - **RBAC**: Every controller decorated with `[Authorize(Roles = "Website_{Role}")]`; global `AutoValidateAntiforgeryTokenAttribute` filter
-- **CSRF protection**: `@Html.AntiForgeryToken()` on every POST form + global antiforgery filter
+- **CSRF protection**: `@Html.AntiForgeryToken()` on every POST form + global antiforgery filter (including all AI endpoints)
+- **AI key security**: NVIDIA API key stored only in `dotnet user-secrets` (dev) or environment variable (prod) — never in `appsettings.json` or source control
 - **Account lockout**: 5 failed login attempts → 5-minute lock (`LockoutOptions`)
 - **Security headers**: `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-XSS-Protection`, `Referrer-Policy` on all responses
 - **Cookie hardening**: `HttpOnly=true`, `SameSite=Strict`, `SecurePolicy=SameAsRequest`

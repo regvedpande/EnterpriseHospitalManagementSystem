@@ -1,182 +1,262 @@
+@using Hospital.ViewModels
 @{
     ViewData["Title"]       = "AI Clinical Assistant";
     ViewData["ShowSidebar"] = true;
     bool configured = (bool)(ViewBag.IsConfigured ?? false);
+    var patients = ViewBag.Patients as IEnumerable<ApplicationUserViewModel> ?? Enumerable.Empty<ApplicationUserViewModel>();
 }
 
 <div class="page-header">
   <div>
-    <div class="page-title"><i class="fas fa-robot" style="color:var(--primary);"></i> AI Clinical Assistant</div>
-    <small class="text-muted">Powered by NVIDIA NIM — for decision support only, not a substitute for clinical judgement</small>
+    <div class="page-title"><i class="fas fa-robot" style="color:#667eea;"></i> AI Clinical Assistant</div>
+    <small class="text-muted">Powered by NVIDIA NIM · meta/llama-3.1-70b — Decision support only, not a substitute for clinical judgement</small>
   </div>
 </div>
 
 @if (!configured)
 {
-  <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> AI service is not configured. Contact your system administrator.</div>
+  <div class="alert alert-warning mb-3"><i class="fas fa-exclamation-triangle me-1"></i> AI service is not configured. Contact your system administrator.</div>
 }
-else
+
+<!-- Patient selector (shared across all tools) -->
+@if (configured)
 {
-<div class="row g-3">
+<div class="card mb-3" style="border-left:4px solid #667eea;">
+  <div class="card-body" style="padding:.85rem 1.25rem;">
+    <label class="form-label fw-semibold mb-1"><i class="fas fa-user-injured" style="color:#667eea;"></i> Select Patient <small class="text-muted fw-normal">(optional — loads patient history for better AI context)</small></label>
+    <select id="patientPicker" class="form-select" style="max-width:420px;">
+      <option value="">— No patient selected —</option>
+      @foreach (var p in patients)
+      {
+        <option value="@p.Id">@p.Name (@p.Email)</option>
+      }
+    </select>
+  </div>
+</div>
 
-  <!-- ── Symptom Analysis ─────────────────────────────────────────────────── -->
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header" style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:var(--radius) var(--radius) 0 0;">
-        <i class="fas fa-stethoscope"></i> Symptom & Diagnosis Analysis
-      </div>
-      <div class="card-body d-flex flex-column gap-3">
-        <div>
-          <label class="form-label fw-semibold">Patient symptoms <span class="text-danger">*</span></label>
-          <textarea id="sympInput" class="form-control" rows="4"
-            placeholder="e.g. High fever (39°C), dry cough, fatigue for 3 days, shortness of breath…"></textarea>
-        </div>
-        <div>
-          <label class="form-label fw-semibold">Additional patient context <small class="text-muted">(optional)</small></label>
-          <textarea id="ctxInput" class="form-control" rows="2"
-            placeholder="e.g. 45-year-old male, diabetic, no recent travel, on metformin…"></textarea>
-        </div>
-        <button id="diagBtn" class="btn btn-primary" onclick="runDiagnosis()">
-          <i class="fas fa-brain"></i> Analyse Symptoms
-        </button>
-        <div id="diagResult" class="ai-result" style="display:none;"></div>
+<!-- Tool Tabs -->
+<ul class="nav nav-pills mb-3 gap-2 flex-wrap" id="aiTabs">
+  <li class="nav-item"><button class="nav-link active" data-tab="diagnose">   <i class="fas fa-stethoscope"></i>   Diagnose</button></li>
+  <li class="nav-item"><button class="nav-link"        data-tab="medicine">   <i class="fas fa-pills"></i>         Medicines</button></li>
+  <li class="nav-item"><button class="nav-link"        data-tab="interaction"><i class="fas fa-exclamation-circle"></i> Drug Interactions</button></li>
+  <li class="nav-item"><button class="nav-link"        data-tab="early">      <i class="fas fa-bell"></i>          Early Warning</button></li>
+  <li class="nav-item"><button class="nav-link"        data-tab="treatment">  <i class="fas fa-clipboard-list"></i> Treatment Plan</button></li>
+  <li class="nav-item"><button class="nav-link"        data-tab="chat">       <i class="fas fa-comments"></i>      Medical Chat</button></li>
+</ul>
+
+<!-- ── DIAGNOSE ───────────────────────────────────────────────────────────── -->
+<div class="ai-tab" id="tab-diagnose">
+  <div class="card">
+    <div class="card-header ai-card-hdr" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+      <i class="fas fa-stethoscope"></i> Symptom Analysis & Differential Diagnosis
+    </div>
+    <div class="card-body d-flex flex-column gap-3">
+      <textarea id="d-symptoms" class="form-control" rows="4" placeholder="Describe the patient's presenting symptoms in detail…&#10;e.g. Chest pain radiating to left arm, onset 2 hours ago, diaphoresis, nausea, shortness of breath"></textarea>
+      <button class="btn btn-primary" onclick="runAi('diagnose','d-symptoms','d-result','d-btn','Diagnosing…')">
+        <i class="fas fa-brain"></i> Analyse &amp; Diagnose
+      </button>
+      <div id="d-result" class="ai-result" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MEDICINE RECOMMENDATION ───────────────────────────────────────────── -->
+<div class="ai-tab" id="tab-medicine" style="display:none;">
+  <div class="card">
+    <div class="card-header ai-card-hdr" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
+      <i class="fas fa-pills"></i> Medicine Recommendation
+    </div>
+    <div class="card-body d-flex flex-column gap-3">
+      <textarea id="m-diagnosis" class="form-control" rows="3" placeholder="Enter confirmed or working diagnosis…&#10;e.g. Hypertension Stage 2 with diabetes mellitus type 2"></textarea>
+      <button class="btn btn-success" onclick="runAi('medicine','m-diagnosis','m-result','m-btn','Loading…')">
+        <i class="fas fa-capsules"></i> Recommend Medicines
+      </button>
+      <div id="m-result" class="ai-result" style="display:none;border-color:#11998e;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DRUG INTERACTION ───────────────────────────────────────────────────── -->
+<div class="ai-tab" id="tab-interaction" style="display:none;">
+  <div class="card">
+    <div class="card-header ai-card-hdr" style="background:linear-gradient(135deg,#f7971e,#ffd200);">
+      <i class="fas fa-exclamation-circle"></i> Drug Interaction Checker
+    </div>
+    <div class="card-body d-flex flex-column gap-3">
+      <label class="text-muted small">Enter one medicine per line</label>
+      <textarea id="i-meds" class="form-control" rows="5" placeholder="Warfarin 5mg&#10;Aspirin 100mg&#10;Omeprazole 20mg&#10;Metformin 500mg"></textarea>
+      <button class="btn btn-warning" onclick="runAi('interaction','i-meds','i-result','i-btn','Checking…')">
+        <i class="fas fa-search"></i> Check Interactions
+      </button>
+      <div id="i-result" class="ai-result" style="display:none;border-color:#f7971e;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EARLY WARNING ──────────────────────────────────────────────────────── -->
+<div class="ai-tab" id="tab-early" style="display:none;">
+  <div class="card">
+    <div class="card-header ai-card-hdr" style="background:linear-gradient(135deg,#f5576c,#f093fb);">
+      <i class="fas fa-bell"></i> Early Warning &amp; Red Flag Detection
+    </div>
+    <div class="card-body d-flex flex-column gap-3">
+      <textarea id="e-symptoms" class="form-control" rows="4" placeholder="Describe symptoms, including subtle or unusual ones…&#10;e.g. Gradual fatigue over 3 weeks, mild dyspnoea on exertion, occasional palpitations, ankle swelling"></textarea>
+      <button class="btn btn-danger" onclick="runAi('early','e-symptoms','e-result','e-btn','Analysing…')">
+        <i class="fas fa-exclamation-triangle"></i> Detect Early Warnings
+      </button>
+      <div id="e-result" class="ai-result" style="display:none;border-color:#f5576c;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TREATMENT PLAN ─────────────────────────────────────────────────────── -->
+<div class="ai-tab" id="tab-treatment" style="display:none;">
+  <div class="card">
+    <div class="card-header ai-card-hdr" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">
+      <i class="fas fa-clipboard-list"></i> Comprehensive Treatment Plan
+    </div>
+    <div class="card-body d-flex flex-column gap-3">
+      <textarea id="t-diagnosis" class="form-control" rows="3" placeholder="Enter diagnosis…&#10;e.g. Community-acquired pneumonia, moderate severity (CURB-65 score 2)"></textarea>
+      <button class="btn btn-info" onclick="runAi('treatment','t-diagnosis','t-result','t-btn','Building plan…')">
+        <i class="fas fa-list-alt"></i> Generate Treatment Plan
+      </button>
+      <div id="t-result" class="ai-result" style="display:none;border-color:#4facfe;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MEDICAL CHAT ───────────────────────────────────────────────────────── -->
+<div class="ai-tab" id="tab-chat" style="display:none;">
+  <div class="card" style="height:560px;display:flex;flex-direction:column;">
+    <div class="card-header ai-card-hdr" style="background:linear-gradient(135deg,#0f4c81,#1a9e5f);">
+      <i class="fas fa-comments"></i> Medical Q&amp;A Chat
+    </div>
+    <div id="chatBox" class="flex-grow-1 p-3" style="overflow-y:auto;background:#f8f9fa;"></div>
+    <div class="card-footer p-2">
+      <div class="input-group">
+        <input id="chatIn" type="text" class="form-control" placeholder="Ask any medical question…" onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="btn btn-primary" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
       </div>
     </div>
   </div>
-
-  <!-- ── Chat / Q&A ──────────────────────────────────────────────────────── -->
-  <div class="col-lg-6">
-    <div class="card h-100">
-      <div class="card-header" style="background:linear-gradient(135deg,#11998e,#38ef7d);color:#fff;border-radius:var(--radius) var(--radius) 0 0;">
-        <i class="fas fa-comments"></i> Medical Q&A Chat
-      </div>
-      <div class="card-body d-flex flex-column" style="min-height:420px;">
-        <div id="chatBox" class="chat-box flex-grow-1 mb-3" style="overflow-y:auto;max-height:320px;padding:.5rem;background:var(--bg-light,#f8f9fa);border-radius:8px;"></div>
-        <div class="input-group">
-          <input id="chatInput" type="text" class="form-control"
-                 placeholder="Ask a medical question…"
-                 onkeydown="if(event.key==='Enter')sendChat()"/>
-          <button class="btn btn-success" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </div>
 }
 
 <style>
-.ai-result { background:#f0f4ff; border-left:4px solid var(--primary,#6c63ff); padding:1rem 1.2rem; border-radius:6px; white-space:pre-wrap; font-size:.9rem; line-height:1.6; }
-.chat-msg  { margin-bottom:.75rem; }
-.chat-msg.user   .bubble { background:var(--primary,#6c63ff); color:#fff; border-radius:18px 18px 4px 18px; margin-left:auto; max-width:80%; }
-.chat-msg.ai     .bubble { background:#fff; border:1px solid #dee2e6; border-radius:18px 18px 18px 4px; max-width:85%; }
+.ai-card-hdr { color:#fff; font-weight:600; font-size:.875rem; padding:.75rem 1.25rem; border-radius:var(--radius) var(--radius) 0 0; }
+.ai-result   { background:#f8f0ff; border-left:4px solid #667eea; padding:.9rem 1.1rem; border-radius:6px; font-size:.875rem; line-height:1.65; }
+.nav-pills .nav-link { background:#f1f3f5; color:var(--text); border:none; border-radius:8px; font-size:.8rem; padding:.4rem .9rem; }
+.nav-pills .nav-link.active { background:var(--primary,#667eea); color:#fff; }
+.chat-msg { margin-bottom:.75rem; }
+.chat-msg.user .bubble { background:#667eea; color:#fff; border-radius:18px 18px 4px 18px; margin-left:auto; max-width:80%; }
+.chat-msg.ai .bubble   { background:#fff; border:1px solid #dee2e6; border-radius:18px 18px 18px 4px; max-width:88%; }
 .bubble { padding:.55rem .9rem; display:inline-block; font-size:.875rem; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
 .chat-msg.user { text-align:right; }
-.spinner-sm { width:1.2rem; height:1.2rem; }
+.spinner-sm { width:1.1rem; height:1.1rem; }
 </style>
 
 <script>
-const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
-    || document.cookie.split(';').find(c=>c.includes('XSRF'))?.split('=')[1] || '';
+// ── Tab switching ──────────────────────────────────────────────────────────
+document.querySelectorAll('#aiTabs .nav-link').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#aiTabs .nav-link').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.ai-tab').forEach(t => t.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).style.display = '';
+  });
+});
 
-const chatHistory = [
-    { role:'system', content:'You are MedCoreAI, a clinical decision support assistant. Help this licensed doctor with medical questions, drug interactions, dosage guidance, and clinical reasoning. Be concise and evidence-based. Use markdown.' }
-];
+// ── Generic AI tool runner ─────────────────────────────────────────────────
+const actionMap = {
+  diagnose:    '@Url.Action("Diagnose","AiAssistant",new{area="Doctor"})',
+  medicine:    '@Url.Action("RecommendMedicines","AiAssistant",new{area="Doctor"})',
+  interaction: '@Url.Action("CheckInteractions","AiAssistant",new{area="Doctor"})',
+  early:       '@Url.Action("EarlyAlert","AiAssistant",new{area="Doctor"})',
+  treatment:   '@Url.Action("TreatmentPlan","AiAssistant",new{area="Doctor"})',
+};
 
-// ── Diagnosis ──────────────────────────────────────────────────────────────
-async function runDiagnosis() {
-    const symptoms = document.getElementById('sympInput').value.trim();
-    const ctx      = document.getElementById('ctxInput').value.trim();
-    if (!symptoms) { alert('Please enter patient symptoms.'); return; }
+const fieldMap = {
+  diagnose: 'symptoms', medicine: 'diagnosis', interaction: 'medicines',
+  early: 'symptoms', treatment: 'diagnosis'
+};
 
-    const btn    = document.getElementById('diagBtn');
-    const result = document.getElementById('diagResult');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-sm"></span> Analysing…';
-    result.style.display = 'none';
+async function runAi(tool, inputId, resultId, btnId, loadText) {
+  const val = document.getElementById(inputId).value.trim();
+  if (!val) { alert('Please fill in the input.'); return; }
 
-    const fd = new FormData();
-    fd.append('symptoms', symptoms);
-    fd.append('patientContext', ctx);
-    fd.append('__RequestVerificationToken', getToken());
+  const btn = document.querySelector(`[onclick*="${btnId}"], button[onclick*="${tool}"]`);
+  const res = document.getElementById(resultId);
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = `<span class="spinner-border spinner-sm"></span> ${loadText}`; }
+  res.style.display = 'none';
 
-    try {
-        const resp = await fetch('@Url.Action("Diagnose","AiAssistant",new{area="Doctor"})', { method:'POST', body:fd });
-        const data = await resp.json();
-        result.innerHTML = renderMarkdown(data.result || 'No response.');
-        result.style.display = 'block';
-    } catch(e) {
-        result.innerHTML = 'Error contacting AI service.';
-        result.style.display = 'block';
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-brain"></i> Analyse Symptoms';
-    }
+  const fd = new FormData();
+  fd.append(fieldMap[tool] || 'input', val);
+  fd.append('patientId', document.getElementById('patientPicker').value);
+  fd.append('__RequestVerificationToken', getToken());
+
+  try {
+    const resp = await fetch(actionMap[tool], { method:'POST', body: fd });
+    const data = await resp.json();
+    res.innerHTML = renderMd(data.result || 'No response.');
+    res.style.display = 'block';
+    res.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  } catch(e) {
+    res.innerHTML = 'Error contacting AI service. Please try again.';
+    res.style.display = 'block';
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+  }
 }
 
 // ── Chat ───────────────────────────────────────────────────────────────────
+const chatHistory = [
+  { role:'system', content:'You are MedCoreAI, a clinical decision support assistant for licensed doctors. Be concise, evidence-based, and use markdown formatting.' }
+];
+
 async function sendChat() {
-    const input = document.getElementById('chatInput');
-    const msg   = input.value.trim();
-    if (!msg) return;
-
-    appendBubble('user', msg);
-    chatHistory.push({ role:'user', content:msg });
-    input.value = '';
-
-    const thinking = appendBubble('ai', '<span class="spinner-border spinner-sm"></span> Thinking…');
-
-    try {
-        const resp = await fetch('@Url.Action("Chat","AiAssistant",new{area="Doctor"})', {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json', 'RequestVerificationToken': getToken() },
-            body: JSON.stringify({ messages: chatHistory })
-        });
-        const data = await resp.json();
-        thinking.querySelector('.bubble').innerHTML = renderMarkdown(data.result || 'No response.');
-        chatHistory.push({ role:'assistant', content: data.result || '' });
-    } catch(e) {
-        thinking.querySelector('.bubble').textContent = 'Error contacting AI service.';
-    }
-    scrollChat();
+  const input = document.getElementById('chatIn');
+  const msg = input.value.trim();
+  if (!msg) return;
+  appendBubble('user', escHtml(msg));
+  chatHistory.push({ role:'user', content: msg });
+  input.value = '';
+  const thinking = appendBubble('ai', '<span class="spinner-border spinner-sm"></span> Thinking…');
+  try {
+    const resp = await fetch('@Url.Action("Chat","AiAssistant",new{area="Doctor"})', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'RequestVerificationToken': getToken() },
+      body: JSON.stringify({ messages: chatHistory })
+    });
+    const data = await resp.json();
+    thinking.querySelector('.bubble').innerHTML = renderMd(data.result || 'No response.');
+    chatHistory.push({ role:'assistant', content: data.result || '' });
+  } catch(e) {
+    thinking.querySelector('.bubble').textContent = 'Error.';
+  }
+  scrollChat();
 }
 
 function appendBubble(role, html) {
-    const box = document.getElementById('chatBox');
-    const div = document.createElement('div');
-    div.className = `chat-msg ${role}`;
-    div.innerHTML = `<div class="bubble">${html}</div>`;
-    box.appendChild(div);
-    scrollChat();
-    return div;
+  const box = document.getElementById('chatBox');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  div.innerHTML = `<div class="bubble">${html}</div>`;
+  box.appendChild(div);
+  scrollChat();
+  return div;
 }
-
-function scrollChat() {
-    const box = document.getElementById('chatBox');
-    box.scrollTop = box.scrollHeight;
+function scrollChat() { const b = document.getElementById('chatBox'); b.scrollTop = b.scrollHeight; }
+function getToken() { return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''; }
+function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function renderMd(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^### (.+)$/gm,'<strong style="font-size:.93em;text-decoration:underline">$1</strong>')
+    .replace(/^## (.+)$/gm,'<strong style="font-size:.97em">$1</strong>')
+    .replace(/^# (.+)$/gm,'<strong style="font-size:1.02em">$1</strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/^- (.+)$/gm,'• $1').replace(/\n/g,'<br>');
 }
-
-function getToken() {
-    return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
-}
-
-// Minimal markdown → HTML (bold, italic, bullets, headings)
-function renderMarkdown(text) {
-    return text
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/^### (.+)$/gm,'<strong style="font-size:.95em;text-decoration:underline">$1</strong>')
-        .replace(/^## (.+)$/gm,'<strong style="font-size:1em">$1</strong>')
-        .replace(/^# (.+)$/gm,'<strong style="font-size:1.05em">$1</strong>')
-        .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-        .replace(/\*(.+?)\*/g,'<em>$1</em>')
-        .replace(/^- (.+)$/gm,'• $1')
-        .replace(/\n/g,'<br>');
-}
-
-// Dummy antiforgery form for token access
-document.addEventListener('DOMContentLoaded', () => {
-    const f = document.createElement('form');
-    f.innerHTML = '@Html.AntiForgeryToken()';
-    document.body.appendChild(f);
-});
+// Inject CSRF token form
+document.addEventListener('DOMContentLoaded', () => { const f=document.createElement('form'); f.innerHTML='@Html.AntiForgeryToken()'; document.body.appendChild(f); });
 </script>

@@ -1,0 +1,96 @@
+@{
+    ViewData["Title"]       = "Admin AI Insights";
+    ViewData["ShowSidebar"] = true;
+    bool cfg = (bool)(ViewBag.IsConfigured ?? false);
+}
+<div class="page-header">
+  <div>
+    <div class="page-title"><i class="fas fa-robot" style="color:#0f4c81;"></i> Hospital AI Insights</div>
+    <small class="text-muted">Analytics · Anomaly detection · Management recommendations</small>
+  </div>
+</div>
+@if (!cfg) { <div class="alert alert-warning"><i class="fas fa-exclamation-triangle"></i> AI service not configured.</div> }
+else {
+<ul class="nav nav-pills mb-3 gap-2 flex-wrap" id="aiTabs">
+  <li class="nav-item"><button class="nav-link active" data-tab="stats"><i class="fas fa-chart-bar"></i> Stats Analysis</button></li>
+  <li class="nav-item"><button class="nav-link" data-tab="chat"><i class="fas fa-comments"></i> Admin Chat</button></li>
+</ul>
+
+<div class="ai-tab" id="tab-stats">
+  <div class="row g-3">
+    <div class="col-lg-4">
+      <div class="card">
+        <div class="card-header ai-hdr" style="background:linear-gradient(135deg,#0f4c81,#1a9e5f);">
+          <i class="fas fa-chart-line"></i> AI Stats Analysis
+        </div>
+        <div class="card-body d-flex flex-column gap-3">
+          <p class="text-muted small mb-0">Click below to let the AI analyse your hospital's current operational statistics and provide management insights.</p>
+          <div class="overview-list">
+            <div class="overview-item"><div class="ov-label"><i class="fas fa-database"></i> Data source</div><div class="ov-value"><span class="badge badge-success">Live</span></div></div>
+            <div class="overview-item"><div class="ov-label"><i class="fas fa-shield-alt"></i> Privacy</div><div class="ov-value"><span class="badge badge-info">Aggregated only</span></div></div>
+          </div>
+          <button class="btn btn-primary" id="s-btn" onclick="runStats()">
+            <i class="fas fa-brain"></i> Analyse Hospital Stats
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div id="s-placeholder" class="card" style="min-height:300px;background:var(--surface);border:2px dashed var(--border);">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted">
+          <i class="fas fa-chart-bar fa-3x mb-3 opacity-25"></i>
+          <p class="text-center small mb-0">Click <strong>Analyse Hospital Stats</strong> to get AI-powered insights from your live hospital data.</p>
+        </div>
+      </div>
+      <div id="s-res" class="card" style="display:none;">
+        <div class="card-header ai-hdr" style="background:linear-gradient(135deg,#1d4ed8,#7c3aed);">
+          <i class="fas fa-lightbulb"></i> AI Insights &amp; Recommendations
+        </div>
+        <div class="card-body"><div id="s-res-body" class="ai-result" style="border-color:#1d4ed8;background:#eff6ff;"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ai-tab" id="tab-chat" style="display:none;">
+  <div class="card" style="height:520px;display:flex;flex-direction:column;">
+    <div class="card-header ai-hdr" style="background:linear-gradient(135deg,#0f4c81,#7c3aed);">
+      <i class="fas fa-comments"></i> Hospital Management Chat
+    </div>
+    <div id="chatBox" class="flex-grow-1 p-3" style="overflow-y:auto;background:#f8f9fa;"></div>
+    <div class="card-footer p-2"><div class="input-group">
+      <input id="chatIn" type="text" class="form-control" placeholder="Ask about hospital management, operations, or strategy…" onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="btn btn-primary" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+    </div></div>
+  </div>
+</div>
+}
+<style>
+.ai-hdr { color:#fff; font-weight:600; font-size:.875rem; padding:.75rem 1.25rem; border-radius:var(--radius) var(--radius) 0 0; }
+.ai-result { background:#eff6ff; border-left:4px solid #0f4c81; padding:.9rem 1.1rem; border-radius:6px; font-size:.875rem; line-height:1.65; }
+.nav-pills .nav-link { background:#f1f3f5; color:var(--text); border:none; border-radius:8px; font-size:.8rem; padding:.4rem .9rem; }
+.nav-pills .nav-link.active { background:#0f4c81; color:#fff; }
+.chat-msg { margin-bottom:.75rem; } .chat-msg.user .bubble { background:#0f4c81; color:#fff; border-radius:18px 18px 4px 18px; margin-left:auto; max-width:80%; }
+.chat-msg.ai .bubble { background:#fff; border:1px solid #dee2e6; border-radius:18px 18px 18px 4px; max-width:88%; }
+.bubble { padding:.55rem .9rem; display:inline-block; font-size:.875rem; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+.chat-msg.user { text-align:right; } .spinner-sm { width:1.1rem; height:1.1rem; }
+</style>
+<script>
+document.querySelectorAll('#aiTabs .nav-link').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('#aiTabs .nav-link').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.ai-tab').forEach(t=>t.style.display='none');btn.classList.add('active');document.getElementById('tab-'+btn.dataset.tab).style.display='';});});
+async function runStats(){
+  const btn=document.getElementById('s-btn');const resDiv=document.getElementById('s-res');const resBody=document.getElementById('s-res-body');const ph=document.getElementById('s-placeholder');
+  const orig=btn.innerHTML;btn.disabled=true;btn.innerHTML='<span class="spinner-border spinner-sm"></span> Analysing live data…';
+  const fd=new FormData();fd.append('__RequestVerificationToken',getToken());
+  try{const r=await fetch('@Url.Action("AnalyseStats","AiAssistant",new{area="Admin"})',{method:'POST',body:fd});const d=await r.json();resBody.innerHTML=renderMd(d.result||'No response.');resDiv.style.display='';ph.style.display='none';}
+  catch(e){resBody.innerHTML='Error contacting AI service.';resDiv.style.display='';ph.style.display='none';}
+  finally{btn.disabled=false;btn.innerHTML=orig;}
+}
+const chatHistory=[{role:'system',content:'You are MedCoreAI, a hospital analytics and management assistant. Provide strategic insights for hospital administration on operations, staffing, finance, and patient outcomes.'}];
+async function sendChat(){const input=document.getElementById('chatIn');const msg=input.value.trim();if(!msg)return;appendBubble('user',escHtml(msg));chatHistory.push({role:'user',content:msg});input.value='';const t=appendBubble('ai','<span class="spinner-border spinner-sm"></span> Thinking…');try{const r=await fetch('@Url.Action("Chat","AiAssistant",new{area="Admin"})',{method:'POST',headers:{'Content-Type':'application/json','RequestVerificationToken':getToken()},body:JSON.stringify({messages:chatHistory})});const d=await r.json();t.querySelector('.bubble').innerHTML=renderMd(d.result||'');chatHistory.push({role:'assistant',content:d.result||''});}catch(e){t.querySelector('.bubble').textContent='Error.';}scrollChat();}
+function appendBubble(r,h){const b=document.getElementById('chatBox');const d=document.createElement('div');d.className=`chat-msg ${r}`;d.innerHTML=`<div class="bubble">${h}</div>`;b.appendChild(d);scrollChat();return d;}
+function scrollChat(){const b=document.getElementById('chatBox');b.scrollTop=b.scrollHeight;}
+function getToken(){return document.querySelector('input[name="__RequestVerificationToken"]')?.value??'';}
+function escHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function renderMd(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/^### (.+)$/gm,'<strong style="font-size:.93em;text-decoration:underline">$1</strong>').replace(/^## (.+)$/gm,'<strong style="font-size:.97em">$1</strong>').replace(/^# (.+)$/gm,'<strong style="font-size:1.02em">$1</strong>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/^- (.+)$/gm,'• $1').replace(/\n/g,'<br>');}
+document.addEventListener('DOMContentLoaded',()=>{const f=document.createElement('form');f.innerHTML='@Html.AntiForgeryToken()';document.body.appendChild(f);});
+</script>
