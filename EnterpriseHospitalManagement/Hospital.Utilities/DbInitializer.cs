@@ -232,6 +232,28 @@ namespace Hospital.Utilities
                     _userManager.AddToRoleAsync(user, role).GetAwaiter().GetResult();
                 }
             }
+            else
+            {
+                var existing = _userManager.FindByEmailAsync(email).GetAwaiter().GetResult()!;
+                existing.UserName = email;
+                existing.Email = email;
+                existing.Name = name;
+                existing.IsDoctor = isDoctor;
+                existing.Specialist = specialist;
+                existing.EmailConfirmed = true;
+                _userManager.UpdateAsync(existing).GetAwaiter().GetResult();
+
+                var hasRole = _userManager.IsInRoleAsync(existing, role).GetAwaiter().GetResult();
+                if (!hasRole)
+                {
+                    _userManager.AddToRoleAsync(existing, role).GetAwaiter().GetResult();
+                }
+
+                var resetToken = _userManager.GeneratePasswordResetTokenAsync(existing).GetAwaiter().GetResult();
+                _userManager.ResetPasswordAsync(existing, resetToken, password).GetAwaiter().GetResult();
+                _userManager.SetLockoutEndDateAsync(existing, null).GetAwaiter().GetResult();
+                _userManager.ResetAccessFailedCountAsync(existing).GetAwaiter().GetResult();
+            }
         }
     }
 }

@@ -1,0 +1,159 @@
+@model Hospital.ViewModels.AiAssistantPageViewModel
+@{
+    ViewData["Title"] = Model.PageTitle;
+    ViewData["ShowSidebar"] = true;
+}
+
+<div class="page-header">
+  <div>
+    <div class="page-title">@Model.PageTitle</div>
+    <div class="page-subtitle">@Model.Subtitle</div>
+  </div>
+  <div class="page-actions">
+    <span class="badge badge-info"><i class="fas fa-sparkles"></i> AI Enabled</span>
+  </div>
+</div>
+
+<div class="stats-grid">
+  @foreach (var metric in Model.Metrics)
+  {
+    <div class="stat-card">
+      <div class="stat-icon @metric.Tone">
+        <i class="fas @metric.Icon"></i>
+      </div>
+      <div class="stat-body">
+        <div class="stat-value" style="font-size:1.25rem;">@metric.Value</div>
+        <div class="stat-label">@metric.Label</div>
+        @if (!string.IsNullOrWhiteSpace(metric.Description))
+        {
+          <div class="tiny-note">@metric.Description</div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<div class="dashboard-two-col">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-layer-group" style="color:var(--primary);margin-right:.4rem;"></i>Capabilities</span>
+    </div>
+    <div class="card-body">
+      <div class="ai-chip-grid">
+        @foreach (var capability in Model.Capabilities)
+        {
+          <div class="ai-chip">@capability</div>
+        }
+      </div>
+
+      @if (Model.SuggestedPrompts.Any())
+      {
+        <div class="ai-subsection">
+          <div class="ai-subsection-title">Suggested prompts</div>
+          <ul class="ai-list">
+            @foreach (var item in Model.SuggestedPrompts)
+            {
+              <li>@item</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-chart-line" style="color:var(--accent);margin-right:.4rem;"></i>Live data insights</span>
+    </div>
+    <div class="card-body">
+      <ul class="ai-list">
+        @foreach (var insight in Model.LiveInsights)
+        {
+          <li>@insight</li>
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:1.5rem;">
+  <div class="card-header">
+    <span class="card-header-title"><i class="fas fa-comments" style="color:var(--success);margin-right:.4rem;"></i>@Model.SidebarTitle Chat</span>
+  </div>
+  <div class="card-body">
+    <form method="post" asp-area="@Model.AreaName" asp-controller="Ai" asp-action="Index">
+      @Html.AntiForgeryToken()
+      <div class="form-group">
+        <label class="form-label">@Model.PromptLabel</label>
+        <textarea name="Prompt" class="form-control ai-textarea" placeholder="@Model.PromptPlaceholder">@Model.Prompt</textarea>
+      </div>
+      <div class="form-actions" style="border-top:none;margin-top:0;padding-top:0;">
+        <button type="submit" class="btn btn-primary">
+          <i class="fas fa-wand-magic-sparkles"></i> @Model.SubmitLabel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+@if (Model.Sections.Any())
+{
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-header">
+      <span class="card-header-title"><i class="fas fa-robot" style="color:var(--warning);margin-right:.4rem;"></i>@Model.ResponseTitle</span>
+      <span class="badge ai-status-badge ai-status-@Model.ResponseStatusTone">@Model.ResponseStatusLabel</span>
+    </div>
+    <div class="card-body">
+      @if (!string.IsNullOrWhiteSpace(Model.ResponseSummary))
+      {
+        <p class="ai-summary">@Model.ResponseSummary</p>
+      }
+
+      @if (Model.DetectedSignals.Any())
+      {
+        <div class="ai-subsection">
+          <div class="ai-subsection-title">Detected signals</div>
+          <div class="ai-chip-grid">
+            @foreach (var signal in Model.DetectedSignals)
+            {
+              <div class="ai-chip ai-chip-signal">@signal</div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (Model.ResponseFacts.Any())
+      {
+        <div class="ai-fact-grid">
+          @foreach (var fact in Model.ResponseFacts)
+          {
+            <div class="ai-fact-card">
+              <div class="ai-fact-label">@fact.Label</div>
+              <div class="ai-fact-value">@fact.Value</div>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="ai-sections">
+        @foreach (var assistantSection in Model.Sections)
+        {
+          <div class="ai-section-card">
+            <div class="ai-section-title">@assistantSection.Title</div>
+            <ul class="ai-list">
+              @foreach (var item in assistantSection.Items)
+              {
+                <li>@item</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<div class="alert alert-warning" style="margin-top:1.5rem;">
+  <i class="fas fa-shield-heart"></i>
+  <span>@Model.Disclaimer</span>
+</div>

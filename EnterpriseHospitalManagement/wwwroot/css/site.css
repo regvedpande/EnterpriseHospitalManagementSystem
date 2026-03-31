@@ -718,3 +718,71 @@ form.d-inline { margin: 0; }
   border: 1px solid rgba(255,255,255,.4);
 }
 .btn-white:hover { background: rgba(255,255,255,.28); color: #fff; }
+
+/* AI assistant */
+.tiny-note { font-size: .72rem; color: var(--text-muted); margin-top: .2rem; }
+.ai-chip-grid { display: flex; flex-wrap: wrap; gap: .65rem; }
+.ai-chip {
+  padding: .5rem .8rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #e0f2fe, #ede9fe);
+  color: #312e81;
+  font-size: .82rem;
+  font-weight: 600;
+}
+.ai-chip.ai-chip-signal {
+  background: linear-gradient(135deg, #ecfeff, #e0f2fe);
+  color: #155e75;
+}
+.ai-subsection { margin-top: 1.25rem; }
+.ai-subsection-title,
+.ai-section-title {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .65rem;
+}
+.ai-list { margin: 0; padding-left: 1.1rem; }
+.ai-list li + li { margin-top: .45rem; }
+.ai-textarea { min-height: 150px; resize: vertical; }
+.ai-summary { margin-bottom: 1rem; color: var(--text-muted); }
+.ai-status-badge { font-size: .75rem; padding: .35rem .7rem; }
+.ai-status-info { background: #dbeafe; color: #1d4ed8; }
+.ai-status-success { background: #dcfce7; color: #166534; }
+.ai-status-warning { background: #fef3c7; color: #92400e; }
+.ai-status-danger { background: #fee2e2; color: #991b1b; }
+.ai-fact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: .9rem;
+  margin: 1rem 0 1.2rem;
+}
+.ai-fact-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  padding: .9rem 1rem;
+}
+.ai-fact-label {
+  font-size: .72rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: .3rem;
+}
+.ai-fact-value {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.ai-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.ai-section-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}

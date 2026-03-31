@@ -95,6 +95,10 @@
           <a class="sidebar-link @(ctrl=="Suppliers"?"active":"")" asp-area="Admin" asp-controller="Suppliers" asp-action="Index"><i class="fas fa-truck"></i> Suppliers</a>
         </div>
         <div class="sidebar-section">
+          <div class="sidebar-label">INTELLIGENCE</div>
+          <a class="sidebar-link @(ctrl=="Ai"?"active":"")" asp-area="Admin" asp-controller="Ai" asp-action="Index"><i class="fas fa-chart-line"></i> Hospital AI Analytics</a>
+        </div>
+        <div class="sidebar-section">
           <div class="sidebar-label">FINANCE</div>
           <a class="sidebar-link @(ctrl=="Bills"?"active":"")" asp-area="Admin" asp-controller="Bills" asp-action="Index"><i class="fas fa-file-invoice-dollar"></i> Bills</a>
           <a class="sidebar-link @(ctrl=="Insurance"?"active":"")" asp-area="Admin" asp-controller="Insurance" asp-action="Index"><i class="fas fa-shield-alt"></i> Insurance</a>
@@ -108,6 +112,7 @@
           <a class="sidebar-link @(ctrl=="Doctors"?"active":"")" asp-area="Doctor" asp-controller="Doctors" asp-action="Index"><i class="fas fa-calendar-alt"></i> My Timings</a>
           <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Doctor" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
           <a class="sidebar-link @(ctrl=="Patients"?"active":"")" asp-area="Doctor" asp-controller="Patients" asp-action="Index"><i class="fas fa-file-medical"></i> Patient Reports</a>
+          <a class="sidebar-link @(ctrl=="Ai"?"active":"")" asp-area="Doctor" asp-controller="Ai" asp-action="Index"><i class="fas fa-stethoscope"></i> AI Clinical Assistant</a>
         </div>
       }
       @if (area == "Patient")
@@ -119,6 +124,7 @@
           <a class="sidebar-link @(ctrl=="Bills"?"active":"")" asp-area="Patient" asp-controller="Bills" asp-action="Index"><i class="fas fa-file-invoice-dollar"></i> My Bills</a>
           <a class="sidebar-link @(ctrl=="Labs"?"active":"")" asp-area="Patient" asp-controller="Labs" asp-action="Index"><i class="fas fa-flask"></i> Lab Results</a>
           <a class="sidebar-link @(ctrl=="Reports"?"active":"")" asp-area="Patient" asp-controller="Reports" asp-action="Index"><i class="fas fa-file-medical"></i> Reports</a>
+          <a class="sidebar-link @(ctrl=="Ai"?"active":"")" asp-area="Patient" asp-controller="Ai" asp-action="Index"><i class="fas fa-heart-pulse"></i> Health AI Assistant</a>
         </div>
       }
       @if (area == "Nurse")
@@ -127,6 +133,7 @@
           <div class="sidebar-label">NURSE</div>
           <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Nurse" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
           <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Nurse" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
+          <a class="sidebar-link @(ctrl=="Ai"?"active":"")" asp-area="Nurse" asp-controller="Ai" asp-action="Index"><i class="fas fa-user-nurse"></i> AI Nursing Assistant</a>
         </div>
       }
       @if (area == "Pharmacist")
@@ -136,6 +143,7 @@
           <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Pharmacist" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
           <a class="sidebar-link @(ctrl=="Medicines"?"active":"")" asp-area="Pharmacist" asp-controller="Medicines" asp-action="Index"><i class="fas fa-pills"></i> Medicines</a>
           <a class="sidebar-link @(ctrl=="Prescriptions"?"active":"")" asp-area="Pharmacist" asp-controller="Prescriptions" asp-action="Index"><i class="fas fa-prescription"></i> Prescriptions</a>
+          <a class="sidebar-link @(ctrl=="Ai"?"active":"")" asp-area="Pharmacist" asp-controller="Ai" asp-action="Index"><i class="fas fa-capsules"></i> AI Pharmacy Assistant</a>
         </div>
       }
       @if (area == "LabTech")
@@ -144,6 +152,7 @@
           <div class="sidebar-label">LAB TECH</div>
           <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="LabTech" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
           <a class="sidebar-link @(ctrl=="Labs"?"active":"")" asp-area="LabTech" asp-controller="Labs" asp-action="Index"><i class="fas fa-flask"></i> Lab Tests</a>
+          <a class="sidebar-link @(ctrl=="Ai"?"active":"")" asp-area="LabTech" asp-controller="Ai" asp-action="Index"><i class="fas fa-vials"></i> AI Lab Interpreter</a>
         </div>
       }
       @if (area == "Receptionist")
@@ -152,6 +161,7 @@
           <div class="sidebar-label">RECEPTIONIST</div>
           <a class="sidebar-link @(ctrl=="Home"?"active":"")" asp-area="Receptionist" asp-controller="Home" asp-action="Index"><i class="fas fa-th-large"></i> Dashboard</a>
           <a class="sidebar-link @(ctrl=="Appointments"?"active":"")" asp-area="Receptionist" asp-controller="Appointments" asp-action="Index"><i class="fas fa-calendar-check"></i> Appointments</a>
+          <a class="sidebar-link @(ctrl=="Ai"?"active":"")" asp-area="Receptionist" asp-controller="Ai" asp-action="Index"><i class="fas fa-triangle-exclamation"></i> AI Triage Assistant</a>
         </div>
       }
       @if (area == "Accountant")

@@ -168,6 +168,7 @@ builder.Services.AddScoped<ISupplierService,        SupplierService>();
 builder.Services.AddScoped<IDbInitializer,          DbInitializer>();
 builder.Services.AddScoped<IReportService,          ReportService>();
 builder.Services.AddScoped<IDocumentService,        DocumentService>();
+builder.Services.AddScoped<IAiAssistantService,     AiAssistantService>();
 builder.Services.AddScoped<ImageOperations>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<SftpService>();
