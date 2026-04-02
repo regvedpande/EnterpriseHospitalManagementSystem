@@ -50,7 +50,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
+        policy.SetIsOriginAllowed(origin => IsAllowedOrigin(origin, allowedOrigins))
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -252,7 +252,8 @@ app.Use(async (ctx, next) =>
 
 app.UseStatusCodePagesWithReExecute("/Home/StatusCode", "?code={0}");
 app.UseResponseCompression();
-app.UseHttpsRedirection();
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
@@ -294,6 +295,39 @@ static string[] ResolveAllowedOrigins(IConfiguration configuration)
     return new[]
     {
         "http://localhost:5173",
-        "http://127.0.0.1:5173"
+        "http://127.0.0.1:5173",
+        "https://*.vercel.app"
     };
+}
+
+static bool IsAllowedOrigin(string origin, IReadOnlyCollection<string> configuredOrigins)
+{
+    if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+        return false;
+
+    foreach (var configured in configuredOrigins)
+    {
+        if (string.IsNullOrWhiteSpace(configured))
+            continue;
+
+        if (configured.Contains('*'))
+        {
+            if (!Uri.TryCreate(configured.Replace("*.", "placeholder."), UriKind.Absolute, out var wildcardUri))
+                continue;
+
+            if (!string.Equals(uri.Scheme, wildcardUri.Scheme, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            var wildcardHost = wildcardUri.Host.Replace("placeholder.", "", StringComparison.OrdinalIgnoreCase);
+            if (uri.Host.EndsWith($".{wildcardHost}", StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            continue;
+        }
+
+        if (string.Equals(origin, configured, StringComparison.OrdinalIgnoreCase))
+            return true;
+    }
+
+    return false;
 }
