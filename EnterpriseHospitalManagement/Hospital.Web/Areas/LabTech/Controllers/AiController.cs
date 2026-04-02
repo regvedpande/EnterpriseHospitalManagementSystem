@@ -13,9 +13,9 @@ namespace Hospital.Web.Areas.LabTech.Controllers
         public AiController(IAiAssistantService assistantService) : base(assistantService) { }
 
         [HttpGet]
-        public IActionResult Index() => RenderAssistant(AiAssistantRole.LabTech);
+        public Task<IActionResult> Index(CancellationToken ct) => RenderAssistantAsync(AiAssistantRole.LabTech, ct: ct);
 
         [HttpPost]
-        public IActionResult Index(AiAssistantPromptInputModel input) => RenderAssistant(AiAssistantRole.LabTech, input.Prompt);
+        public Task<IActionResult> Index(AiAssistantPromptInputModel input, CancellationToken ct) => RenderAssistantAsync(AiAssistantRole.LabTech, input.Prompt, ct);
     }
 }

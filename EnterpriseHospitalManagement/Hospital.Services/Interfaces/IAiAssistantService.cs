@@ -4,6 +4,11 @@ namespace Hospital.Services.Interfaces
 {
     public interface IAiAssistantService
     {
-        AiAssistantPageViewModel Build(AiAssistantRole role, string userId, string? userName, string? prompt);
+        Task<AiAssistantPageViewModel> BuildAsync(
+            AiAssistantRole role,
+            string userId,
+            string? userName,
+            string? prompt,
+            CancellationToken ct = default);
     }
 }

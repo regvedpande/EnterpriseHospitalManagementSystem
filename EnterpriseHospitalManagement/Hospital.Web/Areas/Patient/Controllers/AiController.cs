@@ -13,9 +13,9 @@ namespace Hospital.Web.Areas.Patient.Controllers
         public AiController(IAiAssistantService assistantService) : base(assistantService) { }
 
         [HttpGet]
-        public IActionResult Index() => RenderAssistant(AiAssistantRole.Patient);
+        public Task<IActionResult> Index(CancellationToken ct) => RenderAssistantAsync(AiAssistantRole.Patient, ct: ct);
 
         [HttpPost]
-        public IActionResult Index(AiAssistantPromptInputModel input) => RenderAssistant(AiAssistantRole.Patient, input.Prompt);
+        public Task<IActionResult> Index(AiAssistantPromptInputModel input, CancellationToken ct) => RenderAssistantAsync(AiAssistantRole.Patient, input.Prompt, ct);
     }
 }

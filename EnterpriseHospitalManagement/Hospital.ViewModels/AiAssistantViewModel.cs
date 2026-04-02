@@ -29,6 +29,10 @@ namespace Hospital.ViewModels
         public string ResponseStatusLabel { get; set; } = "Ready";
         public string ResponseStatusTone { get; set; } = "info";
         public string Disclaimer { get; set; } = "";
+        public string ProviderStatusLabel { get; set; } = "Structured fallback";
+        public string ProviderStatusTone { get; set; } = "warning";
+        public string ProviderNote { get; set; } = "Local structured guidance is active.";
+        public string? AiNarrative { get; set; }
         public List<string> Capabilities { get; set; } = new();
         public List<string> SuggestedPrompts { get; set; } = new();
         public List<string> LiveInsights { get; set; } = new();

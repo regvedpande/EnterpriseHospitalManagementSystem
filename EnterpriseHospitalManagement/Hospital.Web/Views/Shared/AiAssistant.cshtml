@@ -10,8 +10,13 @@
     <div class="page-subtitle">@Model.Subtitle</div>
   </div>
   <div class="page-actions">
-    <span class="badge badge-info"><i class="fas fa-sparkles"></i> AI Enabled</span>
+    <span class="badge ai-status-badge ai-status-@Model.ProviderStatusTone"><i class="fas fa-sparkles"></i> @Model.ProviderStatusLabel</span>
   </div>
+</div>
+
+<div class="alert alert-info">
+  <i class="fas fa-circle-info"></i>
+  <span>@Model.ProviderNote</span>
 </div>
 
 <div class="stats-grid">
@@ -107,6 +112,14 @@
       @if (!string.IsNullOrWhiteSpace(Model.ResponseSummary))
       {
         <p class="ai-summary">@Model.ResponseSummary</p>
+      }
+
+      @if (!string.IsNullOrWhiteSpace(Model.AiNarrative))
+      {
+        <div class="ai-subsection">
+          <div class="ai-subsection-title">Live AI perspective</div>
+          <div class="ai-ai-output">@Html.Raw(Html.Encode(Model.AiNarrative).Replace("\n", "<br />"))</div>
+        </div>
       }
 
       @if (Model.DetectedSignals.Any())

@@ -427,6 +427,7 @@ secrets.json
 *.p12
 .env
 .env.*
+frontend/dist/
 
 # Claude worktree metadata
 .claude/

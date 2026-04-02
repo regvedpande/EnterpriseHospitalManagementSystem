@@ -28,15 +28,24 @@ namespace Hospital.Utilities
 
         public void Initialize()
         {
-            // Apply any pending EF Core migrations (creates the DB if it doesn't exist).
-            // Falls back to EnsureCreated if the migration history table is unavailable.
-            try
-            {
-                _db.Database.Migrate();
-            }
-            catch (Exception)
+            var providerName = _db.Database.ProviderName ?? string.Empty;
+
+            // SQLite demo deployments use EnsureCreated so the schema can be created
+            // without maintaining a second provider-specific migration set.
+            if (providerName.Contains("Sqlite", StringComparison.OrdinalIgnoreCase))
             {
                 try { _db.Database.EnsureCreated(); } catch { }
+            }
+            else
+            {
+                try
+                {
+                    _db.Database.Migrate();
+                }
+                catch (Exception)
+                {
+                    try { _db.Database.EnsureCreated(); } catch { }
+                }
             }
 
             // Seed all roles

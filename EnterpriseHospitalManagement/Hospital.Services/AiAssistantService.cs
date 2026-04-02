@@ -1,8 +1,10 @@
+using System.Text;
 using System.Text.RegularExpressions;
 using Hospital.Models.Enums;
 using Hospital.Repositories;
 using Hospital.Services.Interfaces;
 using Hospital.ViewModels;
+using Hospital.Web.Infrastructure.AI;
 using Microsoft.EntityFrameworkCore;
 
 namespace Hospital.Services
@@ -10,25 +12,43 @@ namespace Hospital.Services
     public class AiAssistantService : IAiAssistantService
     {
         private readonly ApplicationDbContext _db;
+        private readonly IAiService? _ai;
 
-        public AiAssistantService(ApplicationDbContext db)
+        public AiAssistantService(ApplicationDbContext db, IAiService? ai = null)
         {
             _db = db;
+            _ai = ai;
         }
 
-        public AiAssistantPageViewModel Build(AiAssistantRole role, string userId, string? userName, string? prompt)
+        public async Task<AiAssistantPageViewModel> BuildAsync(
+            AiAssistantRole role,
+            string userId,
+            string? userName,
+            string? prompt,
+            CancellationToken ct = default)
         {
             var cleanPrompt = (prompt ?? string.Empty).Trim();
+            var model = Build(role, userId, userName, cleanPrompt);
 
+            ApplyProviderStatus(model, cleanPrompt);
+
+            if (!string.IsNullOrWhiteSpace(cleanPrompt))
+                await EnrichWithLiveAiAsync(model, cleanPrompt, ct);
+
+            return model;
+        }
+
+        private AiAssistantPageViewModel Build(AiAssistantRole role, string userId, string? userName, string prompt)
+        {
             return role switch
             {
-                AiAssistantRole.Doctor => BuildDoctor(userId, userName, cleanPrompt),
-                AiAssistantRole.Pharmacist => BuildPharmacist(userName, cleanPrompt),
-                AiAssistantRole.Nurse => BuildNurse(cleanPrompt),
-                AiAssistantRole.LabTech => BuildLabTech(userId, cleanPrompt),
-                AiAssistantRole.Receptionist => BuildReceptionist(cleanPrompt),
-                AiAssistantRole.Admin => BuildAdmin(cleanPrompt),
-                AiAssistantRole.Patient => BuildPatient(userId, userName, cleanPrompt),
+                AiAssistantRole.Doctor => BuildDoctor(userId, userName, prompt),
+                AiAssistantRole.Pharmacist => BuildPharmacist(userName, prompt),
+                AiAssistantRole.Nurse => BuildNurse(prompt),
+                AiAssistantRole.LabTech => BuildLabTech(userId, prompt),
+                AiAssistantRole.Receptionist => BuildReceptionist(prompt),
+                AiAssistantRole.Admin => BuildAdmin(prompt),
+                AiAssistantRole.Patient => BuildPatient(userId, userName, prompt),
                 _ => new AiAssistantPageViewModel()
             };
         }
@@ -830,6 +850,111 @@ namespace Hospital.Services
             model.ResponseSummary = "The assistant translated your question into plain-language next steps and follow-up advice.";
             model.Sections.Add(Section("Suggested next steps", guidance));
             return model;
+        }
+
+        private void ApplyProviderStatus(AiAssistantPageViewModel model, string prompt)
+        {
+            if (_ai?.IsConfigured == true)
+            {
+                model.ProviderStatusLabel = "Live NVIDIA AI";
+                model.ProviderStatusTone = "success";
+                model.ProviderNote = string.IsNullOrWhiteSpace(prompt)
+                    ? "NVIDIA-backed AI is configured and ready for this role."
+                    : "This response combines live NVIDIA AI output with the portal's structured safeguards.";
+                return;
+            }
+
+            model.ProviderStatusLabel = "Structured fallback";
+            model.ProviderStatusTone = string.IsNullOrWhiteSpace(prompt) ? "info" : "warning";
+            model.ProviderNote = string.IsNullOrWhiteSpace(prompt)
+                ? "The assistant is available with structured in-app guidance even before a live AI provider is called."
+                : "Live AI is unavailable right now, so the portal is using its structured in-app guidance.";
+        }
+
+        private async Task EnrichWithLiveAiAsync(AiAssistantPageViewModel model, string prompt, CancellationToken ct)
+        {
+            if (_ai?.IsConfigured != true)
+                return;
+
+            try
+            {
+                var response = await _ai.ChatAsync(CreateMessages(model, prompt), ct);
+                if (string.IsNullOrWhiteSpace(response))
+                {
+                    ApplyLiveAiFallback(model);
+                    return;
+                }
+
+                var trimmed = response.Trim();
+                if (LooksLikeProviderFallback(trimmed))
+                {
+                    ApplyLiveAiFallback(model);
+                    return;
+                }
+
+                model.AiNarrative = trimmed;
+                var aiHighlights = ParseAiHighlights(trimmed);
+                if (aiHighlights.Count > 0)
+                    model.Sections.Insert(0, Section("Live AI recommendations", aiHighlights));
+            }
+            catch
+            {
+                ApplyLiveAiFallback(model);
+            }
+        }
+
+        private IEnumerable<AiMessage> CreateMessages(AiAssistantPageViewModel model, string prompt)
+        {
+            var context = new StringBuilder();
+            context.AppendLine($"Role: {model.SidebarTitle}");
+            context.AppendLine($"Status badge: {model.ResponseStatusLabel}");
+
+            if (model.DetectedSignals.Count > 0)
+                context.AppendLine($"Detected signals: {string.Join(", ", model.DetectedSignals)}");
+
+            if (model.ResponseFacts.Count > 0)
+                context.AppendLine($"Portal facts: {string.Join(" | ", model.ResponseFacts.Select(f => $"{f.Label}: {f.Value}"))}");
+
+            if (model.LiveInsights.Count > 0)
+                context.AppendLine($"Live insights: {string.Join(" | ", model.LiveInsights)}");
+
+            context.AppendLine("Respond as a hospital assistant for the user's role.");
+            context.AppendLine("Use clear, practical language.");
+            context.AppendLine("Return short markdown bullets only.");
+            context.AppendLine("Include: Summary, Risks, Recommended actions, and Escalation note.");
+
+            return new[]
+            {
+                new AiMessage("system", context.ToString()),
+                new AiMessage("user", prompt)
+            };
+        }
+
+        private static List<string> ParseAiHighlights(string response)
+        {
+            return response
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(line => line.TrimStart('-', '*', ' ', '\t'))
+                .Where(line => !string.IsNullOrWhiteSpace(line))
+                .Take(6)
+                .ToList();
+        }
+
+        private static bool LooksLikeProviderFallback(string response)
+        {
+            return response.Contains("AI service is temporarily unavailable", StringComparison.OrdinalIgnoreCase)
+                || response.Contains("AI service returned an error", StringComparison.OrdinalIgnoreCase)
+                || response.Contains("AI service is not configured", StringComparison.OrdinalIgnoreCase)
+                || response.Contains("provider was unavailable", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static void ApplyLiveAiFallback(AiAssistantPageViewModel model)
+        {
+            model.ProviderStatusLabel = "Structured fallback";
+            model.ProviderStatusTone = "warning";
+            model.ProviderNote = "The live AI provider was unavailable for this request, so the portal used its structured in-app guidance.";
+            model.AiNarrative = null;
+            model.Sections.RemoveAll(section => string.Equals(section.Title, "Live AI recommendations", StringComparison.OrdinalIgnoreCase));
         }
 
         private static AiAssistantPageViewModel CreateBaseModel(

@@ -14,10 +14,13 @@ namespace Hospital.Web.Controllers
             _assistantService = assistantService;
         }
 
-        protected IActionResult RenderAssistant(AiAssistantRole role, string? prompt = null)
+        protected async Task<IActionResult> RenderAssistantAsync(
+            AiAssistantRole role,
+            string? prompt = null,
+            CancellationToken ct = default)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-            var vm = _assistantService.Build(role, userId, User.Identity?.Name, prompt);
+            var vm = await _assistantService.BuildAsync(role, userId, User.Identity?.Name, prompt, ct);
             return View("~/Hospital.Web/Views/Shared/AiAssistant.cshtml", vm);
         }
     }

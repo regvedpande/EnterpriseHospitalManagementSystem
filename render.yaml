@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: medcore-hms-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /api/Health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Database__Provider
+        value: Sqlite
+      - key: ConnectionStrings__SqliteConnection
+        value: Data Source=/app/data/medcore-hms.db
+      - key: Cors__AllowedOrigins
+        value: https://your-frontend.vercel.app
+      - key: Nvidia__ApiKey
+        sync: false
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        value: MedCoreHMS
+      - key: Jwt__Audience
+        value: MedCoreHMS

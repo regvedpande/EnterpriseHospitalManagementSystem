@@ -1,0 +1,11 @@
+.git
+.github
+.vs
+.claude
+.claire
+.dotnet
+**/bin
+**/obj
+**/node_modules
+frontend/dist
+README.md

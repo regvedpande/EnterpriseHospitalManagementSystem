@@ -13,9 +13,9 @@ namespace Hospital.Web.Areas.Pharmacist.Controllers
         public AiController(IAiAssistantService assistantService) : base(assistantService) { }
 
         [HttpGet]
-        public IActionResult Index() => RenderAssistant(AiAssistantRole.Pharmacist);
+        public Task<IActionResult> Index(CancellationToken ct) => RenderAssistantAsync(AiAssistantRole.Pharmacist, ct: ct);
 
         [HttpPost]
-        public IActionResult Index(AiAssistantPromptInputModel input) => RenderAssistant(AiAssistantRole.Pharmacist, input.Prompt);
+        public Task<IActionResult> Index(AiAssistantPromptInputModel input, CancellationToken ct) => RenderAssistantAsync(AiAssistantRole.Pharmacist, input.Prompt, ct);
     }
 }
