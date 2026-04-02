@@ -227,7 +227,7 @@ function PortalShell({
               <span />
             </button>
 
-            <div className="hero-brand compact">
+            <div className="hero-brand">
               <div className="hero-brand-mark">MC</div>
               <div>
                 <div className="hero-brand-name">MedCore HMS</div>
@@ -269,10 +269,10 @@ function PortalShell({
             </div>
 
             <div className="sidebar-status">
-              <div className="eyebrow">Assistant status</div>
+              <div className="eyebrow">AI status</div>
               <div className="status-card">
                 <strong>{bootstrap.aiAssistant?.providerStatusLabel || "Dashboard ready"}</strong>
-                <span>{bootstrap.aiAssistant?.providerNote || "The workspace is connected to the live backend."}</span>
+                <span>{bootstrap.aiAssistant?.providerNote || "Connected to live backend."}</span>
               </div>
             </div>
           </aside>
