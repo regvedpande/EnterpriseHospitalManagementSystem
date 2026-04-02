@@ -7,18 +7,18 @@ const TOKEN_KEY = "medcore.portal.token";
 const USER_KEY = "medcore.portal.user";
 
 const demoUsers = [
-  { label: "Admin", email: "admin@hospital.com", password: "Admin@123" },
-  { label: "Doctor", email: "doctor@hospital.com", password: "Doctor@123" },
   { label: "Receptionist", email: "receptionist@hospital.com", password: "Receptionist@123" },
+  { label: "Doctor", email: "doctor@hospital.com", password: "Doctor@123" },
   { label: "Pharmacist", email: "pharmacist@hospital.com", password: "Pharmacist@123" },
   { label: "Patient", email: "patient@hospital.com", password: "Patient@123" },
+  { label: "Admin", email: "admin@hospital.com", password: "Admin@123" },
 ];
 
 export default function App() {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [bootstrap, setBootstrap] = useState<PortalBootstrap | null>(null);
   const [loading, setLoading] = useState(Boolean(token));
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!token) {
@@ -66,11 +66,11 @@ export default function App() {
   if (loading || !bootstrap) {
     return (
       <div className="screen-center">
-        <div className="loading-card">
-          <div className="eyebrow">Connecting to MedCore HMS</div>
-          <h1>Loading your live portal</h1>
-          <p>{error || "Pulling dashboard metrics, role access, and AI assistant status from the backend."}</p>
-        </div>
+        <section className="loading-card">
+          <div className="eyebrow">MedCore HMS</div>
+          <h1>Loading portal</h1>
+          <p>{error || "Connecting to the live backend and preparing your workspace."}</p>
+        </section>
       </div>
     );
   }
@@ -109,27 +109,25 @@ function LoginPage({ onLoggedIn }: { onLoggedIn: (response: LoginResponse) => vo
   return (
     <div className="auth-layout">
       <section className="auth-hero">
-        <div className="eyebrow">Recruiter-ready live demo</div>
-        <h1>MedCore HMS React Portal</h1>
+        <div className="eyebrow">MedCore HMS</div>
+        <h1>Professional hospital portal demo</h1>
         <p>
-          This standalone frontend talks to the .NET API over JWT, so you can demo the product without relying on
-          Razor pages in production.
+          A clean React frontend for role-based dashboards and AI workflows, connected directly to the live .NET API.
         </p>
-        <div className="credential-grid">
-          {demoUsers.map((user) => (
-            <button
-              key={user.email}
-              type="button"
-              className="credential-chip"
-              onClick={() => {
-                setEmail(user.email);
-                setPassword(user.password);
-              }}
-            >
-              <span>{user.label}</span>
-              <small>{user.email}</small>
-            </button>
-          ))}
+
+        <div className="auth-note-list">
+          <article className="auth-note">
+            <strong>Role-aware views</strong>
+            <span>Each user lands in the correct workspace with relevant metrics and actions.</span>
+          </article>
+          <article className="auth-note">
+            <strong>Live backend data</strong>
+            <span>Dashboard cards and assistant results are driven by the deployed API.</span>
+          </article>
+          <article className="auth-note">
+            <strong>Fast demo flow</strong>
+            <span>Choose a seeded account below and move straight into the product.</span>
+          </article>
         </div>
       </section>
 
@@ -137,15 +135,37 @@ function LoginPage({ onLoggedIn }: { onLoggedIn: (response: LoginResponse) => vo
         <form className="auth-card" onSubmit={handleSubmit}>
           <div className="eyebrow">Portal access</div>
           <h2>Sign in</h2>
+          <p className="support-copy">Use one of the demo accounts or type a seeded credential manually.</p>
+
+          <div className="credential-grid">
+            {demoUsers.map((user) => (
+              <button
+                key={user.email}
+                type="button"
+                className="credential-chip"
+                onClick={() => {
+                  setEmail(user.email);
+                  setPassword(user.password);
+                }}
+              >
+                <span>{user.label}</span>
+                <small>{user.email}</small>
+              </button>
+            ))}
+          </div>
+
           <label className="field">
             <span>Email</span>
             <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
           </label>
+
           <label className="field">
             <span>Password</span>
             <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required />
           </label>
+
           {error ? <div className="form-error">{error}</div> : null}
+
           <button className="primary-button" type="submit" disabled={busy}>
             {busy ? "Signing in..." : "Enter portal"}
           </button>
@@ -168,75 +188,105 @@ function PortalShell({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const [navOpen, setNavOpen] = useState(false);
 
   useEffect(() => {
     if (location.pathname === "/") navigate("/dashboard", { replace: true });
   }, [location.pathname, navigate]);
 
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
+
   return (
-    <div className="portal-layout">
-      <aside className="sidebar">
-        <div className="brand-block">
-          <div className="brand-mark">MC</div>
-          <div>
-            <div className="brand-name">MedCore HMS</div>
-            <div className="brand-subtitle">{bootstrap.user.roleDisplay} portal</div>
-          </div>
-        </div>
+    <div className="portal-shell">
+      <header className="app-header">
+        <div className="app-header-left">
+          <button
+            type="button"
+            className="menu-button"
+            aria-label="Toggle navigation"
+            onClick={() => setNavOpen((value) => !value)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
 
-        <nav className="nav-stack">
-          {bootstrap.navigation.map((item) => (
-            <NavLink key={item.key} to={item.route} className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}>
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="provider-pill">
-            {bootstrap.aiAssistant?.providerStatusLabel || "Dashboard ready"}
-          </div>
-        </div>
-      </aside>
-
-      <main className="portal-main">
-        <header className="topbar-react">
-          <div>
-            <div className="eyebrow">Live backend session</div>
-            <h1>{bootstrap.dashboard.title}</h1>
-          </div>
-          <div className="profile-block">
-            <div className="avatar-react">{bootstrap.user.initials}</div>
+          <div className="brand-block">
+            <div className="brand-mark">MC</div>
             <div>
-              <strong>{bootstrap.user.name}</strong>
-              <div>{bootstrap.user.roleDisplay}</div>
+              <div className="brand-name">MedCore HMS</div>
+              <div className="brand-subtitle">{bootstrap.user.roleDisplay} workspace</div>
             </div>
-            <button type="button" className="ghost-button" onClick={onLogout}>
-              Sign out
-            </button>
           </div>
-        </header>
+        </div>
 
-        <Routes>
-          <Route path="/dashboard" element={<DashboardPage dashboard={bootstrap.dashboard} />} />
-          <Route
-            path="/assistant"
-            element={
-              bootstrap.aiAssistant ? (
-                <AssistantPage
-                  token={token}
-                  initial={bootstrap.aiAssistant}
-                  onUpdated={(assistant) => onBootstrapChange({ ...bootstrap, aiAssistant: assistant })}
-                />
-              ) : (
-                <UnavailableAssistant />
-              )
-            }
-          />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </main>
+        <div className="profile-block">
+          <div className="profile-copy">
+            <strong>{bootstrap.user.name}</strong>
+            <span>{bootstrap.user.roleDisplay}</span>
+          </div>
+          <div className="avatar-react">{bootstrap.user.initials}</div>
+          <button type="button" className="ghost-button" onClick={onLogout}>
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <div className="portal-layout">
+        <div className={`sidebar-backdrop${navOpen ? " open" : ""}`} onClick={() => setNavOpen(false)} />
+
+        <aside className={`sidebar${navOpen ? " open" : ""}`}>
+          <div className="sidebar-section-label">Navigation</div>
+          <nav className="nav-stack">
+            {bootstrap.navigation.map((item) => (
+              <NavLink
+                key={item.key}
+                to={item.route}
+                className={({ isActive }) => `nav-item${isActive ? " active" : ""}`}
+              >
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="sidebar-meta">
+            <div className="sidebar-section-label">Assistant status</div>
+            <div className="provider-pill">{bootstrap.aiAssistant?.providerStatusLabel || "Dashboard ready"}</div>
+          </div>
+        </aside>
+
+        <main className="portal-main">
+          <header className="page-header">
+            <div>
+              <div className="eyebrow">Live backend session</div>
+              <h1>{bootstrap.dashboard.title}</h1>
+              <p>{bootstrap.dashboard.subtitle}</p>
+            </div>
+          </header>
+
+          <Routes>
+            <Route path="/dashboard" element={<DashboardPage dashboard={bootstrap.dashboard} />} />
+            <Route
+              path="/assistant"
+              element={
+                bootstrap.aiAssistant ? (
+                  <AssistantPage
+                    token={token}
+                    initial={bootstrap.aiAssistant}
+                    onUpdated={(assistant) => onBootstrapChange({ ...bootstrap, aiAssistant: assistant })}
+                  />
+                ) : (
+                  <UnavailableAssistant />
+                )
+              }
+            />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </main>
+      </div>
     </div>
   );
 }
@@ -244,15 +294,17 @@ function PortalShell({
 function DashboardPage({ dashboard }: { dashboard: PortalBootstrap["dashboard"] }) {
   return (
     <div className="page-stack">
-      <section className="hero-card">
-        <div className="eyebrow">Operational summary</div>
-        <h2>{dashboard.title}</h2>
-        <p>{dashboard.subtitle}</p>
+      <section className="overview-panel">
+        <div className="overview-copy">
+          <div className="eyebrow">Overview</div>
+          <h2>{dashboard.title}</h2>
+          <p>{dashboard.subtitle}</p>
+        </div>
       </section>
 
       <section className="metric-grid">
         {dashboard.metrics.map((metric) => (
-          <article key={metric.label} className={`metric-card tone-${metric.tone}`}>
+          <article key={metric.label} className="metric-card">
             <div className="metric-label">{metric.label}</div>
             <div className="metric-value">{metric.value}</div>
             {metric.description ? <div className="metric-note">{metric.description}</div> : null}
@@ -269,6 +321,7 @@ function DashboardPage({ dashboard }: { dashboard: PortalBootstrap["dashboard"] 
                 <p>{chart.subtitle}</p>
               </div>
             </div>
+
             <div className="chart-bars">
               {chart.labels.map((label, index) => {
                 const value = chart.values[index] ?? 0;
@@ -294,13 +347,14 @@ function DashboardPage({ dashboard }: { dashboard: PortalBootstrap["dashboard"] 
         <div className="panel-header">
           <div>
             <h3>Recent activity</h3>
-            <p>Live items from the backend for the current role.</p>
+            <p>Latest backend records for the signed-in role.</p>
           </div>
         </div>
+
         <div className="activity-list">
           {dashboard.recentItems.map((item, index) => (
             <article key={`${item.title}-${index}`} className="activity-item">
-              <div>
+              <div className="activity-primary">
                 <strong>{item.title}</strong>
                 <div>{item.subtitle}</div>
               </div>
@@ -341,6 +395,7 @@ function AssistantPage({
 
     setBusy(true);
     setError("");
+
     try {
       const next = await api.askAssistant(token, prompt.trim());
       startTransition(() => {
@@ -356,16 +411,22 @@ function AssistantPage({
 
   return (
     <div className="page-stack">
-      <section className="hero-card">
-        <div className="eyebrow">{assistant.providerStatusLabel}</div>
-        <h2>{assistant.pageTitle}</h2>
-        <p>{assistant.subtitle}</p>
-        <div className="provider-inline">{assistant.providerNote}</div>
+      <section className="overview-panel">
+        <div className="overview-copy">
+          <div className="eyebrow">{assistant.providerStatusLabel}</div>
+          <h2>{assistant.pageTitle}</h2>
+          <p>{assistant.subtitle}</p>
+        </div>
+
+        <div className="overview-aside">
+          <span className={`status-pill tone-${assistant.responseStatusTone}`}>{assistant.responseStatusLabel}</span>
+          <p>{assistant.providerNote}</p>
+        </div>
       </section>
 
       <section className="metric-grid">
         {assistant.metrics.map((metric) => (
-          <article key={metric.label} className={`metric-card tone-${metric.tone}`}>
+          <article key={metric.label} className="metric-card">
             <div className="metric-label">{metric.label}</div>
             <div className="metric-value">{metric.value}</div>
             {metric.description ? <div className="metric-note">{metric.description}</div> : null}
@@ -373,14 +434,50 @@ function AssistantPage({
         ))}
       </section>
 
-      <section className="two-column">
+      <section className="assistant-layout">
         <article className="panel-card">
           <div className="panel-header">
             <div>
-              <h3>Capabilities</h3>
-              <p>Role-specific tools already enabled for this assistant.</p>
+              <h3>Ask the assistant</h3>
+              <p>Submit a case, medication question, or workflow request.</p>
             </div>
           </div>
+
+          <form className="assistant-form" onSubmit={submitPrompt}>
+            <label className="field">
+              <span>{assistant.promptLabel}</span>
+              <textarea
+                rows={6}
+                value={prompt}
+                placeholder={assistant.promptPlaceholder}
+                onChange={(event) => setPrompt(event.target.value)}
+              />
+            </label>
+
+            <div className="prompt-list">
+              {assistant.suggestedPrompts.map((item) => (
+                <button key={item} type="button" className="prompt-chip" onClick={() => setPrompt(item)}>
+                  {item}
+                </button>
+              ))}
+            </div>
+
+            {error ? <div className="form-error">{error}</div> : null}
+
+            <button className="primary-button" type="submit" disabled={busy}>
+              {busy ? "Generating..." : assistant.submitLabel}
+            </button>
+          </form>
+        </article>
+
+        <article className="panel-card">
+          <div className="panel-header">
+            <div>
+              <h3>Role coverage</h3>
+              <p>What this assistant is currently configured to help with.</p>
+            </div>
+          </div>
+
           <div className="chip-grid">
             {assistant.capabilities.map((capability) => (
               <span className="chip" key={capability}>
@@ -388,52 +485,18 @@ function AssistantPage({
               </span>
             ))}
           </div>
-          <div className="prompt-list">
-            {assistant.suggestedPrompts.map((item) => (
-              <button key={item} type="button" className="prompt-chip" onClick={() => setPrompt(item)}>
-                {item}
-              </button>
-            ))}
-          </div>
-        </article>
 
-        <article className="panel-card">
-          <div className="panel-header">
-            <div>
-              <h3>Live insights</h3>
-              <p>Data-backed context shipped by the backend.</p>
+          {assistant.liveInsights.length > 0 ? (
+            <div className="insight-block">
+              <h4>Live insights</h4>
+              <ul className="detail-list">
+                {assistant.liveInsights.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
-          </div>
-          <ul className="detail-list">
-            {assistant.liveInsights.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
+          ) : null}
         </article>
-      </section>
-
-      <section className="panel-card">
-        <div className="panel-header">
-          <div>
-            <h3>{assistant.sidebarTitle} prompt</h3>
-            <p>Submit a real case or question to the live API-backed assistant.</p>
-          </div>
-        </div>
-        <form className="assistant-form" onSubmit={submitPrompt}>
-          <label className="field">
-            <span>{assistant.promptLabel}</span>
-            <textarea
-              rows={5}
-              value={prompt}
-              placeholder={assistant.promptPlaceholder}
-              onChange={(event) => setPrompt(event.target.value)}
-            />
-          </label>
-          {error ? <div className="form-error">{error}</div> : null}
-          <button className="primary-button" type="submit" disabled={busy}>
-            {busy ? "Generating..." : assistant.submitLabel}
-          </button>
-        </form>
       </section>
 
       {assistant.sections.length > 0 ? (
@@ -443,13 +506,10 @@ function AssistantPage({
               <h3>{assistant.responseTitle}</h3>
               <p>{assistant.responseSummary}</p>
             </div>
-            <span className={`status-pill tone-${assistant.responseStatusTone}`}>{assistant.responseStatusLabel}</span>
           </div>
 
-          {assistant.aiNarrative ? <pre className="ai-output">{assistant.aiNarrative}</pre> : null}
-
           {assistant.detectedSignals.length > 0 ? (
-            <div className="chip-grid">
+            <div className="chip-grid compact">
               {assistant.detectedSignals.map((signal) => (
                 <span className="chip" key={signal}>
                   {signal}
@@ -481,6 +541,13 @@ function AssistantPage({
               </article>
             ))}
           </div>
+
+          {assistant.aiNarrative ? (
+            <div className="narrative-block">
+              <h4>Live AI output</h4>
+              <pre className="ai-output">{assistant.aiNarrative}</pre>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
@@ -492,26 +559,51 @@ function AssistantPage({
 function UnavailableAssistant() {
   return (
     <section className="panel-card">
-      <h2>AI assistant unavailable for this role</h2>
-      <p>This account currently has dashboard-only access in the React demo shell.</p>
+      <div className="eyebrow">Assistant unavailable</div>
+      <h2>AI access is not enabled for this role in the React portal</h2>
+      <p>This account currently has dashboard-only access in the demo shell.</p>
     </section>
   );
 }
 
 function AboutPage() {
   return (
-    <section className="panel-card page-stack">
-      <div>
-        <div className="eyebrow">Deployment checklist</div>
-        <h2>How this demo is meant to run</h2>
-      </div>
-      <ul className="detail-list">
-        <li>Backend runs in Docker on Render and exposes the .NET API at `/api`.</li>
-        <li>Frontend runs on Vercel and points `VITE_API_BASE_URL` at the Render API base URL.</li>
-        <li>The React app uses JWT auth, so it does not depend on Razor cookies or antiforgery tokens.</li>
-        <li>The backend supports SQLite for demo deployment and SQL Server for richer local development.</li>
-      </ul>
-    </section>
+    <div className="page-stack">
+      <section className="overview-panel">
+        <div className="overview-copy">
+          <div className="eyebrow">Deployment</div>
+          <h2>How this demo is wired</h2>
+          <p>The React frontend runs separately from the .NET backend so the demo is easy to host and share.</p>
+        </div>
+      </section>
+
+      <section className="section-grid">
+        <article className="section-card">
+          <h4>Backend</h4>
+          <ul className="detail-list">
+            <li>Render hosts the ASP.NET Core backend in Docker.</li>
+            <li>The API is exposed under <code>/api</code>.</li>
+            <li>SQLite is supported for lightweight demo deployments.</li>
+          </ul>
+        </article>
+        <article className="section-card">
+          <h4>Frontend</h4>
+          <ul className="detail-list">
+            <li>Vercel hosts the Vite React app from the <code>frontend</code> folder.</li>
+            <li>The UI authenticates with JWT and talks to the backend directly.</li>
+            <li>CORS is configured in the backend for approved frontend origins.</li>
+          </ul>
+        </article>
+        <article className="section-card">
+          <h4>Demo flow</h4>
+          <ul className="detail-list">
+            <li>Sign in with a seeded role account.</li>
+            <li>Review the dashboard.</li>
+            <li>Open the assistant and submit a prompt.</li>
+          </ul>
+        </article>
+      </section>
+    </div>
   );
 }
 
